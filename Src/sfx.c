@@ -72,8 +72,11 @@ tExpSmooth smoother3;
 
 tExpSmooth neartune_smoother;
 
-#define NUM_STRINGS 4
+#define NUM_STRINGS 8
 tLivingString theString[NUM_STRINGS];
+
+float myFreq;
+float myDetune[NUM_STRINGS];
 
 //control objects
 float notePeriods[128];
@@ -121,11 +124,7 @@ void initGlobalSFXObjects()
 	}
 
 
-	for (int i = 0; i < NUM_VOC_VOICES; i++)
-		{
-			tSawtooth_init(&osc[i]);
-		}
-		tSawtooth_setFreq(&osc[0], 200);
+
 
 	tRamp_init(&nearWetRamp, 10.0f, 1);
 	tRamp_init(&nearDryRamp, 10.0f, 1);
@@ -138,6 +137,11 @@ void SFXVocoderIPAlloc()
 {
 	tTalkbox_init(&vocoder, 1024);
 	tPoly_setNumVoices(&poly, NUM_VOC_VOICES);
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
+	{
+		tSawtooth_initToPool(&osc[i], &smallPool);
+	}
+
 }
 
 void SFXVocoderIPFrame()
@@ -173,6 +177,10 @@ void SFXVocoderIPTick(float audioIn)
 void SFXVocoderIPFree(void)
 {
 	tTalkbox_free(&vocoder);
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
+	{
+		tSawtooth_freeFromPool(&osc[i], &smallPool);
+	}
 }
 
 
@@ -183,6 +191,9 @@ void SFXVocoderIMAlloc()
 {
 	tTalkbox_init(&vocoder3, 1024);
 	tPoly_setNumVoices(&poly, 1);
+
+	tSawtooth_initToPool(&osc[0], &smallPool);
+
 }
 
 void SFXVocoderIMFrame()
@@ -211,7 +222,7 @@ void SFXVocoderIMTick(float audioIn)
 void SFXVocoderIMFree(void)
 {
 	tTalkbox_free(&vocoder3);
-
+	tSawtooth_freeFromPool(&osc[0], &smallPool);
 }
 
 
@@ -255,10 +266,11 @@ void SFXPitchShiftAlloc()
 	//tFormantShifter_init(&fs, 1024, 7);
 	//tRetune_init(&retune, NUM_RETUNE, 2048, 1024);
 
-	tFormantShifter_init(&fs, 256, 20);
-	tRetune_init(&retune, NUM_RETUNE, 512, 256);
-	tRetune_init(&retune2, NUM_RETUNE, 512, 256);
+	tFormantShifter_init(&fs, 128, 13);
+	tRetune_init(&retune, NUM_RETUNE, 1024, 512);
+	tRetune_init(&retune2, NUM_RETUNE, 1024, 512);
 	tRamp_init(&pitchshiftRamp, 100.0f, 1);
+	tRamp_setVal(&pitchshiftRamp, 1.0f);
 
 
 	tExpSmooth_init(&smoother1, 0.0f, 0.01f);
@@ -289,7 +301,7 @@ void SFXPitchShiftTick(float audioIn)
 	tRetune_setPitchFactor(&retune2, myPitchFactor, 0);
 
 
-	uiParams[2] = LEAF_clip( 0.0f,((smoothedADC[2]) * 1.1f) - 0.2f, 2.0f);
+	uiParams[2] = LEAF_clip( 0.0f,((smoothedADC[2]) * 2.0f) - 0.2f, 2.0f);
 
 	uiParams[3] = fastexp2f((smoothedADC[3]*2.0f) - 1.0f);
 
@@ -393,7 +405,7 @@ void SFXNeartuneTick(float audioIn)
 	float detectedPeriod = tAutotune_getInputPeriod(&autotuneMono);
 	float desiredSnap = nearestPeriod(detectedPeriod);
 
-	uiParams[0] = smoothedADC[0]; // amount of forcing to new pitch
+	uiParams[0] = LEAF_clip(0.0f, smoothedADC[0] * 1.1f, 1.0f); // amount of forcing to new pitch
 	uiParams[1] = smoothedADC[1]; //speed to get to desired pitch shift
 	tExpSmooth_setFactor(&neartune_smoother, (uiParams[1] * .01f));
 	float destinationPeriod = (desiredSnap * uiParams[0]) + (detectedPeriod * (1.0f - uiParams[0]));
@@ -1135,39 +1147,46 @@ void SFXReverb2Free(void)
 	tSVF_free(&bandpass2);
 }
 
-//17 Living String
-float myFreq;
-float myDetune[NUM_STRINGS];
 
+//17 Living String
 void SFXLivingStringAlloc()
 {
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 		myFreq = (randomNumber() * 300.0f) + 60.0f;
 		myDetune[i] = (randomNumber() * 0.3f) - 0.15f;
-		tLivingString_init(&theString[i],  myFreq, 0.4f, 0.0f, 16000.0f, .99f, .25f, .01f, 0.1f, 0);
+		//tLivingString_init(&theString[i],  myFreq, 0.4f, 0.0f, 16000.0f, .999f, .5f, .5f, 0.1f, 0);
+		tLivingString_init(&theString[i], 440.f, 0.2f, 0.f, 9000.f, 1.0f, 0.3f, 0.01f, 0.125f, 0);
 	}
 }
 
 void SFXLivingStringFrame()
 {
-
+	uiParams[0] = mtof((smoothedADC[0] * 135.0f)); //freq
+	uiParams[1] = smoothedADC[1]; //detune
+	uiParams[2] = ((smoothedADC[2] * 0.09999999f) + 0.9f);
+	uiParams[3] = mtof(smoothedADC[3] * 128.0f) + 30.0f; //lowpass
+	uiParams[4] = (smoothedADC[4] * 0.5) + 0.02f;//pickPos
+	for (int i = 0; i < NUM_STRINGS; i++)
+	{
+		tLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * uiParams[1]))) * uiParams[0]);
+		tLivingString_setDecay(&theString[i], uiParams[2]);
+		tLivingString_setDampFreq(&theString[i], uiParams[3]);
+		tLivingString_setPickPos(&theString[i], uiParams[4]);
+	}
 
 }
 
 
 void SFXLivingStringTick(float audioIn)
 {
-	uiParams[0] = mtof(smoothedADC[0] * 128.0f);
-	uiParams[1] = smoothedADC[1];
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		tLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * uiParams[1]))) * uiParams[0]);
 		sample += tLivingString_tick(&theString[i], audioIn);
 	}
-	//tLivingString_setFreq(&theString, uiParams[0]);
-	sample *= 1.0f/NUM_STRINGS;
-	rightOut = sample * 0.5f;
+	sample *= 0.0625f;
+	rightOut = sample;
+
 
 }
 

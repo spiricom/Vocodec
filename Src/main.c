@@ -100,19 +100,25 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
+  /* Enable I-Cache---------------------------------------------------------*/
+  SCB_EnableICache();
 
+  /* Enable D-Cache---------------------------------------------------------*/
+  SCB_EnableDCache();
   /* USER CODE BEGIN Init */
 
+  //disabling I and D cache because they cause issues with the USB initialization when -o3 optimization is on
+  /* Enable I-Cache---------------------------------------------------------*/
+  SCB_DisableICache();
+
+  /* Enable D-Cache---------------------------------------------------------*/
+  SCB_DisableDCache();
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
-  //NOTE:
-  /// it seems we need to enable caching after setting up the USB Host Controller -
-  // otherwise turning on -o3 optimization causes unreliable behavior where it's not set up correctly and never reaches the USB interrupt for connection
 
 
   /* USER CODE END SysInit */
@@ -151,9 +157,13 @@ int main(void)
     Error_Handler();
   }
   if((EE_ReadVariable(VirtAddVarTab[0],  &VarDataTab)) != HAL_OK) // read what the preset was before last power-off
+  {
+	//if it can't read something, it's probably because this brain has never been programmed, so write a value in there to start with
+	  if((EE_WriteVariable(VirtAddVarTab[0],  0)) != HAL_OK)
 	{
-	  Error_Handler();
+		Error_Handler();
 	}
+  }
   if (VarDataTab < PresetNil) //make sure the stored data is a number not past the number of available presets
   {
 	  currentPreset = VarDataTab; //if it's good, start at that remembered preset number

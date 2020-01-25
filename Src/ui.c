@@ -549,11 +549,11 @@ static void initModeNames(void)
 	modeNames[LivingString] = "STRING";
 	shortModeNames[LivingString] = "LS";
 	modeNamesDetails[LivingString] = "LIVING STRING";
-	paramNames[LivingString][0] = "SIZE";
-	paramNames[LivingString][1] = "LOWPASS";
-	paramNames[LivingString][2] = "HIGHPASS";
-	paramNames[LivingString][3] = "PEAK_FREQ";
-	paramNames[LivingString][4] = "PEAK_GAIN";
+	paramNames[LivingString][0] = "FREQ";
+	paramNames[LivingString][1] = "DETUNE";
+	paramNames[LivingString][2] = "DECAY";
+	paramNames[LivingString][3] = "DAMPING";
+	paramNames[LivingString][4] = "PICK_POS";
 	paramNames[LivingString][5] = "";
 }
 
