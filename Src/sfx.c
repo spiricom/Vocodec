@@ -139,7 +139,7 @@ void SFXVocoderIPAlloc()
 	tPoly_setNumVoices(&poly, NUM_VOC_VOICES);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
-		tSawtooth_initToPool(&osc[i], &smallPool);
+		///tSawtooth_initToPool(&osc[i], &smallPool);
 	}
 
 }
@@ -152,7 +152,7 @@ void SFXVocoderIPFrame()
 	{
 		tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
 		calculateFreq(i);
-		tSawtooth_setFreq(&osc[i], freq[i]);
+		//tSawtooth_setFreq(&osc[i], freq[i]);
 	}
 
 	if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
@@ -165,7 +165,7 @@ void SFXVocoderIPTick(float audioIn)
 
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
-		sample += tSawtooth_tick(&osc[i]) * tRamp_tick(&polyRamp[i]);
+		//sample += tSawtooth_tick(&osc[i]) * tRamp_tick(&polyRamp[i]);
 	}
 	sample *= tRamp_tick(&comp);
 	sample *= uiParams[0];
@@ -179,7 +179,7 @@ void SFXVocoderIPFree(void)
 	tTalkbox_free(&vocoder);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
-		tSawtooth_freeFromPool(&osc[i], &smallPool);
+		//tSawtooth_freeFromPool(&osc[i], &smallPool);
 	}
 }
 
@@ -192,7 +192,7 @@ void SFXVocoderIMAlloc()
 	tTalkbox_init(&vocoder3, 1024);
 	tPoly_setNumVoices(&poly, 1);
 
-	tSawtooth_initToPool(&osc[0], &smallPool);
+	//tSawtooth_initToPool(&osc[0], &smallPool);
 
 }
 
@@ -205,14 +205,14 @@ void SFXVocoderIMFrame()
 
 	tRamp_setDest(&polyRamp[0], (tPoly_getVelocity(&poly, 0) > 0));
 	calculateFreq(0);
-	tSawtooth_setFreq(&osc[0], freq[0]);
+	//tSawtooth_setFreq(&osc[0], freq[0]);
 }
 
 void SFXVocoderIMTick(float audioIn)
 {
 	tPoly_tickPitch(&poly);
 	uiParams[0] = smoothedADC[0]; //vocoder volume
-	sample = tSawtooth_tick(&osc[0]) * tRamp_tick(&polyRamp[0]);
+	//sample = tSawtooth_tick(&osc[0]) * tRamp_tick(&polyRamp[0]);
 	sample *= uiParams[0];
 	sample = tTalkbox_tick(&vocoder3, sample, audioIn);
 	sample = tanhf(sample);
@@ -222,7 +222,7 @@ void SFXVocoderIMTick(float audioIn)
 void SFXVocoderIMFree(void)
 {
 	tTalkbox_free(&vocoder3);
-	tSawtooth_freeFromPool(&osc[0], &smallPool);
+	//tSawtooth_freeFromPool(&osc[0], &smallPool);
 }
 
 
@@ -266,7 +266,7 @@ void SFXPitchShiftAlloc()
 	//tFormantShifter_init(&fs, 1024, 7);
 	//tRetune_init(&retune, NUM_RETUNE, 2048, 1024);
 
-	tFormantShifter_init(&fs, 128, 13);
+	tFormantShifter_init(&fs, 1, 13);
 	tRetune_init(&retune, NUM_RETUNE, 1024, 512);
 	tRetune_init(&retune2, NUM_RETUNE, 1024, 512);
 	tRamp_init(&pitchshiftRamp, 100.0f, 1);
@@ -288,9 +288,7 @@ void SFXPitchShiftTick(float audioIn)
 {
 	//pitchFactor = (smoothedADC[0]*3.75f)+0.25f;
 
-
-
-
+/*
 	float myPitchFactorCoarse = (smoothedADC[0]*2.0f) - 1.0f;
 	float myPitchFactorFine = ((smoothedADC[1]*2.0f) - 1.0f) * 0.1f;
 	float myPitchFactorCombined = myPitchFactorFine + myPitchFactorCoarse;
@@ -324,19 +322,25 @@ void SFXPitchShiftTick(float audioIn)
 	LEAF_crossfade(crossfadeVal, myGains);
 	tExpSmooth_setDest(&smoother1, myGains[0]);
 	tExpSmooth_setDest(&smoother2, myGains[1]);
+*/
+	tFormantShifter_setIntensity(&fs, 2.0f);
+	tFormantShifter_setShiftFactor(&fs, 1.0f);
+	float formantsample = tanhf(tFormantShifter_remove(&fs, audioIn));
+	formantsample = tanhf(tFormantShifter_add(&fs, formantsample));
+	sample = formantsample;
+	rightOut = sample;
 
-	float formantsample = (tanhf(tFormantShifter_remove(&fs, audioIn)));
-
-
+/*
 	float* samples = tRetune_tick(&retune2, formantsample);
 	formantsample = samples[0];
 	sample = audioIn;
 	samples = tRetune_tick(&retune, sample);
 	sample = samples[0];
+*/
 
-	formantsample = (tanhf(tFormantShifter_add(&fs, formantsample) * 0.9f)) * tExpSmooth_tick(&smoother2) ;
-	sample = (sample * (tExpSmooth_tick(&smoother1))) +  formantsample;
-	rightOut = sample;
+	//formantsample = (tanhf(tFormantShifter_add(&fs, formantsample) * 0.9f)) * tExpSmooth_tick(&smoother2) ;
+	//sample = (sample * (tExpSmooth_tick(&smoother1))) +  formantsample;
+
 
 }
 

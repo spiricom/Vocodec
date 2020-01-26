@@ -117,9 +117,7 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 	tMempool_init (&largePool, large_memory, LARGE_MEM_SIZE);
 
 	initFunctionPointers();
-	tNoise_init(&myNoise, WhiteNoise);
-	tCycle_init(&mySine[0]);
-	tCycle_setFreq(&mySine[0],2200.0f);
+
 	//ramps to smooth the knobs
 	for (int i = 0; i < 6; i++)
 	{
@@ -233,7 +231,6 @@ void audioFrame(uint16_t buffer_offset)
 				}
 				allocFunctions[currentPreset]();
 				loadingPreset = 0;
-				//OLED_draw();
 			}
 		}
 	}
@@ -249,7 +246,6 @@ void audioFrame(uint16_t buffer_offset)
 float audioTickL(float audioIn)
 {
 	sample = 0.0f;
-	//audioIn = tanhf(audioIn);
 
 
 	for (int i = 0; i < 6; i++)
@@ -344,18 +340,6 @@ float audioTickR(float audioIn)
 		clipped[3] = 0;
 	}
 	return rightOut;
-}
-
-void freePreset(VocodecPreset preset)
-{
-
-
-
-}
-
-void allocPreset(VocodecPreset preset)
-{
-
 }
 
 
