@@ -88,7 +88,7 @@ void SDRAM_Initialization_sequence(void);
   * @retval int
   */
 int main(void)
-{
+ {
   /* USER CODE BEGIN 1 */
   MPU_Conf();
   /* USER CODE END 1 */
