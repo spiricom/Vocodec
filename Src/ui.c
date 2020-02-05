@@ -1,15 +1,12 @@
 /*
  * ui.c
  *
- *  Created on: Dec 18, 2018
+ *  Created on: Feb 05, 2018
  *      Author: jeffsnyder
  */
 #include "main.h"
 #include "ui.h"
 #include "ssd1306.h"
-#include "gfx.h"
-#include "custom_fonts.h"
-#include "audiostream.h"
 #include "tunings.h"
 #include "eeprom.h"
 
@@ -19,560 +16,208 @@ uint16_t ADC_values[NUM_ADC_CHANNELS] __ATTR_RAM_D2;
 char* modeNames[PresetNil];
 char* modeNamesDetails[PresetNil];
 char* shortModeNames[PresetNil];
-char* paramNames[PresetNil][NUM_ADC_CHANNELS];
+char* knobParamNames[PresetNil][NUM_ADC_CHANNELS];
 
-float uiParams[NUM_ADC_CHANNELS];
+float knobParams[NUM_ADC_CHANNELS];
+uint8_t buttonParams[2];
+char* (*buttonParamFunctions[PresetNil])(uint8_t);
 
-uint8_t buttonValues[NUM_BUTTONS];
-uint8_t buttonValuesPrev[NUM_BUTTONS];
-uint32_t buttonCounters[NUM_BUTTONS];
-uint8_t buttonPressed[NUM_BUTTONS];
-uint8_t buttonReleased[NUM_BUTTONS];
-uint32_t currentTuning = 0;
-GFX theGFX;
-
-char oled_buffer[32];
 VocodecPreset currentPreset = 0;
 VocodecPreset previousPreset = PresetNil;
 uint8_t loadingPreset = 0;
 
-float uiPitchFactor, uiFormantWarp;
-
-uint8_t samplerRecording;
-
-void OLED_init(I2C_HandleTypeDef* hi2c)
-{
-	  //start up that OLED display
-	  ssd1306_begin(hi2c, SSD1306_SWITCHCAPVCC, SSD1306_I2C_ADDRESS);
-
-	  HAL_Delay(5);
-
-	  //clear the OLED display buffer
-	  for (int i = 0; i < 512; i++)
-	  {
-		  buffer[i] = 0;
-	  }
-	  initModeNames();
-	  //display the blank buffer on the OLED
-	  //ssd1306_display_full_buffer();
-
-	  //initialize the graphics library that lets us write things in that display buffer
-	  GFXinit(&theGFX, 128, 32);
-
-	  //set up the monospaced font
-
-	  //GFXsetFont(&theGFX, &C649pt7b); //funny c64 text monospaced but very large
-	  //GFXsetFont(&theGFX, &DINAlternateBold9pt7b); //very serious and looks good - definitely not monospaced can fit 9 Ms
-	  //GFXsetFont(&theGFX, &DINCondensedBold9pt7b); // very condensed and looks good - definitely not monospaced can fit 9 Ms
-	  GFXsetFont(&theGFX, &EuphemiaCAS9pt7b); //this one is elegant but definitely not monospaced can fit 9 Ms
-	  //GFXsetFont(&theGFX, &GillSans9pt7b); //not monospaced can fit 9 Ms
-	  //GFXsetFont(&theGFX, &Futura9pt7b); //not monospaced can fit only 7 Ms
-	  //GFXsetFont(&theGFX, &FUTRFW8pt7b); // monospaced, pretty, (my old score font) fits 8 Ms
-	  //GFXsetFont(&theGFX, &nk57_monospace_cd_rg9pt7b); //fits 12 characters, a little crammed
-	  //GFXsetFont(&theGFX, &nk57_monospace_no_rg9pt7b); // fits 10 characters
-	  //GFXsetFont(&theGFX, &nk57_monospace_no_rg7pt7b); // fits 12 characters
-	  //GFXsetFont(&theGFX, &nk57_monospace_no_bd7pt7b); //fits 12 characters
-	  //GFXsetFont(&theGFX, &nk57_monospace_cd_rg7pt7b); //fits 18 characters
-
-	  GFXsetTextColor(&theGFX, 1, 0);
-	  GFXsetTextSize(&theGFX, 1);
-
-	  //ssd1306_display_full_buffer();
-
-	  OLEDclear();
-	  OLED_writePreset();
-	  OLED_draw();
-	//sdd1306_invertDisplay(1);
-}
-
-void setLED_Edit(uint8_t onOff)
-{
-	if (onOff)
-	{
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_RESET);
-	}
-}
-
-
-void setLED_USB(uint8_t onOff)
-{
-	if (onOff)
-	{
-		HAL_GPIO_WritePin(GPIOG, GPIO_PIN_6, GPIO_PIN_SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOG, GPIO_PIN_6, GPIO_PIN_RESET);
-	}
-}
-
-
-void setLED_1(uint8_t onOff)
-{
-	if (onOff)
-	{
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
-	}
-}
-
-void setLED_2(uint8_t onOff)
-{
-	if (onOff)
-	{
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
-	}
-}
-
-
-void setLED_A(uint8_t onOff)
-{
-	if (onOff)
-	{
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
-	}
-}
-
-void setLED_B(uint8_t onOff)
-{
-	if (onOff)
-	{
-		HAL_GPIO_WritePin(GPIOG, GPIO_PIN_7, GPIO_PIN_SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOG, GPIO_PIN_7, GPIO_PIN_RESET);
-	}
-}
-
-void setLED_C(uint8_t onOff)
-{
-	if (onOff)
-	{
-		HAL_GPIO_WritePin(GPIOG, GPIO_PIN_10, GPIO_PIN_SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOG, GPIO_PIN_10, GPIO_PIN_RESET);
-	}
-}
-
-void setLED_leftout_clip(uint8_t onOff)
-{
-	if (onOff)
-	{
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-	}
-}
-
-void setLED_rightout_clip(uint8_t onOff)
-{
-	if (onOff)
-	{
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_RESET);
-	}
-}
-
-void setLED_leftin_clip(uint8_t onOff)
-{
-	if (onOff)
-	{
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET);
-	}
-}
-
-void setLED_rightin_clip(uint8_t onOff)
-{
-	if (onOff)
-	{
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
-	}
-}
-
-uint8_t buttonState[10];
-
-void buttonCheck(void)
-{
-	if (codecReady)
-	{
-		buttonValues[0] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13); //edit
-		buttonValues[1] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12); //left
-		buttonValues[2] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14); //right
-		buttonValues[3] = !HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_11); //down
-		buttonValues[4] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15); //up
-		buttonValues[5] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);  // A
-		buttonValues[6] = !HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_7);  // B
-		buttonValues[7] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11); // C
-		buttonValues[8] = !HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_11); // D
-		buttonValues[9] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10); // E
-
-		for (int i = 0; i < NUM_BUTTONS; i++)
-		{
-			// changed this so that presses and releases need to be zeroed by the code that reads them
-			//buttonPressed[i] = 0;
-			//buttonReleased[i] = 0;
-			if ((buttonValues[i] != buttonValuesPrev[i]) && (buttonCounters[i] < 1))
-			{
-				buttonCounters[i]++;
-			}
-			if ((buttonValues[i] != buttonValuesPrev[i]) && (buttonCounters[i] >= 1))
-			{
-				if (buttonValues[i] == 1)
-				{
-					buttonPressed[i] = 1;
-				}
-				else if (buttonValues[i] == 0)
-				{
-					buttonReleased[i] = 1;
-				}
-				buttonValuesPrev[i] = buttonValues[i];
-				buttonCounters[i] = 0;
-			}
-		}
-
-		// make some if statements if you want to find the "attack" of the buttons (getting the "press" action)
-		// we'll need if statements for each button  - maybe should go to functions that are dedicated to each button?
-
-		// TODO: buttons C and E are connected to pins that are used to set up the codec over I2C - we need to reconfigure those pins in some kind of button init after the codec is set up. not done yet.
-
-		if (buttonPressed[0] == 1)
-		{
-			/*
-			setLED_Edit(1);
-			setLED_USB(1);
-			setLED_1(1);
-			setLED_2(1);
-			setLED_A(1);
-			setLED_B(1);
-			setLED_C(1);
-			setLED_leftout_clip(1);
-
-			setLED_leftin_clip(1);
-			setLED_rightout_clip(1);
-			setLED_rightin_clip(1);
-			*/
-
-		}
-
-		// left press
-		if (buttonPressed[1] == 1)
-		{
-			previousPreset = currentPreset;
-
-			if (currentPreset <= 0) currentPreset = PresetNil - 1;
-			else currentPreset--;
-
-			loadingPreset = 1;
-			OLED_writePreset();
-			writeCurrentPresetToFlash();
-			buttonPressed[1] = 0;
-		}
-
-		// right press
-		if (buttonPressed[2] == 1)
-		{
-			previousPreset = currentPreset;
-			if (currentPreset >= PresetNil - 1) currentPreset = 0;
-			else currentPreset++;
-
-			loadingPreset = 1;
-			OLED_writePreset();
-			writeCurrentPresetToFlash();
-			buttonPressed[2] = 0;
-		}
-
-		if (buttonPressed[7] == 1)
-		{
-			//GFXsetFont(&theGFX, &DINCondensedBold9pt7b);
-			keyCenter = (keyCenter + 1) % 12;
-			OLEDclearLine(SecondLine);
-			OLEDwriteString("KEY: ", 5, 0, SecondLine);
-			OLEDwritePitchClass(keyCenter+60, 64, SecondLine);
-			buttonPressed[7] = 0;
-		}
-
-		if (buttonPressed[8] == 1)
-		{
-			if (currentTuning == 0)
-			{
-				currentTuning = NUM_TUNINGS - 1;
-			}
-			else
-			{
-				currentTuning = (currentTuning - 1);
-			}
-			changeTuning();
-			buttonPressed[8] = 0;
-
-		}
-
-		if (buttonPressed[9] == 1)
-		{
-
-			currentTuning = (currentTuning + 1) % NUM_TUNINGS;
-			changeTuning();
-			buttonPressed[9] = 0;
-		}
-	}
-}
-
-void changeTuning()
-{
-	for (int i = 0; i < 12; i++)
-	{
-		centsDeviation[i] = tuningPresets[currentTuning][i];
-
-	}
-	if (currentTuning == 0)
-	{
-		//setLED_C(0);
-	}
-	else
-	{
-		///setLED_C(1);
-	}
-	if (currentPreset == AutotuneMono)
-	{
-		calculatePeriodArray();
-	}
-	GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
-	OLEDclearLine(SecondLine);
-	OLEDwriteString("T ", 2, 0, SecondLine);
-	OLEDwriteInt(currentTuning, 2, 12, SecondLine);
-	OLEDwriteString(tuningNames[currentTuning], 6, 40, SecondLine);
-
-}
-
-
-void OLED_process(void)
-{
-	if (writeParameterFlag > 0)
-	{
-		OLED_writeParameter(writeParameterFlag-1);
-		writeParameterFlag = 0;
-	}
-	OLED_draw();
-}
-static void initModeNames(void)
+void initModeNames(void)
 {
 	modeNames[VocoderInternalPoly] = "VOCODER IP";
 	shortModeNames[VocoderInternalPoly] = "V1";
 	modeNamesDetails[VocoderInternalPoly] = "INTERNAL POLY";
-	paramNames[VocoderInternalPoly][0] = "VOLUME";
-	paramNames[VocoderInternalPoly][1] = " ";
-	paramNames[VocoderInternalPoly][2] = " ";
-	paramNames[VocoderInternalPoly][3] = " ";
-	paramNames[VocoderInternalPoly][4] = " ";
-	paramNames[VocoderInternalPoly][5] = " ";
+	knobParamNames[VocoderInternalPoly][0] = "VOLUME";
+	knobParamNames[VocoderInternalPoly][1] = "";
+	knobParamNames[VocoderInternalPoly][2] = "";
+	knobParamNames[VocoderInternalPoly][3] = "";
+	knobParamNames[VocoderInternalPoly][4] = "";
+	knobParamNames[VocoderInternalPoly][5] = "";
 
 	modeNames[VocoderInternalMono] = "VOCODER IM";
 	shortModeNames[VocoderInternalMono] = "V2";
 	modeNamesDetails[VocoderInternalMono] = "INTERNAL MONO";
-	paramNames[VocoderInternalMono][0] = "VOLUME";
-	paramNames[VocoderInternalMono][1] = " ";
-	paramNames[VocoderInternalMono][2] = " ";
-	paramNames[VocoderInternalMono][3] = " ";
-	paramNames[VocoderInternalMono][4] = " ";
-	paramNames[VocoderInternalMono][5] = " ";
+	knobParamNames[VocoderInternalMono][0] = "VOLUME";
+	knobParamNames[VocoderInternalMono][1] = "";
+	knobParamNames[VocoderInternalMono][2] = "";
+	knobParamNames[VocoderInternalMono][3] = "";
+	knobParamNames[VocoderInternalMono][4] = "";
+	knobParamNames[VocoderInternalMono][5] = "";
 
 	modeNames[VocoderExternal] = "VOCODEC E";
 	shortModeNames[VocoderExternal] = "VE";
 	modeNamesDetails[VocoderExternal] = "EXTERNAL";
-	paramNames[VocoderExternal][0] = " ";
-	paramNames[VocoderExternal][1] = " ";
-	paramNames[VocoderExternal][2] = " ";
-	paramNames[VocoderExternal][3] = " ";
-	paramNames[VocoderExternal][4] = " ";
-	paramNames[VocoderExternal][5] = " ";
+	knobParamNames[VocoderExternal][0] = "";
+	knobParamNames[VocoderExternal][1] = "";
+	knobParamNames[VocoderExternal][2] = "";
+	knobParamNames[VocoderExternal][3] = "";
+	knobParamNames[VocoderExternal][4] = "";
+	knobParamNames[VocoderExternal][5] = "";
 
 	modeNames[Pitchshift] = "PITCHSHIFT";
 	shortModeNames[Pitchshift] = "PS";
 	modeNamesDetails[Pitchshift] = "";
-	paramNames[Pitchshift][0] = "PITCH";
-	paramNames[Pitchshift][1] = "FINE PITCH";
-	paramNames[Pitchshift][2] = "F AMT";
-	paramNames[Pitchshift][3] = "FORMANT";
-	paramNames[Pitchshift][4] = " ";
-	paramNames[Pitchshift][5] = " ";
+	knobParamNames[Pitchshift][0] = "PITCH";
+	knobParamNames[Pitchshift][1] = "FINE PITCH";
+	knobParamNames[Pitchshift][2] = "F AMT";
+	knobParamNames[Pitchshift][3] = "FORMANT";
+	knobParamNames[Pitchshift][4] = "";
+	knobParamNames[Pitchshift][5] = "";
 
 	modeNames[AutotuneMono] = "NEARTUNE";
 	shortModeNames[AutotuneMono] = "NT";
 	modeNamesDetails[AutotuneMono] = "";
-	paramNames[AutotuneMono][0] = "AMOUNT";
-	paramNames[AutotuneMono][1] = "SPEED";
-	paramNames[AutotuneMono][2] = " ";
-	paramNames[AutotuneMono][3] = " ";
-	paramNames[AutotuneMono][4] = " ";
-	paramNames[AutotuneMono][5] = " ";
+	knobParamNames[AutotuneMono][0] = "AMOUNT";
+	knobParamNames[AutotuneMono][1] = "SPEED";
+	knobParamNames[AutotuneMono][2] = "";
+	knobParamNames[AutotuneMono][3] = "";
+	knobParamNames[AutotuneMono][4] = "";
+	knobParamNames[AutotuneMono][5] = "";
 
 	modeNames[AutotunePoly] = "AUTOTUNE";
 	shortModeNames[AutotunePoly] = "AT";
 	modeNamesDetails[AutotunePoly] = "";
-	paramNames[AutotunePoly][0] = " ";
-	paramNames[AutotunePoly][1] = " ";
-	paramNames[AutotunePoly][2] = " ";
-	paramNames[AutotunePoly][3] = " ";
-	paramNames[AutotunePoly][4] = " ";
-	paramNames[AutotunePoly][5] = " ";
+	knobParamNames[AutotunePoly][0] = "";
+	knobParamNames[AutotunePoly][1] = "";
+	knobParamNames[AutotunePoly][2] = "";
+	knobParamNames[AutotunePoly][3] = "";
+	knobParamNames[AutotunePoly][4] = "";
+	knobParamNames[AutotunePoly][5] = "";
 
 	modeNames[SamplerButtonPress] = "SAMPLER BP";
 	shortModeNames[SamplerButtonPress] = "SB";
 	modeNamesDetails[SamplerButtonPress] = "PRESS BUTTON A";
-	paramNames[SamplerButtonPress][0] = "START";
-	paramNames[SamplerButtonPress][1] = "END";
-	paramNames[SamplerButtonPress][2] = "SPEED";
-	paramNames[SamplerButtonPress][3] = "CROSSFADE";
-	paramNames[SamplerButtonPress][4] = " ";
-	paramNames[SamplerButtonPress][5] = " ";
+	knobParamNames[SamplerButtonPress][0] = "START";
+	knobParamNames[SamplerButtonPress][1] = "END";
+	knobParamNames[SamplerButtonPress][2] = "SPEED";
+	knobParamNames[SamplerButtonPress][3] = "CROSSFADE";
+	knobParamNames[SamplerButtonPress][4] = "";
+	knobParamNames[SamplerButtonPress][5] = "";
 
 	modeNames[SamplerAutoGrabInternal] = "AUTOSAMP1";
 	shortModeNames[SamplerAutoGrabInternal] = "A1";
 	modeNamesDetails[SamplerAutoGrabInternal] = "CH1 TRIG";
-	paramNames[SamplerAutoGrabInternal][0] = "THRESHOLD";
-	paramNames[SamplerAutoGrabInternal][1] = "WINDOW";
-	paramNames[SamplerAutoGrabInternal][2] = "REL THRESH";
-	paramNames[SamplerAutoGrabInternal][3] = " ";
-	paramNames[SamplerAutoGrabInternal][4] = " ";
-	paramNames[SamplerAutoGrabInternal][5] = " ";
+	knobParamNames[SamplerAutoGrabInternal][0] = "THRESHOLD";
+	knobParamNames[SamplerAutoGrabInternal][1] = "WINDOW";
+	knobParamNames[SamplerAutoGrabInternal][2] = "REL THRESH";
+	knobParamNames[SamplerAutoGrabInternal][3] = "CROSSFADE";
+	knobParamNames[SamplerAutoGrabInternal][4] = "";
+	knobParamNames[SamplerAutoGrabInternal][5] = "";
 
 	modeNames[SamplerAutoGrabExternal] = "AUTOSAMP2";
 	shortModeNames[SamplerAutoGrabExternal] = "A2";
 	modeNamesDetails[SamplerAutoGrabExternal] = "CH2 TRIG";
-	paramNames[SamplerAutoGrabExternal][0] = " ";
-	paramNames[SamplerAutoGrabExternal][1] = " ";
-	paramNames[SamplerAutoGrabExternal][2] = " ";
-	paramNames[SamplerAutoGrabExternal][3] = " ";
-	paramNames[SamplerAutoGrabExternal][4] = " ";
-	paramNames[SamplerAutoGrabExternal][5] = " ";
+	knobParamNames[SamplerAutoGrabExternal][0] = "";
+	knobParamNames[SamplerAutoGrabExternal][1] = "";
+	knobParamNames[SamplerAutoGrabExternal][2] = "";
+	knobParamNames[SamplerAutoGrabExternal][3] = "";
+	knobParamNames[SamplerAutoGrabExternal][4] = "";
+	knobParamNames[SamplerAutoGrabExternal][5] = "";
 
 	modeNames[DistortionTanH] = "DISTORT1";
 	shortModeNames[DistortionTanH] = "D1";
 	modeNamesDetails[DistortionTanH] = "TANH FUNCTION";
-	paramNames[DistortionTanH][0] = "GAIN";
-	paramNames[DistortionTanH][1] = " ";
-	paramNames[DistortionTanH][2] = " ";
-	paramNames[DistortionTanH][3] = " ";
-	paramNames[DistortionTanH][4] = " ";
-	paramNames[DistortionTanH][5] = " ";
+	knobParamNames[DistortionTanH][0] = "GAIN";
+	knobParamNames[DistortionTanH][1] = "";
+	knobParamNames[DistortionTanH][2] = "";
+	knobParamNames[DistortionTanH][3] = "";
+	knobParamNames[DistortionTanH][4] = "";
+	knobParamNames[DistortionTanH][5] = "";
 
 	modeNames[DistortionShaper] = "DISTORT2";
 	shortModeNames[DistortionShaper] = "D2";
 	modeNamesDetails[DistortionShaper] = "WAVESHAPER";
-	paramNames[DistortionShaper][0] = "GAIN";
-	paramNames[DistortionShaper][1] = "";
-	paramNames[DistortionShaper][2] = "";
-	paramNames[DistortionShaper][3] = "";
-	paramNames[DistortionShaper][4] = " ";
-	paramNames[DistortionShaper][5] = " ";
+	knobParamNames[DistortionShaper][0] = "GAIN";
+	knobParamNames[DistortionShaper][1] = "";
+	knobParamNames[DistortionShaper][2] = "";
+	knobParamNames[DistortionShaper][3] = "";
+	knobParamNames[DistortionShaper][4] = "";
+	knobParamNames[DistortionShaper][5] = "";
 
 	modeNames[Wavefolder] = "WAVEFOLD";
 	shortModeNames[Wavefolder] = "WF";
 	modeNamesDetails[Wavefolder] = "SERGE STYLE";
-	paramNames[Wavefolder][0] = "GAIN";
-	paramNames[Wavefolder][1] = "OFFSET1";
-	paramNames[Wavefolder][2] = "OFFSET2";
-	paramNames[Wavefolder][3] = "OFFSET3";
-	paramNames[Wavefolder][4] = " ";
-	paramNames[Wavefolder][5] = " ";
+	knobParamNames[Wavefolder][0] = "GAIN";
+	knobParamNames[Wavefolder][1] = "OFFSET1";
+	knobParamNames[Wavefolder][2] = "OFFSET2";
+	knobParamNames[Wavefolder][3] = "OFFSET3";
+	knobParamNames[Wavefolder][4] = "";
+	knobParamNames[Wavefolder][5] = "";
 
 	modeNames[BitCrusher] = "BITCRUSH";
 	shortModeNames[BitCrusher] = "BC";
 	modeNamesDetails[BitCrusher] = "AHH HALP ME";
-	paramNames[BitCrusher][0] = "QUALITY";
-	paramNames[BitCrusher][1] = "SAMP RATIO";
-	paramNames[BitCrusher][2] = "ROUNDING";
-	paramNames[BitCrusher][3] = "OPERATION";
-	paramNames[BitCrusher][4] = "GAIN";
-	paramNames[BitCrusher][5] = " ";
+	knobParamNames[BitCrusher][0] = "QUALITY";
+	knobParamNames[BitCrusher][1] = "SAMP RATIO";
+	knobParamNames[BitCrusher][2] = "ROUNDING";
+	knobParamNames[BitCrusher][3] = "OPERATION";
+	knobParamNames[BitCrusher][4] = "GAIN";
+	knobParamNames[BitCrusher][5] = "";
 
 	modeNames[Delay] = "DELAY";
 	shortModeNames[Delay] = "DL";
 	modeNamesDetails[Delay] = "";
-	paramNames[Delay][0] = "DELAY_L";
-	paramNames[Delay][1] = "DELAY_R";
-	paramNames[Delay][2] = "Feedback";
-	paramNames[Delay][3] = "LowPass";
-	paramNames[Delay][4] = "HighPass";
-	paramNames[Delay][5] = "";
+	knobParamNames[Delay][0] = "DELAY_L";
+	knobParamNames[Delay][1] = "DELAY_R";
+	knobParamNames[Delay][2] = "Feedback";
+	knobParamNames[Delay][3] = "LowPass";
+	knobParamNames[Delay][4] = "HighPass";
+	knobParamNames[Delay][5] = "";
 
 	modeNames[Reverb] = "REVERB";
 	shortModeNames[Reverb] = "RV";
 	modeNamesDetails[Reverb] = "DATTORRO ALG";
-	paramNames[Reverb][0] = "SIZE";
-	paramNames[Reverb][1] = "IN LOPASS";
-	paramNames[Reverb][2] = "IN HIPASS";
-	paramNames[Reverb][3] = "FB LOPASS";
-	paramNames[Reverb][4] = "FB GAIN";
-	paramNames[Reverb][5] = "";
+	knobParamNames[Reverb][0] = "SIZE";
+	knobParamNames[Reverb][1] = "IN LOPASS";
+	knobParamNames[Reverb][2] = "IN HIPASS";
+	knobParamNames[Reverb][3] = "FB LOPASS";
+	knobParamNames[Reverb][4] = "FB GAIN";
+	knobParamNames[Reverb][5] = "";
 
 	modeNames[Reverb2] = "REVERB2";
 	shortModeNames[Reverb2] = "RV";
 	modeNamesDetails[Reverb2] = "DATTORRO ALG";
-	paramNames[Reverb2][0] = "SIZE";
-	paramNames[Reverb2][1] = "LOWPASS";
-	paramNames[Reverb2][2] = "HIGHPASS";
-	paramNames[Reverb2][3] = "PEAK_FREQ";
-	paramNames[Reverb2][4] = "PEAK_GAIN";
-	paramNames[Reverb2][5] = "";
+	knobParamNames[Reverb2][0] = "SIZE";
+	knobParamNames[Reverb2][1] = "LOWPASS";
+	knobParamNames[Reverb2][2] = "HIGHPASS";
+	knobParamNames[Reverb2][3] = "PEAK_FREQ";
+	knobParamNames[Reverb2][4] = "PEAK_GAIN";
+	knobParamNames[Reverb2][5] = "";
 
 	modeNames[LivingString] = "STRING";
 	shortModeNames[LivingString] = "LS";
 	modeNamesDetails[LivingString] = "LIVING STRING";
-	paramNames[LivingString][0] = "FREQ";
-	paramNames[LivingString][1] = "DETUNE";
-	paramNames[LivingString][2] = "DECAY";
-	paramNames[LivingString][3] = "DAMPING";
-	paramNames[LivingString][4] = "PICK_POS";
-	paramNames[LivingString][5] = "";
+	knobParamNames[LivingString][0] = "FREQ";
+	knobParamNames[LivingString][1] = "DETUNE";
+	knobParamNames[LivingString][2] = "DECAY";
+	knobParamNames[LivingString][3] = "DAMPING";
+	knobParamNames[LivingString][4] = "PICK_POS";
+	knobParamNames[LivingString][5] = "";
 }
 
-void OLED_writePreset()
+void initUIFunctionPointers(void)
 {
-	GFXsetFont(&theGFX, &EuphemiaCAS9pt7b);
-	OLEDclear();
-	char tempString[24];
-	itoa((currentPreset+1), tempString, 10);
-	strcat(tempString, ":");
-	strcat(tempString, modeNames[currentPreset]);
-	int myLength = strlen(tempString);
-	//OLEDwriteInt(currentPreset+1, 2, 0, FirstLine);
-	//OLEDwriteString(":", 1, 20, FirstLine);
-	//OLEDwriteString(modeNames[currentPreset], 12, 24, FirstLine);
-	OLEDwriteString(tempString, myLength, 0, FirstLine);
-	GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
-	OLEDwriteString(modeNamesDetails[currentPreset], strlen(modeNamesDetails[currentPreset]), 0, SecondLine);
-	//save new preset to flash memory
+	buttonParamFunctions[VocoderInternalPoly] = UIVocoderIPButtons;
+	buttonParamFunctions[VocoderInternalMono] = UIVocoderIMButtons;
+	buttonParamFunctions[VocoderExternal] = UIVocoderEButtons;
+	buttonParamFunctions[Pitchshift] = UIPitchShiftButtons;
+	buttonParamFunctions[AutotuneMono] = UINeartuneButtons;
+	buttonParamFunctions[AutotunePoly] = UIAutotuneButtons;
+	buttonParamFunctions[SamplerButtonPress] = UISamplerBPButtons;
+	buttonParamFunctions[SamplerAutoGrabInternal] = UISamplerAuto1Buttons;
+	buttonParamFunctions[SamplerAutoGrabExternal] = UISamplerAuto2Buttons;
+	buttonParamFunctions[DistortionTanH] = UIDistortionTanhButtons;
+	buttonParamFunctions[DistortionShaper] = UIDistortionShaperButtons;
+	buttonParamFunctions[Wavefolder] = UIWaveFolderButtons;
+	buttonParamFunctions[BitCrusher] = UIBitcrusherButtons;
+	buttonParamFunctions[Delay] = UIDelayButtons;
+	buttonParamFunctions[Reverb] = UIReverbButtons;
+	buttonParamFunctions[Reverb2] = UIReverb2Buttons;
+	buttonParamFunctions[LivingString] = UILivingStringButtons;
 }
 
 void writeCurrentPresetToFlash(void)
@@ -583,198 +228,102 @@ void writeCurrentPresetToFlash(void)
 	}
 }
 
-void OLED_writeParameter(uint8_t whichParam)
+
+//buttonValues[0] //edit
+//buttonValues[1] //left
+//buttonValues[2] //right
+//buttonValues[3] //down
+//buttonValues[4] //up
+//buttonValues[5] // A
+//buttonValues[6] // B
+//buttonValues[7] // C
+//buttonValues[8] // D
+//buttonValues[9] // E
+char* UIVocoderIPButtons(uint8_t whichParam)
 {
-	int myLength = strlen(paramNames[currentPreset][whichParam]);
-	if (myLength > 1)
-	{
-		GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
-		OLEDclearLine(SecondLine);
-		OLEDwriteString(paramNames[currentPreset][whichParam], strlen(paramNames[currentPreset][whichParam]), 0, SecondLine);
-		int xpos = GFXgetCursorX(&theGFX);
-		OLEDwriteString(" ", 1, xpos, SecondLine);
-		xpos = GFXgetCursorX(&theGFX);
-		OLEDwriteFloat(uiParams[whichParam], xpos, SecondLine);
-		//OLEDwriteString(paramNames[currentPreset][whichParam], strlen(paramNames[currentPreset][whichParam]), 0, SecondLine);
-	}
+	// whichParam is the button that changed
+	// use it to access buttonsParams which can contain various button states
+	// can also define behavior that depends on the state of other buttons
+	return " ";
 }
 
-void OLED_draw()
+char* UIVocoderIMButtons(uint8_t whichParam)
 {
-	ssd1306_display_full_buffer();
+	return " ";
 }
 
-/// OLED Stuff
-
-void OLEDdrawPoint(int16_t x, int16_t y, uint16_t color)
+char* UIVocoderEButtons(uint8_t whichParam)
 {
-	GFXwritePixel(&theGFX, x, y, color);
-	//ssd1306_display_full_buffer();
+	return " ";
 }
 
-void OLEDdrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
+char* UIPitchShiftButtons(uint8_t whichParam)
 {
-	GFXwriteLine(&theGFX, x0, y0, x1, y1, color);
-	//ssd1306_display_full_buffer();
+	return " ";
 }
 
-void OLEDdrawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
+char* UINeartuneButtons(uint8_t whichParam)
 {
-	GFXfillCircle(&theGFX, x0, y0, r, color);
-	//ssd1306_display_full_buffer();
+	return " ";
 }
 
-
-void OLEDclear()
+char* UIAutotuneButtons(uint8_t whichParam)
 {
-	GFXfillRect(&theGFX, 0, 0, 128, 32, 0);
-	//ssd1306_display_full_buffer();
+	return " ";
 }
 
-void OLEDclearLine(OLEDLine line)
+char* UISamplerBPButtons(uint8_t whichParam)
 {
-	GFXfillRect(&theGFX, 0, (line%2)*16, 128, 16*((line/2)+1), 0);
-	//ssd1306_display_full_buffer();
+	return " ";
 }
 
-void OLEDwriteString(char* myCharArray, uint8_t arrayLength, uint8_t startCursor, OLEDLine line)
+char* UISamplerAuto1Buttons(uint8_t whichParam)
 {
-	uint8_t cursorX = startCursor;
-	uint8_t cursorY = 15 + (16 * (line%2));
-	GFXsetCursor(&theGFX, cursorX, cursorY);
-
-	GFXfillRect(&theGFX, startCursor, line*16, arrayLength*12, (line*16)+16, 0);
-	for (int i = 0; i < arrayLength; ++i)
-	{
-		GFXwrite(&theGFX, myCharArray[i]);
-	}
-	//ssd1306_display_full_buffer();
-}
-
-void OLEDwriteLine(char* myCharArray, uint8_t arrayLength, OLEDLine line)
-{
-	if (line == FirstLine)
-	{
-		GFXfillRect(&theGFX, 0, 0, 128, 16, 0);
-		GFXsetCursor(&theGFX, 4, 15);
-	}
-	else if (line == SecondLine)
-	{
-		GFXfillRect(&theGFX, 0, 16, 128, 16, 0);
-		GFXsetCursor(&theGFX, 4, 31);
-	}
-	else if (line == BothLines)
-	{
-		GFXfillRect(&theGFX, 0, 0, 128, 32, 0);
-		GFXsetCursor(&theGFX, 4, 15);
-	}
-	for (int i = 0; i < arrayLength; ++i)
-	{
-		GFXwrite(&theGFX, myCharArray[i]);
-	}
-	//ssd1306_display_full_buffer();
-}
-
-void OLEDwriteInt(uint32_t myNumber, uint8_t numDigits, uint8_t startCursor, OLEDLine line)
-{
-	int len = OLEDparseInt(oled_buffer, myNumber, numDigits);
-
-	OLEDwriteString(oled_buffer, len, startCursor, line);
-}
-
-void OLEDwriteIntLine(uint32_t myNumber, uint8_t numDigits, OLEDLine line)
-{
-	int len = OLEDparseInt(oled_buffer, myNumber, numDigits);
-
-	OLEDwriteLine(oled_buffer, len, line);
-}
-
-void OLEDwritePitch(float midi, uint8_t startCursor, OLEDLine line)
-{
-	int len = OLEDparsePitch(oled_buffer, midi);
-
-	OLEDwriteString(oled_buffer, len, startCursor, line);
-}
-
-void OLEDwritePitchClass(float midi, uint8_t startCursor, OLEDLine line)
-{
-	int len = OLEDparsePitchClass(oled_buffer, midi);
-
-	OLEDwriteString(oled_buffer, len, startCursor, line);
-}
-
-void OLEDwritePitchLine(float midi, OLEDLine line)
-{
-	int len = OLEDparsePitch(oled_buffer, midi);
-
-	OLEDwriteLine(oled_buffer, len, line);
-}
-
-void OLEDwriteFixedFloat(float input, uint8_t numDigits, uint8_t numDecimal, uint8_t startCursor, OLEDLine line)
-{
-	int len = OLEDparseFixedFloat(oled_buffer, input, numDigits, numDecimal);
-
-	OLEDwriteString(oled_buffer, len, startCursor, line);
-}
-
-void OLEDwriteFixedFloatLine(float input, uint8_t numDigits, uint8_t numDecimal, OLEDLine line)
-{
-	int len = OLEDparseFixedFloat(oled_buffer, input, numDigits, numDecimal);
-
-	OLEDwriteLine(oled_buffer, len, line);
+	return " ";
 }
 
 
-void OLEDwriteFloat(float input, uint8_t startCursor, OLEDLine line)
+char* UISamplerAuto2Buttons(uint8_t whichParam)
 {
-	int numDigits = 5;
-	int numDecimal = 1;
+	return " ";
+}
 
-	if (fastabsf(input)<1.0f)
-	{
-		numDigits = 3;
-		numDecimal = 2;
-	}
+char* UIDistortionTanhButtons(uint8_t whichParam)
+{
+	return " ";
+}
 
-	else if (fastabsf(input)<10.0f)
-	{
-		numDigits = 4;
-		numDecimal = 2;
-	}
+char* UIDistortionShaperButtons(uint8_t whichParam)
+{
+	return " ";
+}
 
-	else if (fastabsf(input)<100.0f)
-	{
-		numDigits = 5;
-		numDecimal = 2;
-	}
+char* UIWaveFolderButtons(uint8_t whichParam)
+{
+	return " ";
+}
 
-	else if (fastabsf(input)<1000.0f)
-	{
-		numDigits = 5;
-		numDecimal = 1;
-	}
-	else if (fastabsf(input)<10000.0f)
-	{
-		numDigits = 5;
-		numDecimal = 0;
-	}
-	else if (fastabsf(input)<100000.0f)
-	{
-		numDigits = 6;
-		numDecimal = 0;
-	}
-	else if (fastabsf(input)<1000000.0f)
-	{
-		numDigits = 7;
-		numDecimal = 0;
-	}
-	else if (fastabsf(input)<10000000.0f)
-	{
-		numDigits = 8;
-		numDecimal = 0;
-	}
+char* UIBitcrusherButtons(uint8_t whichParam)
+{
+	return " ";
+}
 
-	int len = OLEDparseFixedFloat(oled_buffer, input, numDigits, numDecimal);
+char* UIDelayButtons(uint8_t whichParam)
+{
+	return " ";
+}
 
-	OLEDwriteString(oled_buffer, len, startCursor, line);
+char* UIReverbButtons(uint8_t whichParam)
+{
+	return " ";
+}
+
+char* UIReverb2Buttons(uint8_t whichParam)
+{
+	return " ";
+}
+
+char* UILivingStringButtons(uint8_t whichParam)
+{
+	return " ";
 }

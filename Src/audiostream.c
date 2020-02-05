@@ -48,11 +48,6 @@ tRamp adc[6];
 tNoise myNoise;
 tCycle mySine[2];
 float smoothedADC[6];
-float floatADC[6];
-float lastFloatADC[6];
-float hysteresisThreshold = 0.001f;
-
-uint8_t writeParameterFlag = 0;
 
 
 uint32_t clipCounter[4] = {0,0,0,0};
@@ -101,10 +96,9 @@ int numBuffersCleared = 0;
 
 /**********************************************/
 
-
 void (*allocFunctions[PresetNil])(void);
 void (*frameFunctions[PresetNil])(void);
-void  (*tickFunctions[PresetNil])(float);
+void (*tickFunctions[PresetNil])(float);
 void (*freeFunctions[PresetNil])(void);
 
 void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn)
@@ -169,30 +163,12 @@ void audioFrame(uint16_t buffer_offset)
 	int32_t current_sample;
 
 	buttonCheck();
-
-
-	//read the analog inputs and smooth them with ramps
-	for (i = 0; i < 6; i++)
-	{
-		//floatADC[i] = (float) (ADC_values[i]>>8) * INV_TWO_TO_8;
-		floatADC[i] = (float) (ADC_values[i]>>6) * INV_TWO_TO_10;
-
-
-		if (fastabsf(floatADC[i] - lastFloatADC[i]) > hysteresisThreshold)
-		{
-			lastFloatADC[i] = floatADC[i];
-			writeParameterFlag = i+1;
-		}
-		tRamp_setDest(&adc[i], floatADC[i]);
-	}
-
+	adcCheck();
 
 	if (!loadingPreset)
 	{
-
 		frameFunctions[currentPreset]();
 	}
-
 
 	//if the codec isn't ready, keep the buffer as all zeros
 	//otherwise, start computing audio!
@@ -237,7 +213,6 @@ void audioFrame(uint16_t buffer_offset)
 	else numBuffersCleared = 0;
 
 	frameCompleted = TRUE;
-
 }
 
 
@@ -254,6 +229,11 @@ float audioTickL(float audioIn)
 	}
 
 	if (loadingPreset) return sample;
+
+	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+	{
+		knobParams[i] = smoothedADC[i];
+	}
 
 	bufferCleared = FALSE;
 
@@ -342,8 +322,7 @@ float audioTickR(float audioIn)
 	return rightOut;
 }
 
-
-static void initFunctionPointers(void)
+void initFunctionPointers(void)
 {
 	allocFunctions[VocoderInternalPoly] = SFXVocoderIPAlloc;
 	frameFunctions[VocoderInternalPoly] = SFXVocoderIPFrame;

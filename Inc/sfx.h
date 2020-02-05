@@ -4,9 +4,10 @@
  *  Created on: Dec 23, 2019
  *      Author: josnyder
  */
-
 #ifndef SFX_H_
 #define SFX_H_
+
+#include "audiostream.h"
 
 #define NUM_VOC_VOICES 8
 #define NUM_VOC_OSC 1

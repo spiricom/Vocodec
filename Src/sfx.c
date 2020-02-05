@@ -6,7 +6,6 @@
  */
 
 #include "main.h"
-#include "audiostream.h"
 #include "sfx.h"
 #include "ui.h"
 #include "tunings.h"
@@ -161,14 +160,14 @@ void SFXVocoderIPFrame()
 void SFXVocoderIPTick(float audioIn)
 {
 	tPoly_tickPitch(&poly);
-	uiParams[0] = smoothedADC[0]; //vocoder volume
+	knobParams[0] = smoothedADC[0]; //vocoder volume
 
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		sample += tSawtooth_tick(&osc[i]) * tRamp_tick(&polyRamp[i]);
 	}
 	sample *= tRamp_tick(&comp);
-	sample *= uiParams[0];
+	sample *= knobParams[0];
 	sample = tTalkbox_tick(&vocoder, sample, audioIn);
 	sample = tanhf(sample);
 	rightOut = sample;
@@ -211,9 +210,9 @@ void SFXVocoderIMFrame()
 void SFXVocoderIMTick(float audioIn)
 {
 	tPoly_tickPitch(&poly);
-	uiParams[0] = smoothedADC[0]; //vocoder volume
+	knobParams[0] = smoothedADC[0]; //vocoder volume
 	sample = tSawtooth_tick(&osc[0]) * tRamp_tick(&polyRamp[0]);
-	sample *= uiParams[0];
+	sample *= knobParams[0];
 	sample = tTalkbox_tick(&vocoder3, sample, audioIn);
 	sample = tanhf(sample);
 	rightOut = sample;
@@ -291,20 +290,20 @@ void SFXPitchShiftTick(float audioIn)
 	float myPitchFactorCoarse = (smoothedADC[0]*2.0f) - 1.0f;
 	float myPitchFactorFine = ((smoothedADC[1]*2.0f) - 1.0f) * 0.1f;
 	float myPitchFactorCombined = myPitchFactorFine + myPitchFactorCoarse;
-	uiParams[0] = myPitchFactorCombined;
-	uiParams[1] = myPitchFactorCombined;
+	knobParams[0] = myPitchFactorCombined;
+	knobParams[1] = myPitchFactorCombined;
 	float myPitchFactor = fastexp2f(myPitchFactorCombined);
 	tRetune_setPitchFactor(&retune, myPitchFactor, 0);
 	tRetune_setPitchFactor(&retune2, myPitchFactor, 0);
 
 
-	uiParams[2] = LEAF_clip( 0.0f,((smoothedADC[2]) * 3.0f) - 0.2f,3.0f);
+	knobParams[2] = LEAF_clip( 0.0f,((smoothedADC[2]) * 3.0f) - 0.2f,3.0f);
 
-	uiParams[3] = fastexp2f((smoothedADC[3]*2.0f) - 1.0f);
-	tExpSmooth_setDest(&smoother3, uiParams[2]);
+	knobParams[3] = fastexp2f((smoothedADC[3]*2.0f) - 1.0f);
+	tExpSmooth_setDest(&smoother3, knobParams[2]);
 	tFormantShifter_setIntensity(&fs, tExpSmooth_tick(&smoother3)+.1f);
-	tFormantShifter_setShiftFactor(&fs, uiParams[3]);
-	if (uiParams[2] > 0.01f)
+	tFormantShifter_setShiftFactor(&fs, knobParams[3]);
+	if (knobParams[2] > 0.01f)
 	{
 		tRamp_setDest(&pitchshiftRamp, -1.0f);
 	}
@@ -404,10 +403,10 @@ void SFXNeartuneTick(float audioIn)
 	float detectedPeriod = tAutotune_getInputPeriod(&autotuneMono);
 	float desiredSnap = nearestPeriod(detectedPeriod);
 
-	uiParams[0] = LEAF_clip(0.0f, smoothedADC[0] * 1.1f, 1.0f); // amount of forcing to new pitch
-	uiParams[1] = smoothedADC[1]; //speed to get to desired pitch shift
-	tExpSmooth_setFactor(&neartune_smoother, (uiParams[1] * .01f));
-	float destinationPeriod = (desiredSnap * uiParams[0]) + (detectedPeriod * (1.0f - uiParams[0]));
+	knobParams[0] = LEAF_clip(0.0f, smoothedADC[0] * 1.1f, 1.0f); // amount of forcing to new pitch
+	knobParams[1] = smoothedADC[1]; //speed to get to desired pitch shift
+	tExpSmooth_setFactor(&neartune_smoother, (knobParams[1] * .01f));
+	float destinationPeriod = (desiredSnap * knobParams[0]) + (detectedPeriod * (1.0f - knobParams[0]));
 	float destinationFreq = (leaf.sampleRate / destinationPeriod);
 	tExpSmooth_setDest(&neartune_smoother, destinationFreq);
 	tAutotune_setFreq(&autotuneMono, tExpSmooth_tick(&neartune_smoother), 0);
@@ -488,16 +487,16 @@ void SFXSamplerBPFrame()
 
 void SFXSamplerBPTick(float audioIn)
 {
-	uiParams[0] = smoothedADC[0] * sampleLength;
-	uiParams[1] = smoothedADC[1] * sampleLength;
-	uiParams[2] = (smoothedADC[2] - 0.5f) * 4.0f;
+	knobParams[0] = smoothedADC[0] * sampleLength;
+	knobParams[1] = smoothedADC[1] * sampleLength;
+	knobParams[2] = (smoothedADC[2] - 0.5f) * 4.0f;
 
-	uiParams[3] = smoothedADC[3] * 4000.0f;
+	knobParams[3] = smoothedADC[3] * 4000.0f;
 
-	samplePlayStart = uiParams[0];
-	samplePlayEnd = uiParams[1];
-	samplerRate = uiParams[2];
-	crossfadeLength = uiParams[3];
+	samplePlayStart = knobParams[0];
+	samplePlayEnd = knobParams[1];
+	samplerRate = knobParams[2];
+	crossfadeLength = knobParams[3];
 	tSampler_setStart(&sampler, samplePlayStart);
 	tSampler_setEnd(&sampler, samplePlayEnd);
 	tSampler_setRate(&sampler, samplerRate);
@@ -570,10 +569,11 @@ void SFXSamplerAuto1Tick(float audioIn)
 {
 	currentPower = tEnvelopeFollower_tick(&envfollow, audioIn);
 	samp_thresh = 1.0f - smoothedADC[0];
-	uiParams[0] = samp_thresh;
+	knobParams[0] = samp_thresh;
 	int window_size = smoothedADC[1] * 10000.0f;
-	uiParams[3] = smoothedADC[3] * 1000.0f;
-	crossfadeLength = uiParams[3];
+	knobParams[1] = window_size;
+	knobParams[3] = smoothedADC[3] * 1000.0f;
+	crossfadeLength = knobParams[3];
 
 	tSampler_setCrossfadeLength(&sampler, crossfadeLength);
 
@@ -657,10 +657,10 @@ void SFXSamplerAuto2Tick(float audioIn)
 {
 	currentPower = tEnvelopeFollower_tick(&envfollow, rightIn);
 	samp_thresh = 1.0f - smoothedADC[0];
-	uiParams[0] = samp_thresh;
+	knobParams[0] = samp_thresh;
 	int window_size = smoothedADC[1] * 10000.0f;
-	uiParams[3] = smoothedADC[3] * 1000.0f;
-	crossfadeLength = uiParams[3];
+	knobParams[3] = smoothedADC[3] * 1000.0f;
+	crossfadeLength = knobParams[3];
 
 	tSampler_setCrossfadeLength(&sampler, crossfadeLength);
 
@@ -739,8 +739,8 @@ void SFXDistortionTanhTick(float audioIn)
 {
 	//knob 0 = gain
 		sample = audioIn;
-		uiParams[0] = ((smoothedADC[0] * 40.0f) + 1.0f);
-		sample = sample * uiParams[0];
+		knobParams[0] = ((smoothedADC[0] * 40.0f) + 1.0f);
+		sample = sample * knobParams[0];
 
 		tOversampler_upsample(&oversampler, sample, oversamplerArray);
 		for (int i = 0; i < OVERSAMPLER_RATIO; i++)
@@ -776,8 +776,8 @@ void SFXDistortionShaperTick(float audioIn)
 	//knob 0 = gain
 		//knob 1 = shaper drive
 		sample = audioIn;
-		uiParams[0] = ((smoothedADC[0] * 15.0f) + 1.0f);
-		sample = sample * uiParams[0];
+		knobParams[0] = ((smoothedADC[0] * 15.0f) + 1.0f);
+		sample = sample * knobParams[0];
 		tOversampler_upsample(&oversampler, sample, oversamplerArray);
 		for (int i = 0; i < OVERSAMPLER_RATIO; i++)
 		{
@@ -812,28 +812,28 @@ void SFXWaveFolderTick(float audioIn)
 {
 	//knob 0 = gain
 	sample = audioIn;
-	uiParams[0] = (smoothedADC[0] * 20.0f) + 1.0f;
+	knobParams[0] = (smoothedADC[0] * 20.0f) + 1.0f;
 
-	uiParams[1] = (smoothedADC[1] * 2.0f) - 1.0f;
+	knobParams[1] = (smoothedADC[1] * 2.0f) - 1.0f;
 
-	uiParams[2] = (smoothedADC[2] * 2.0f) - 1.0f;
+	knobParams[2] = (smoothedADC[2] * 2.0f) - 1.0f;
 
-	uiParams[3] = (smoothedADC[3] * 2.0f) - 1.0f;
+	knobParams[3] = (smoothedADC[3] * 2.0f) - 1.0f;
 
-	float gain = uiParams[0];
+	float gain = knobParams[0];
 
 
 	sample = sample * gain * 0.33f;
-	sample = sample + uiParams[1];
+	sample = sample + knobParams[1];
 
 	tOversampler_upsample(&oversampler, sample, oversamplerArray);
 	for (int i = 0; i < 2; i++)
 	{
 		oversamplerArray[i] = tLockhartWavefolder_tick(&wavefolder1, oversamplerArray[i]);
 		//sample = sample * gain;
-		oversamplerArray[i] = sample + uiParams[2];
+		oversamplerArray[i] = sample + knobParams[2];
 		oversamplerArray[i] = tLockhartWavefolder_tick(&wavefolder2, oversamplerArray[i]);
-		//oversamplerArray[i] = sample + uiParams[3];
+		//oversamplerArray[i] = sample + knobParams[3];
 		//sample *= .6f;
 		//oversamplerArray[i] = tLockhartWavefolder_tick(&wavefolder3, oversamplerArray[i]);
 		//sample = tLockhartWavefolder_tick(&wavefolder4, sample);
@@ -846,9 +846,9 @@ void SFXWaveFolderTick(float audioIn)
 	/*
 	sample = tLockhartWavefolder_tick(&wavefolder1, sample);
 	//sample = sample * gain;
-	sample = sample + uiParams[2];
+	sample = sample + knobParams[2];
 	sample = tLockhartWavefolder_tick(&wavefolder2, sample);
-	sample = sample + uiParams[3];
+	sample = sample + knobParams[3];
 	//sample *= .6f;
 	sample = tLockhartWavefolder_tick(&wavefolder3, sample);
 	//sample = tLockhartWavefolder_tick(&wavefolder4, sample);
@@ -882,19 +882,19 @@ void SFXBitcrusherFrame()
 
 void SFXBitcrusherTick(float audioIn)
 {
-	uiParams[0] = smoothedADC[0];
+	knobParams[0] = smoothedADC[0];
 	tCrusher_setQuality (&crush, smoothedADC[0]);
 	tCrusher_setQuality (&crush2, smoothedADC[0]);
-	uiParams[1] = smoothedADC[1];
+	knobParams[1] = smoothedADC[1];
 	tCrusher_setSamplingRatio (&crush, smoothedADC[1]);
 	tCrusher_setSamplingRatio (&crush2, smoothedADC[1]);
-	uiParams[2] = smoothedADC[2];
+	knobParams[2] = smoothedADC[2];
 	tCrusher_setRound (&crush, smoothedADC[2]);
 	tCrusher_setRound (&crush2, smoothedADC[2]);
-	uiParams[3] = smoothedADC[3];
+	knobParams[3] = smoothedADC[3];
 	tCrusher_setOperation (&crush, smoothedADC[3]);
 	tCrusher_setOperation (&crush2, smoothedADC[3]);
-	uiParams[4] = smoothedADC[4] + 1.0f;
+	knobParams[4] = smoothedADC[4] + 1.0f;
 	sample = tCrusher_tick(&crush, tanhf(audioIn * (smoothedADC[4] + 1.0f))) * .9f;
 	rightOut = tCrusher_tick(&crush2, tanhf(rightIn * (smoothedADC[4] + 1.0f))) * .9f;
 
@@ -947,16 +947,16 @@ float delayFB2;
 
 void SFXDelayTick(float audioIn)
 {
-	uiParams[0] = smoothedADC[0] * 30000.0f;
-	uiParams[1] = smoothedADC[1] * 30000.0f;
-	uiParams[2] = smoothedADC[2] * 1.1f;
-	uiParams[3] = faster_mtof((smoothedADC[3] * 128) + 10.0f);
-	uiParams[4] = faster_mtof((smoothedADC[4] * 128) + 10.0f);
+	knobParams[0] = smoothedADC[0] * 30000.0f;
+	knobParams[1] = smoothedADC[1] * 30000.0f;
+	knobParams[2] = smoothedADC[2] * 1.1f;
+	knobParams[3] = faster_mtof((smoothedADC[3] * 128) + 10.0f);
+	knobParams[4] = faster_mtof((smoothedADC[4] * 128) + 10.0f);
 
-	tSVF_setFreq(&delayLP, uiParams[3]);
-	tSVF_setFreq(&delayLP2, uiParams[3]);
-	tSVF_setFreq(&delayHP, uiParams[4]);
-	tSVF_setFreq(&delayHP2, uiParams[4]);
+	tSVF_setFreq(&delayLP, knobParams[3]);
+	tSVF_setFreq(&delayLP2, knobParams[3]);
+	tSVF_setFreq(&delayHP, knobParams[4]);
+	tSVF_setFreq(&delayHP2, knobParams[4]);
 
 	//swap tanh for shaper and add cheap fixed highpass after both shapers
 
@@ -967,19 +967,19 @@ void SFXDelayTick(float audioIn)
 
 	if (delayShaper == 1)
 	{
-		input1 = tFeedbackLeveler_tick(&feedbackControl, tanhf(audioIn + (delayFB1 * uiParams[2])));
-		input2 = tFeedbackLeveler_tick(&feedbackControl, tanhf(audioIn + (delayFB2 * uiParams[2])));
+		input1 = tFeedbackLeveler_tick(&feedbackControl, tanhf(audioIn + (delayFB1 * knobParams[2])));
+		input2 = tFeedbackLeveler_tick(&feedbackControl, tanhf(audioIn + (delayFB2 * knobParams[2])));
 	}
 	else
 	{
-		input1 = tFeedbackLeveler_tick(&feedbackControl, tHighpass_tick(&delayShaperHp, LEAF_shaper(audioIn + (delayFB1 * uiParams[2] * 0.5f), 0.5f)));
-		input2 = tFeedbackLeveler_tick(&feedbackControl, tHighpass_tick(&delayShaperHp, LEAF_shaper(audioIn + (delayFB2 * uiParams[2] * 0.5f), 0.5f)));
+		input1 = tFeedbackLeveler_tick(&feedbackControl, tHighpass_tick(&delayShaperHp, LEAF_shaper(audioIn + (delayFB1 * knobParams[2] * 0.5f), 0.5f)));
+		input2 = tFeedbackLeveler_tick(&feedbackControl, tHighpass_tick(&delayShaperHp, LEAF_shaper(audioIn + (delayFB2 * knobParams[2] * 0.5f), 0.5f)));
 	}
-	tTapeDelay_setDelay(&delay, uiParams[0]);
+	tTapeDelay_setDelay(&delay, knobParams[0]);
 
 	delayFB1 = tTapeDelay_tick(&delay, input1);
 
-	tTapeDelay_setDelay(&delay2, uiParams[1]);
+	tTapeDelay_setDelay(&delay2, knobParams[1]);
 
 	delayFB2 = tTapeDelay_tick(&delay2, input2);
 
@@ -1020,12 +1020,12 @@ void SFXReverbAlloc()
 
 void SFXReverbFrame()
 {
-	uiParams[1] = faster_mtof(smoothedADC[1]*135.0f);
-	tDattorroReverb_setInputFilter(&reverb, uiParams[1]);
-	uiParams[2] =  faster_mtof(smoothedADC[2]*128.0f);
-	tDattorroReverb_setHP(&reverb, uiParams[2]);
-	uiParams[3] = faster_mtof(smoothedADC[3]*135.0f);
-	tDattorroReverb_setFeedbackFilter(&reverb, uiParams[3]);
+	knobParams[1] = faster_mtof(smoothedADC[1]*135.0f);
+	tDattorroReverb_setInputFilter(&reverb, knobParams[1]);
+	knobParams[2] =  faster_mtof(smoothedADC[2]*128.0f);
+	tDattorroReverb_setHP(&reverb, knobParams[2]);
+	knobParams[3] = faster_mtof(smoothedADC[3]*135.0f);
+	tDattorroReverb_setFeedbackFilter(&reverb, knobParams[3]);
 
 }
 
@@ -1054,10 +1054,10 @@ void SFXReverbTick(float audioIn)
 
 	//tDattorroReverb_setInputDelay(&reverb, smoothedADC[1] * 200.f);
 	audioIn *= 4.0f;
-	uiParams[0] = smoothedADC[0];
-	tDattorroReverb_setSize(&reverb, uiParams[0]);
-	uiParams[4] = smoothedADC[4];
-	tDattorroReverb_setFeedbackGain(&reverb, uiParams[4]);
+	knobParams[0] = smoothedADC[0];
+	tDattorroReverb_setSize(&reverb, knobParams[0]);
+	knobParams[4] = smoothedADC[4];
+	tDattorroReverb_setFeedbackGain(&reverb, knobParams[4]);
 	tDattorroReverb_tickStereo(&reverb, audioIn, stereo);
 	sample = tanhf(stereo[0]) * 0.99f;
 	rightOut = tanhf(stereo[1]) * 0.99f;
@@ -1092,10 +1092,10 @@ void SFXReverb2Frame()
 void SFXReverb2Tick(float audioIn)
 {
 	float stereoOuts[2];
-	uiParams[0] = smoothedADC[0] * 4.0f;
+	knobParams[0] = smoothedADC[0] * 4.0f;
 	if (!freeze)
 	{
-		tNReverb_setT60(&reverb2, uiParams[0]);
+		tNReverb_setT60(&reverb2, knobParams[0]);
 
 	}
 	else
@@ -1104,17 +1104,17 @@ void SFXReverb2Tick(float audioIn)
 		audioIn = 0.0f;
 	}
 
-	uiParams[1] =  faster_mtof(smoothedADC[1]*135.0f);
-	tSVF_setFreq(&lowpass, uiParams[1]);
-	tSVF_setFreq(&lowpass2, uiParams[1]);
-	uiParams[2] = faster_mtof(smoothedADC[2]*128.0f);
-	tSVF_setFreq(&highpass, uiParams[2]);
-	tSVF_setFreq(&highpass2, uiParams[2]);
-	uiParams[3] = faster_mtof(smoothedADC[3]*128.0f);
-	tSVF_setFreq(&bandpass, uiParams[3]);
-	tSVF_setFreq(&bandpass2, uiParams[3]);
+	knobParams[1] = faster_mtof(smoothedADC[1]*135.0f);
+	tSVF_setFreq(&lowpass, knobParams[1]);
+	tSVF_setFreq(&lowpass2, knobParams[1]);
+	knobParams[2] = faster_mtof(smoothedADC[2]*128.0f);
+	tSVF_setFreq(&highpass, knobParams[2]);
+	tSVF_setFreq(&highpass2, knobParams[2]);
+	knobParams[3] = faster_mtof(smoothedADC[3]*128.0f);
+	tSVF_setFreq(&bandpass, knobParams[3]);
+	tSVF_setFreq(&bandpass2, knobParams[3]);
 
-	uiParams[4] = (smoothedADC[4] * 4.0f) - 2.0f;
+	knobParams[4] = (smoothedADC[4] * 4.0f) - 2.0f;
 
 	if (buttonPressed[5])
 	{
@@ -1136,11 +1136,11 @@ void SFXReverb2Tick(float audioIn)
 	tNReverb_tickStereo(&reverb2, audioIn, stereoOuts);
 	float leftOut = tSVF_tick(&lowpass, stereoOuts[0]);
 	leftOut = tSVF_tick(&highpass, leftOut);
-	leftOut += tSVF_tick(&bandpass, leftOut) * uiParams[4];
+	leftOut += tSVF_tick(&bandpass, leftOut) * knobParams[4];
 
 	float rightOutTemp = tSVF_tick(&lowpass2, stereoOuts[1]);
 	rightOutTemp = tSVF_tick(&highpass2, rightOutTemp);
-	rightOutTemp += tSVF_tick(&bandpass, rightOutTemp) * uiParams[4];
+	rightOutTemp += tSVF_tick(&bandpass, rightOutTemp) * knobParams[4];
 	sample = tanhf(leftOut);
 	rightOut = tanhf(rightOutTemp);
 
@@ -1172,17 +1172,17 @@ void SFXLivingStringAlloc()
 
 void SFXLivingStringFrame()
 {
-	uiParams[0] = mtof((smoothedADC[0] * 135.0f)); //freq
-	uiParams[1] = smoothedADC[1]; //detune
-	uiParams[2] = ((smoothedADC[2] * 0.09999999f) + 0.9f);
-	uiParams[3] = mtof((smoothedADC[3] * 130.0f)+12.0f); //lowpass
-	uiParams[4] = (smoothedADC[4] * 0.5) + 0.02f;//pickPos
+	knobParams[0] = mtof((smoothedADC[0] * 135.0f)); //freq
+	knobParams[1] = smoothedADC[1]; //detune
+	knobParams[2] = ((smoothedADC[2] * 0.09999999f) + 0.9f);
+	knobParams[3] = mtof((smoothedADC[3] * 130.0f)+12.0f); //lowpass
+	knobParams[4] = (smoothedADC[4] * 0.5) + 0.02f;//pickPos
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		tLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * uiParams[1]))) * uiParams[0]);
-		tLivingString_setDecay(&theString[i], uiParams[2]);
-		tLivingString_setDampFreq(&theString[i], uiParams[3]);
-		tLivingString_setPickPos(&theString[i], uiParams[4]);
+		tLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * knobParams[1]))) * knobParams[0]);
+		tLivingString_setDecay(&theString[i], knobParams[2]);
+		tLivingString_setDampFreq(&theString[i], knobParams[3]);
+		tLivingString_setPickPos(&theString[i], knobParams[4]);
 	}
 
 }

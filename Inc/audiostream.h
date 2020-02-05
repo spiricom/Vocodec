@@ -32,7 +32,6 @@
 #include "stm32h7xx_hal.h"
 #include "leaf.h"
 #include "main.h"
-#include "sfx.h"
 
 #define AUDIO_FRAME_SIZE      128
 #define HALF_BUFFER_SIZE      AUDIO_FRAME_SIZE * 2 //number of samples per half of the "double-buffer" (twice the audio frame size because there are interleaved samples for both left and right channels)
@@ -44,10 +43,10 @@ extern int32_t audioInBuffer[AUDIO_BUFFER_SIZE];
 extern tMempool smallPool;
 extern tMempool largePool;
 extern uint8_t codecReady;
-extern uint8_t writeParameterFlag;
 extern float sample;
 extern float rightOut;
 extern float rightIn;
+extern tRamp adc[6];
 extern float smoothedADC[6];
 
 /* Exported types ------------------------------------------------------------*/
@@ -83,17 +82,12 @@ typedef enum BOOL {
 /* Exported functions ------------------------------------------------------- */
 void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn);
 
-static void initFunctionPointers(void);
+void initFunctionPointers(void);
 
 void audioFrame(uint16_t buffer_offset);
 
 void DMA1_TransferCpltCallback(DMA_HandleTypeDef *hdma);
 void DMA1_HalfTransferCpltCallback(DMA_HandleTypeDef *hdma);
-
-void freePreset(VocodecPreset preset);
-void allocPreset(VocodecPreset preset);
-
-
 
 #endif /* __AUDIOSTREAM_H */
 
