@@ -12,23 +12,9 @@
 #include "custom_fonts.h"
 #include "audiostream.h"
 #include "tunings.h"
-#include "eeprom.h"
 
-int8_t writeParameterFlag = -1;
 GFX theGFX;
-
 char oled_buffer[32];
-uint32_t currentTuning = 0;
-
-float floatADC[NUM_ADC_CHANNELS];
-float lastFloatADC[NUM_ADC_CHANNELS];
-float hysteresisThreshold = 0.001f;
-
-uint8_t buttonValues[NUM_BUTTONS];
-uint8_t buttonValuesPrev[NUM_BUTTONS];
-uint32_t buttonCounters[NUM_BUTTONS];
-uint8_t buttonPressed[NUM_BUTTONS];
-uint8_t buttonReleased[NUM_BUTTONS];
 
 void OLED_init(I2C_HandleTypeDef* hi2c)
 {
@@ -74,6 +60,27 @@ void OLED_init(I2C_HandleTypeDef* hi2c)
 	  OLED_writePreset();
 	  OLED_draw();
 	//sdd1306_invertDisplay(1);
+}
+
+void initUIFunctionPointers(void)
+{
+	buttonActionFunctions[VocoderInternalPoly] = UIVocoderIPButtons;
+	buttonActionFunctions[VocoderInternalMono] = UIVocoderIMButtons;
+	buttonActionFunctions[VocoderExternal] = UIVocoderEButtons;
+	buttonActionFunctions[Pitchshift] = UIPitchShiftButtons;
+	buttonActionFunctions[AutotuneMono] = UINeartuneButtons;
+	buttonActionFunctions[AutotunePoly] = UIAutotuneButtons;
+	buttonActionFunctions[SamplerButtonPress] = UISamplerBPButtons;
+	buttonActionFunctions[SamplerAutoGrabInternal] = UISamplerAuto1Buttons;
+	buttonActionFunctions[SamplerAutoGrabExternal] = UISamplerAuto2Buttons;
+	buttonActionFunctions[DistortionTanH] = UIDistortionTanhButtons;
+	buttonActionFunctions[DistortionShaper] = UIDistortionShaperButtons;
+	buttonActionFunctions[Wavefolder] = UIWaveFolderButtons;
+	buttonActionFunctions[BitCrusher] = UIBitcrusherButtons;
+	buttonActionFunctions[Delay] = UIDelayButtons;
+	buttonActionFunctions[Reverb] = UIReverbButtons;
+	buttonActionFunctions[Reverb2] = UIReverb2Buttons;
+	buttonActionFunctions[LivingString] = UILivingStringButtons;
 }
 
 void setLED_Edit(uint8_t onOff)
@@ -213,10 +220,16 @@ void setLED_rightin_clip(uint8_t onOff)
 
 void OLED_process(void)
 {
-	if (writeParameterFlag >= 0)
+	if (writeKnobFlag >= 0)
 	{
-		OLED_writeParameter(writeParameterFlag);
-		writeParameterFlag = -1;
+		OLED_writeKnobParameter(writeKnobFlag);
+		writeKnobFlag = -1;
+	}
+	if (writeButtonFlag >= 0 && writeActionFlag >= 0) //These should always be set together
+	{
+		OLED_writeButtonAction(writeButtonFlag, writeActionFlag);
+		writeButtonFlag = -1;
+		writeActionFlag = -1;
 	}
 	OLED_draw();
 }
@@ -239,16 +252,17 @@ void OLED_writePreset()
 	//save new preset to flash memory
 }
 
-void OLED_writeParameter(uint8_t whichParam)
+void OLED_writeKnobParameter(uint8_t whichParam)
 {
+	// Knob params
 	if (whichParam < NUM_ADC_CHANNELS)
 	{
-		int myLength = strlen(knobParamNames[currentPreset][whichParam]);
-		if (myLength > 0)
+		int len = strlen(knobParamNames[currentPreset][whichParam]);
+		if (len > 0)
 		{
 			GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
 			OLEDclearLine(SecondLine);
-			OLEDwriteString(knobParamNames[currentPreset][whichParam], strlen(knobParamNames[currentPreset][whichParam]), 0, SecondLine);
+			OLEDwriteString(knobParamNames[currentPreset][whichParam], len, 0, SecondLine);
 			int xpos = GFXgetCursorX(&theGFX);
 			OLEDwriteString(" ", 1, xpos, SecondLine);
 			xpos = GFXgetCursorX(&theGFX);
@@ -256,36 +270,24 @@ void OLED_writeParameter(uint8_t whichParam)
 			//OLEDwriteString(knobParamNames[currentPreset][whichParam], strlen(knobParamNames[currentPreset][whichParam]), 0, SecondLine);
 		}
 	}
-	else
-	{
-		whichParam -= NUM_ADC_CHANNELS;
-		GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
-		OLEDclearLine(SecondLine);
-		char* buttonDisplay = buttonParamFunctions[currentPreset](whichParam);
-		OLEDwriteString(buttonDisplay, strlen(buttonDisplay), 0, SecondLine);
-	}
-
 }
 
-void changeTuning()
+void OLED_writeButtonAction(uint8_t whichButton, uint8_t whichAction)
 {
-	for (int i = 0; i < 12; i++)
+	// Could change this so that buttonActionFunctions does the actual OLEDwrite
+	// if we want more flexibility on what buttons display
+	char* str = buttonActionFunctions[currentPreset](whichButton, whichAction);
+	int len = strlen(str);
+	if (len > 0)
 	{
-		centsDeviation[i] = tuningPresets[currentTuning][i];
+		GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
+		OLEDclearLine(SecondLine);
+		OLEDwriteString(str, len, 0, SecondLine);
+	}
+}
 
-	}
-	if (currentTuning == 0)
-	{
-		//setLED_C(0);
-	}
-	else
-	{
-		///setLED_C(1);
-	}
-	if (currentPreset == AutotuneMono)
-	{
-		calculatePeriodArray();
-	}
+void OLED_writeTuning()
+{
 	GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
 	OLEDclearLine(SecondLine);
 	OLEDwriteString("T ", 2, 0, SecondLine);
@@ -471,149 +473,4 @@ void OLEDwriteFloat(float input, uint8_t startCursor, OLEDLine line)
 	int len = OLEDparseFixedFloat(oled_buffer, input, numDigits, numDecimal);
 
 	OLEDwriteString(oled_buffer, len, startCursor, line);
-}
-
-void buttonCheck(void)
-{
-	if (codecReady)
-	{
-		buttonValues[0] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13); //edit
-		buttonValues[1] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12); //left
-		buttonValues[2] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14); //right
-		buttonValues[3] = !HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_11); //down
-		buttonValues[4] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15); //up
-		buttonValues[5] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);  // A
-		buttonValues[6] = !HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_7);  // B
-		buttonValues[7] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11); // C
-		buttonValues[8] = !HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_11); // D
-		buttonValues[9] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10); // E
-
-		for (int i = 0; i < NUM_BUTTONS; i++)
-		{
-			// changed this so that presses and releases need to be zeroed by the code that reads them
-			//buttonPressed[i] = 0;
-			//buttonReleased[i] = 0;
-			if ((buttonValues[i] != buttonValuesPrev[i]) && (buttonCounters[i] < 1))
-			{
-				buttonCounters[i]++;
-			}
-			if ((buttonValues[i] != buttonValuesPrev[i]) && (buttonCounters[i] >= 1))
-			{
-				if (buttonValues[i] == 1)
-				{
-					buttonPressed[i] = 1;
-				}
-				else if (buttonValues[i] == 0)
-				{
-					buttonReleased[i] = 1;
-				}
-				buttonValuesPrev[i] = buttonValues[i];
-				buttonCounters[i] = 0;
-				if (i == 5 || i == 6) writeParameterFlag = i + NUM_ADC_CHANNELS;
-			}
-		}
-
-		// make some if statements if you want to find the "attack" of the buttons (getting the "press" action)
-		// we'll need if statements for each button  - maybe should go to functions that are dedicated to each button?
-
-		// TODO: buttons C and E are connected to pins that are used to set up the codec over I2C - we need to reconfigure those pins in some kind of button init after the codec is set up. not done yet.
-
-		if (buttonPressed[0] == 1)
-		{
-			/*
-			setLED_Edit(1);
-			setLED_USB(1);
-			setLED_1(1);
-			setLED_2(1);
-			setLED_A(1);
-			setLED_B(1);
-			setLED_C(1);
-			setLED_leftout_clip(1);
-
-			setLED_leftin_clip(1);
-			setLED_rightout_clip(1);
-			setLED_rightin_clip(1);
-			*/
-
-		}
-
-		/// DEFINE GLOBAL BEHAVIOR FOR BUTTONS HERE
-		// left press
-		if (buttonPressed[1] == 1)
-		{
-			previousPreset = currentPreset;
-
-			if (currentPreset <= 0) currentPreset = PresetNil - 1;
-			else currentPreset--;
-
-			loadingPreset = 1;
-			OLED_writePreset();
-			writeCurrentPresetToFlash();
-			buttonPressed[1] = 0;
-		}
-
-		// right press
-		if (buttonPressed[2] == 1)
-		{
-			previousPreset = currentPreset;
-			if (currentPreset >= PresetNil - 1) currentPreset = 0;
-			else currentPreset++;
-
-			loadingPreset = 1;
-			OLED_writePreset();
-			writeCurrentPresetToFlash();
-			buttonPressed[2] = 0;
-		}
-
-		if (buttonPressed[7] == 1)
-		{
-			//GFXsetFont(&theGFX, &DINCondensedBold9pt7b);
-			keyCenter = (keyCenter + 1) % 12;
-			OLEDclearLine(SecondLine);
-			OLEDwriteString("KEY: ", 5, 0, SecondLine);
-			OLEDwritePitchClass(keyCenter+60, 64, SecondLine);
-			buttonPressed[7] = 0;
-		}
-
-		if (buttonPressed[8] == 1)
-		{
-			if (currentTuning == 0)
-			{
-				currentTuning = NUM_TUNINGS - 1;
-			}
-			else
-			{
-				currentTuning = (currentTuning - 1);
-			}
-			changeTuning();
-			buttonPressed[8] = 0;
-
-		}
-
-		if (buttonPressed[9] == 1)
-		{
-
-			currentTuning = (currentTuning + 1) % NUM_TUNINGS;
-			changeTuning();
-			buttonPressed[9] = 0;
-		}
-	}
-}
-
-void adcCheck()
-{
-	//read the analog inputs and smooth them with ramps
-	for (int i = 0; i < 6; i++)
-	{
-		//floatADC[i] = (float) (ADC_values[i]>>8) * INV_TWO_TO_8;
-		floatADC[i] = (float) (ADC_values[i]>>6) * INV_TWO_TO_10;
-
-
-		if (fastabsf(floatADC[i] - lastFloatADC[i]) > hysteresisThreshold)
-		{
-			lastFloatADC[i] = floatADC[i];
-			writeParameterFlag = i;
-		}
-		tRamp_setDest(&adc[i], floatADC[i]);
-	}
 }

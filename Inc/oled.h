@@ -9,8 +9,6 @@
 #define OLED_H_
 
 extern char oled_buffer[32];
-extern int8_t writeParameterFlag;
-extern uint32_t currentTuning;
 
 typedef enum _OLEDLine
 {
@@ -21,6 +19,8 @@ typedef enum _OLEDLine
 } OLEDLine;
 
 void OLED_init(I2C_HandleTypeDef* hi2c);
+
+void initUIFunctionPointers(void);
 
 void setLED_Edit(uint8_t onOff);
 
@@ -48,9 +48,11 @@ void OLED_process(void);
 
 void OLED_writePreset(void);
 
-void OLED_writeParameter(uint8_t whichParam);
+void OLED_writeKnobParameter(uint8_t whichParam);
 
-void changeTuning();
+void OLED_writeButtonAction(uint8_t whichButton, uint8_t whichAction);
+
+void OLED_writeTuning(void);
 
 void OLED_draw(void);
 
@@ -77,10 +79,6 @@ void OLEDwriteFixedFloat(float input, uint8_t numDigits, uint8_t numDecimal, uin
 void OLEDwriteFixedFloatLine(float input, uint8_t numDigits, uint8_t numDecimal, OLEDLine line);
 
 void OLEDwriteFloat(float input, uint8_t startCursor, OLEDLine line);
-
-void buttonCheck(void);
-
-void adcCheck(void);
 
 #endif /* OLED_H_ */
 

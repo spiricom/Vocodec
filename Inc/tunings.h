@@ -12,7 +12,9 @@
 
 extern float centsDeviation[12];
 extern float tuningPresets[NUM_TUNINGS][12];
+extern uint32_t currentTuning;
 extern uint8_t keyCenter;
 extern char tuningNames[NUM_TUNINGS][6];
+
 
 #endif /* TUNINGS_H_ */

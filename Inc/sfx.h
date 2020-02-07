@@ -24,31 +24,7 @@ extern tRamp polyRamp[NUM_VOC_VOICES];
 extern tSawtooth osc[NUM_VOC_VOICES];
 extern int autotuneChromatic;
 
-//PresetNil is used as a counter for the size of the enum
-typedef enum _VocodecPreset
-{
-	VocoderInternalPoly = 0,
-	VocoderInternalMono,
-	VocoderExternal,
-	Pitchshift,
-	AutotuneMono,
-	AutotunePoly,
-	SamplerButtonPress,
-	SamplerAutoGrabInternal,
-	SamplerAutoGrabExternal,
-	DistortionTanH,
-	DistortionShaper,
-	Wavefolder,
-	BitCrusher,
-	Delay,
-	Reverb,
-	Reverb2,
-	LivingString,
-	PresetNil
-} VocodecPreset;
-
 void initGlobalSFXObjects();
-
 
 //1 vocoder internal poly
 void SFXVocoderIPAlloc();

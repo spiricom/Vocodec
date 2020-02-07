@@ -5,12 +5,31 @@
  *      Author: jeffsnyder
  */
 #include "main.h"
+#include "sfx.h"
+#include "oled.h"
 #include "ui.h"
-#include "ssd1306.h"
 #include "tunings.h"
 #include "eeprom.h"
 
 uint16_t ADC_values[NUM_ADC_CHANNELS] __ATTR_RAM_D2;
+float floatADC[NUM_ADC_CHANNELS];
+float lastFloatADC[NUM_ADC_CHANNELS];
+float adcHysteresisThreshold = 0.001f;
+
+uint8_t buttonValues[NUM_BUTTONS]; // Actual state of the buttons
+uint8_t buttonValuesPrev[NUM_BUTTONS];
+uint8_t cleanButtonValues[NUM_BUTTONS]; // Button values after hysteresis
+uint32_t buttonHysteresis[NUM_BUTTONS];
+uint32_t buttonHysteresisThreshold = 1;
+uint32_t buttonCounters[NUM_BUTTONS]; // How long a button has been in its current state
+uint32_t buttonHoldThreshold = 200;
+uint32_t buttonHoldMax = 200;
+//uint8_t buttonPressed[NUM_BUTTONS];
+//uint8_t buttonReleased[NUM_BUTTONS];
+
+int8_t writeKnobFlag = -1;
+int8_t writeButtonFlag = -1;
+int8_t writeActionFlag = -1;
 
 #define NUM_CHARACTERS_PER_PRESET_NAME 16
 char* modeNames[PresetNil];
@@ -18,9 +37,10 @@ char* modeNamesDetails[PresetNil];
 char* shortModeNames[PresetNil];
 char* knobParamNames[PresetNil][NUM_ADC_CHANNELS];
 
+uint8_t buttonActionsSFX[NUM_BUTTONS][ActionNil];
+uint8_t buttonActionsUI[NUM_BUTTONS][ActionNil];
 float knobParams[NUM_ADC_CHANNELS];
-uint8_t buttonParams[2];
-char* (*buttonParamFunctions[PresetNil])(uint8_t);
+char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
 
 VocodecPreset currentPreset = 0;
 VocodecPreset previousPreset = PresetNil;
@@ -199,25 +219,164 @@ void initModeNames(void)
 	knobParamNames[LivingString][5] = "";
 }
 
-void initUIFunctionPointers(void)
+void buttonCheck(void)
 {
-	buttonParamFunctions[VocoderInternalPoly] = UIVocoderIPButtons;
-	buttonParamFunctions[VocoderInternalMono] = UIVocoderIMButtons;
-	buttonParamFunctions[VocoderExternal] = UIVocoderEButtons;
-	buttonParamFunctions[Pitchshift] = UIPitchShiftButtons;
-	buttonParamFunctions[AutotuneMono] = UINeartuneButtons;
-	buttonParamFunctions[AutotunePoly] = UIAutotuneButtons;
-	buttonParamFunctions[SamplerButtonPress] = UISamplerBPButtons;
-	buttonParamFunctions[SamplerAutoGrabInternal] = UISamplerAuto1Buttons;
-	buttonParamFunctions[SamplerAutoGrabExternal] = UISamplerAuto2Buttons;
-	buttonParamFunctions[DistortionTanH] = UIDistortionTanhButtons;
-	buttonParamFunctions[DistortionShaper] = UIDistortionShaperButtons;
-	buttonParamFunctions[Wavefolder] = UIWaveFolderButtons;
-	buttonParamFunctions[BitCrusher] = UIBitcrusherButtons;
-	buttonParamFunctions[Delay] = UIDelayButtons;
-	buttonParamFunctions[Reverb] = UIReverbButtons;
-	buttonParamFunctions[Reverb2] = UIReverb2Buttons;
-	buttonParamFunctions[LivingString] = UILivingStringButtons;
+	if (codecReady)
+	{
+		buttonValues[0] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13); //edit
+		buttonValues[1] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12); //left
+		buttonValues[2] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14); //right
+		buttonValues[3] = !HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_11); //down
+		buttonValues[4] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15); //up
+		buttonValues[5] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);  // A
+		buttonValues[6] = !HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_7);  // B
+		buttonValues[7] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11); // C
+		buttonValues[8] = !HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_11); // D
+		buttonValues[9] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10); // E
+
+		for (int i = 0; i < NUM_BUTTONS; i++)
+		{
+			if (buttonValues[i] != buttonValuesPrev[i])
+			{
+				buttonHysteresis[i]++;
+			}
+			if (buttonHysteresis[i] < buttonHysteresisThreshold)
+			{
+				if (buttonCounters[i] < buttonHoldMax) buttonCounters[i]++;
+				if ((buttonCounters[i] >= buttonHoldThreshold) && (cleanButtonValues[i] == 1))
+				{
+					buttonActionsSFX[i][ActionHold] = TRUE;
+					buttonActionsUI[i][ActionHold] = TRUE;
+					writeButtonFlag = i;
+					writeActionFlag = ActionHold;
+				}
+			}
+			else
+			{
+				cleanButtonValues[i] = buttonValues[i];
+				buttonHysteresis[i] = 0;
+				buttonCounters[i] = 0;
+
+				if (cleanButtonValues[i] == 1)
+				{
+					buttonActionsSFX[i][ActionPress] = TRUE;
+					buttonActionsUI[i][ActionPress] = TRUE;
+					writeButtonFlag = i;
+					writeActionFlag = ActionPress;
+				}
+				else if (cleanButtonValues[i] == 0)
+				{
+					buttonActionsSFX[i][ActionRelease] = TRUE;
+					buttonActionsUI[i][ActionRelease] = TRUE;
+					writeButtonFlag = i;
+					writeActionFlag = ActionRelease;
+				}
+				buttonValuesPrev[i] = buttonValues[i];
+			}
+		}
+
+		// make some if statements if you want to find the "attack" of the buttons (getting the "press" action)
+		// we'll need if statements for each button  - maybe should go to functions that are dedicated to each button?
+
+		// TODO: buttons C and E are connected to pins that are used to set up the codec over I2C - we need to reconfigure those pins in some kind of button init after the codec is set up. not done yet.
+
+		/// DEFINE GLOBAL BUTTON BEHAVIOR HERE
+
+		if (buttonActionsUI[ButtonLeft][ActionPress] == 1)
+		{
+			previousPreset = currentPreset;
+
+			if (currentPreset <= 0) currentPreset = PresetNil - 1;
+			else currentPreset--;
+
+			loadingPreset = 1;
+			OLED_writePreset();
+			writeCurrentPresetToFlash();
+			buttonActionsUI[ButtonLeft][ActionPress] = 0;
+		}
+		// right press
+		if (buttonActionsUI[ButtonRight][ActionPress] == 1)
+		{
+			previousPreset = currentPreset;
+			if (currentPreset >= PresetNil - 1) currentPreset = 0;
+			else currentPreset++;
+
+			loadingPreset = 1;
+			OLED_writePreset();
+			writeCurrentPresetToFlash();
+			buttonActionsUI[ButtonRight][ActionPress] = 0;
+		}
+		if (buttonActionsUI[ButtonC][ActionPress] == 1)
+		{
+			//GFXsetFont(&theGFX, &DINCondensedBold9pt7b);
+			keyCenter = (keyCenter + 1) % 12;
+			OLEDclearLine(SecondLine);
+			OLEDwriteString("KEY: ", 5, 0, SecondLine);
+			OLEDwritePitchClass(keyCenter+60, 64, SecondLine);
+			buttonActionsUI[ButtonC][ActionPress] = 0;
+		}
+		if (buttonActionsUI[ButtonD][ActionPress] == 1)
+		{
+			if (currentTuning == 0)
+			{
+				currentTuning = NUM_TUNINGS - 1;
+			}
+			else
+			{
+				currentTuning = (currentTuning - 1);
+			}
+			changeTuning();
+			OLED_writeTuning();
+			buttonActionsUI[ButtonD][ActionPress] = 0;
+		}
+		if (buttonActionsUI[ButtonE][ActionPress] == 1)
+		{
+
+			currentTuning = (currentTuning + 1) % NUM_TUNINGS;
+			changeTuning();
+			OLED_writeTuning();
+			buttonActionsUI[ButtonE][ActionPress] = 0;
+		}
+	}
+}
+
+void adcCheck()
+{
+	//read the analog inputs and smooth them with ramps
+	for (int i = 0; i < 6; i++)
+	{
+		//floatADC[i] = (float) (ADC_values[i]>>8) * INV_TWO_TO_8;
+		floatADC[i] = (float) (ADC_values[i]>>6) * INV_TWO_TO_10;
+
+
+		if (fastabsf(floatADC[i] - lastFloatADC[i]) > adcHysteresisThreshold)
+		{
+			lastFloatADC[i] = floatADC[i];
+			writeKnobFlag = i;
+		}
+		tRamp_setDest(&adc[i], floatADC[i]);
+	}
+}
+
+void changeTuning()
+{
+	for (int i = 0; i < 12; i++)
+	{
+		centsDeviation[i] = tuningPresets[currentTuning][i];
+
+	}
+	if (currentTuning == 0)
+	{
+		//setLED_C(0);
+	}
+	else
+	{
+		///setLED_C(1);
+	}
+	if (currentPreset == AutotuneMono)
+	{
+		calculatePeriodArray();
+	}
 }
 
 void writeCurrentPresetToFlash(void)
@@ -228,102 +387,135 @@ void writeCurrentPresetToFlash(void)
 	}
 }
 
-
-//buttonValues[0] //edit
-//buttonValues[1] //left
-//buttonValues[2] //right
-//buttonValues[3] //down
-//buttonValues[4] //up
-//buttonValues[5] // A
-//buttonValues[6] // B
-//buttonValues[7] // C
-//buttonValues[8] // D
-//buttonValues[9] // E
-char* UIVocoderIPButtons(uint8_t whichParam)
+char* UIVocoderIPButtons(VocodecButton button, ButtonAction action)
 {
-	// whichParam is the button that changed
-	// use it to access buttonsParams which can contain various button states
-	// can also define behavior that depends on the state of other buttons
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UIVocoderIMButtons(uint8_t whichParam)
+char* UIVocoderIMButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UIVocoderEButtons(uint8_t whichParam)
+char* UIVocoderEButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UIPitchShiftButtons(uint8_t whichParam)
+char* UIPitchShiftButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UINeartuneButtons(uint8_t whichParam)
+char* UINeartuneButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+
+	// Can do this
+	if (action == ActionPress)
+	{
+		if (button == ButtonA)
+		{
+			writeString = "AUTOCHROM ON";
+			buttonActionsUI[ButtonA][ActionPress] = 0;
+		}
+		else if (button == ButtonB)
+		{
+			writeString = "AUTOCHROM OFF";
+			buttonActionsUI[ButtonB][ActionPress] = 0;
+		}
+	}
+	// or this
+//	if (buttonActionsUI[ButtonA][ActionPress])
+//	{
+//		writeString = "AUTOCHROM ON";
+//		buttonActionsUI[ButtonA][ActionPress] = 0;
+//	}
+//	if (buttonActionsUI[ButtonB][ActionPress])
+//	{
+//		writeString = "AUTOCHROM OFF";
+//		buttonActionsUI[ButtonB][ActionPress] = 0;
+//	}
+	// first is probably better because this and sfx are not run at the same interval
+	// ex. if a and b are pressed in the same UI block but separate audio blocks, and
+	// a is pushed second, the display and audio state with not match
+	// can't think of a way around that
+	return writeString;
 }
 
-char* UIAutotuneButtons(uint8_t whichParam)
+char* UIAutotuneButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UISamplerBPButtons(uint8_t whichParam)
+char* UISamplerBPButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UISamplerAuto1Buttons(uint8_t whichParam)
+char* UISamplerAuto1Buttons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
 
-char* UISamplerAuto2Buttons(uint8_t whichParam)
+char* UISamplerAuto2Buttons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UIDistortionTanhButtons(uint8_t whichParam)
+char* UIDistortionTanhButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UIDistortionShaperButtons(uint8_t whichParam)
+char* UIDistortionShaperButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UIWaveFolderButtons(uint8_t whichParam)
+char* UIWaveFolderButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UIBitcrusherButtons(uint8_t whichParam)
+char* UIBitcrusherButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UIDelayButtons(uint8_t whichParam)
+char* UIDelayButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UIReverbButtons(uint8_t whichParam)
+char* UIReverbButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UIReverb2Buttons(uint8_t whichParam)
+char* UIReverb2Buttons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }
 
-char* UILivingStringButtons(uint8_t whichParam)
+char* UILivingStringButtons(VocodecButton button, ButtonAction action)
 {
-	return " ";
+	char* writeString = "";
+	return writeString;
 }

@@ -8,6 +8,7 @@
 #include "main.h"
 #include "sfx.h"
 #include "ui.h"
+#include "oled.h"
 #include "tunings.h"
 
 
@@ -376,18 +377,18 @@ void SFXNeartuneFrame()
 		tRamp_setDest(&nearDryRamp, 1.0f);
 	}
 
-	if (buttonPressed[5])
+	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
 		autotuneChromatic = 1;
-		buttonPressed[5] = 0;
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(1);
 		setLED_B(0);
 	}
 
-	if (buttonPressed[6])
+	if (buttonActionsSFX[ButtonB][ActionPress])
 	{
 		autotuneChromatic = 0;
-		buttonPressed[6] = 0;
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
 		setLED_A(0);
 		setLED_B(1);
 	}
@@ -503,16 +504,16 @@ void SFXSamplerBPTick(float audioIn)
 	tSampler_setCrossfadeLength(&sampler, crossfadeLength);
 
 
-	if (buttonPressed[5])
+	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
 		if (sampler->active != 0)
 		{
 			tSampler_stop(&sampler);
 		}
 		tBuffer_record(&buff);
-		buttonPressed[5] = 0;
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
 	}
-	else if (buttonReleased[5])
+	else if (buttonActionsSFX[ButtonA][ActionRelease])
 	{
 		tBuffer_stop(&buff);
 		sampleLength = tBuffer_getRecordPosition(&buff);
@@ -521,12 +522,12 @@ void SFXSamplerBPTick(float audioIn)
 		tSampler_setEnd(&sampler, samplePlayEnd);
 		tSampler_setRate(&sampler, samplerRate);
 		tSampler_setCrossfadeLength(&sampler, crossfadeLength);
-		buttonReleased[5] = 0;
+		buttonActionsSFX[ButtonA][ActionRelease] = 0;
 	}
-	if (buttonPressed[4])
+	if (buttonActionsSFX[ButtonUp][ActionPress])
 	{
 		tBuffer_clear(&buff);
-		buttonPressed[4] = 0;
+		buttonActionsSFX[ButtonUp][ActionPress] = 0;
 	}
 
 
@@ -608,21 +609,21 @@ void SFXSamplerAuto1Tick(float audioIn)
 			samp_triggered = 0;
 		}
 	}
-	if (buttonPressed[5])
+	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
 		if (samplerMode == PlayLoop)
 		{
 			tSampler_setMode(&sampler, PlayBackAndForth);
 			samplerMode = PlayBackAndForth;
 			setLED_1(1);
-			buttonPressed[5] = 0;
+			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 		else if (samplerMode == PlayBackAndForth)
 		{
 			tSampler_setMode(&sampler, PlayLoop);
 			samplerMode = PlayLoop;
 			setLED_1(0);
-			buttonPressed[5] = 0;
+			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 
 	}
@@ -694,21 +695,21 @@ void SFXSamplerAuto2Tick(float audioIn)
 			samp_triggered = 0;
 		}
 	}
-	if (buttonPressed[5])
+	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
 		if (samplerMode == PlayLoop)
 		{
 			tSampler_setMode(&sampler, PlayBackAndForth);
 			samplerMode = PlayBackAndForth;
 			setLED_1(1);
-			buttonPressed[5] = 0;
+			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 		else if (samplerMode == PlayBackAndForth)
 		{
 			tSampler_setMode(&sampler, PlayLoop);
 			samplerMode = PlayLoop;
 			setLED_1(0);
-			buttonPressed[5] = 0;
+			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 
 	}
@@ -926,18 +927,18 @@ void SFXDelayAlloc()
 void SFXDelayFrame()
 {
 
-	if (buttonPressed[5])
+	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
 		delayShaper = 1;
-		buttonPressed[5] = 0;
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(1);
 		setLED_B(0);
 	}
 
-	if (buttonPressed[6])
+	if (buttonActionsSFX[ButtonB][ActionPress])
 	{
 		delayShaper = 0;
-		buttonPressed[6] = 0;
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
 		setLED_A(0);
 		setLED_B(1);
 	}
@@ -1033,21 +1034,21 @@ void SFXReverbTick(float audioIn)
 {
 	float stereo[2];
 
-	if (buttonPressed[5])
+	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
 		if (freeze == 0)
 		{
 			freeze = 1;
 			tDattorroReverb_setFreeze(&reverb, 1);
 			setLED_1(1);
-			buttonPressed[5] = 0;
+			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 		else
 		{
 			freeze = 0;
 			tDattorroReverb_setFreeze(&reverb, 0);
 			setLED_1(0);
-			buttonPressed[5] = 0;
+			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 
 	}
@@ -1116,19 +1117,19 @@ void SFXReverb2Tick(float audioIn)
 
 	knobParams[4] = (smoothedADC[4] * 4.0f) - 2.0f;
 
-	if (buttonPressed[5])
+	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
 		if (freeze == 0)
 		{
 			freeze = 1;
 			setLED_1(1);
-			buttonPressed[5] = 0;
+			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 		else
 		{
 			freeze = 0;
 			setLED_1(0);
-			buttonPressed[5] = 0;
+			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 	}
 

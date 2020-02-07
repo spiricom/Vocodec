@@ -7,16 +7,64 @@
 #ifndef UI_H_
 #define UI_H_
 
-#include "sfx.h"
-
 #define NUM_ADC_CHANNELS 6
 #define NUM_BUTTONS 10
+
+//PresetNil is used as a counter for the size of the enum
+typedef enum _VocodecPreset
+{
+	VocoderInternalPoly = 0,
+	VocoderInternalMono,
+	VocoderExternal,
+	Pitchshift,
+	AutotuneMono,
+	AutotunePoly,
+	SamplerButtonPress,
+	SamplerAutoGrabInternal,
+	SamplerAutoGrabExternal,
+	DistortionTanH,
+	DistortionShaper,
+	Wavefolder,
+	BitCrusher,
+	Delay,
+	Reverb,
+	Reverb2,
+	LivingString,
+	PresetNil
+} VocodecPreset;
+
+typedef enum _VocodecButton
+{
+	ButtonEdit = 0,
+	ButtonLeft,
+	ButtonRight,
+	ButtonDown,
+	ButtonUp,
+	ButtonA,
+	ButtonB,
+	ButtonC,
+	ButtonD,
+	ButtonE,
+	ButtonNil
+} VocodecButton;
+
+typedef enum _ButtonAction
+{
+	ActionPress = 0,
+	ActionRelease,
+	ActionHold,
+	ActionNil
+} ButtonAction;
 
 extern uint16_t ADC_values[NUM_ADC_CHANNELS];
 
 extern uint8_t buttonValues[NUM_BUTTONS];
-extern uint8_t buttonPressed[NUM_BUTTONS];
-extern uint8_t buttonReleased[NUM_BUTTONS];
+//extern uint8_t buttonPressed[NUM_BUTTONS];
+//extern uint8_t buttonReleased[NUM_BUTTONS];
+
+extern int8_t writeKnobFlag;
+extern int8_t writeButtonFlag;
+extern int8_t writeActionFlag;
 
 extern uint8_t currentPreset;
 extern uint8_t previousPreset;
@@ -27,32 +75,36 @@ extern char* modeNamesDetails[PresetNil];
 extern char* shortModeNames[PresetNil];
 extern char* knobParamNames[PresetNil][NUM_ADC_CHANNELS];
 extern float knobParams[NUM_ADC_CHANNELS];
-extern uint8_t buttonParams[2];
-extern char* (*buttonParamFunctions[PresetNil])(uint8_t);
+extern uint8_t buttonActionsSFX[NUM_BUTTONS][ActionNil];
+extern char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
 
 void initModeNames(void);
 
-void initUIFunctionPointers(void);
+void buttonCheck(void);
+
+void adcCheck(void);
+
+void changeTuning();
 
 void writeCurrentPresetToFlash(void);
 
-char* UIVocoderIPButtons(uint8_t whichParam);
-char* UIVocoderIMButtons(uint8_t whichParam);
-char* UIVocoderEButtons(uint8_t whichParam);
-char* UIPitchShiftButtons(uint8_t whichParam);
-char* UINeartuneButtons(uint8_t whichParam);
-char* UIAutotuneButtons(uint8_t whichParam);
-char* UISamplerBPButtons(uint8_t whichParam);
-char* UISamplerAuto1Buttons(uint8_t whichParam);
-char* UISamplerAuto2Buttons(uint8_t whichParam);
-char* UIDistortionTanhButtons(uint8_t whichParam);
-char* UIDistortionShaperButtons(uint8_t whichParam);
-char* UIWaveFolderButtons(uint8_t whichParam);
-char* UIBitcrusherButtons(uint8_t whichParam);
-char* UIDelayButtons(uint8_t whichParam);
-char* UIReverbButtons(uint8_t whichParam);
-char* UIReverb2Buttons(uint8_t whichParam);
-char* UILivingStringButtons(uint8_t whichParam);
+char* UIVocoderIPButtons(VocodecButton button, ButtonAction action);
+char* UIVocoderIMButtons(VocodecButton button, ButtonAction action);
+char* UIVocoderEButtons(VocodecButton button, ButtonAction action);
+char* UIPitchShiftButtons(VocodecButton button, ButtonAction action);
+char* UINeartuneButtons(VocodecButton button, ButtonAction action);
+char* UIAutotuneButtons(VocodecButton button, ButtonAction action);
+char* UISamplerBPButtons(VocodecButton button, ButtonAction action);
+char* UISamplerAuto1Buttons(VocodecButton button, ButtonAction action);
+char* UISamplerAuto2Buttons(VocodecButton button, ButtonAction action);
+char* UIDistortionTanhButtons(VocodecButton button, ButtonAction action);
+char* UIDistortionShaperButtons(VocodecButton button, ButtonAction action);
+char* UIWaveFolderButtons(VocodecButton button, ButtonAction action);
+char* UIBitcrusherButtons(VocodecButton button, ButtonAction action);
+char* UIDelayButtons(VocodecButton button, ButtonAction action);
+char* UIReverbButtons(VocodecButton button, ButtonAction action);
+char* UIReverb2Buttons(VocodecButton button, ButtonAction action);
+char* UILivingStringButtons(VocodecButton button, ButtonAction action);
 
 #endif /* UI_H_ */
 

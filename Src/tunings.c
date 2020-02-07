@@ -8,6 +8,7 @@
 #include "tunings.h"
 
 float centsDeviation[12] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+uint32_t currentTuning = 0;
 uint8_t keyCenter = 0;
 char tuningNames[NUM_TUNINGS][6]= {
 		{"12-TET"},

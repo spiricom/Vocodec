@@ -63,9 +63,6 @@ typedef enum
 #define SAMPLE_RATE 48000.f
 #endif
 
-
-
-
 typedef enum BOOL {
 	FALSE = 0,
 	TRUE
