@@ -231,7 +231,7 @@ void OLED_process(void)
 		writeButtonFlag = -1;
 		writeActionFlag = -1;
 	}
-	OLED_draw();
+//	OLED_draw();
 }
 
 void OLED_writePreset()

@@ -5,6 +5,7 @@
  *      Author: jeffsnyder
  */
 #include "main.h"
+#include "audiostream.h"
 #include "sfx.h"
 #include "oled.h"
 #include "ui.h"
@@ -20,7 +21,7 @@ uint8_t buttonValues[NUM_BUTTONS]; // Actual state of the buttons
 uint8_t buttonValuesPrev[NUM_BUTTONS];
 uint8_t cleanButtonValues[NUM_BUTTONS]; // Button values after hysteresis
 uint32_t buttonHysteresis[NUM_BUTTONS];
-uint32_t buttonHysteresisThreshold = 1;
+uint32_t buttonHysteresisThreshold = 5;
 uint32_t buttonCounters[NUM_BUTTONS]; // How long a button has been in its current state
 uint32_t buttonHoldThreshold = 200;
 uint32_t buttonHoldMax = 200;
@@ -292,7 +293,7 @@ void buttonCheck(void)
 			loadingPreset = 1;
 			OLED_writePreset();
 			writeCurrentPresetToFlash();
-			buttonActionsUI[ButtonLeft][ActionPress] = 0;
+			clearButtonActions();
 		}
 		// right press
 		if (buttonActionsUI[ButtonRight][ActionPress] == 1)
@@ -304,7 +305,7 @@ void buttonCheck(void)
 			loadingPreset = 1;
 			OLED_writePreset();
 			writeCurrentPresetToFlash();
-			buttonActionsUI[ButtonRight][ActionPress] = 0;
+			clearButtonActions();
 		}
 		if (buttonActionsUI[ButtonC][ActionPress] == 1)
 		{
@@ -355,6 +356,20 @@ void adcCheck()
 			writeKnobFlag = i;
 		}
 		tRamp_setDest(&adc[i], floatADC[i]);
+	}
+}
+
+void clearButtonActions()
+{
+	for (int b = 0; b < ButtonNil; b++)
+	{
+		for (int a = 0; a < ActionNil; a++)
+		{
+			buttonActionsUI[b][a] = 0;
+			buttonActionsSFX[b][a] = 0;
+			writeButtonFlag = -1;
+			writeActionFlag = -1;
+		}
 	}
 }
 
@@ -414,36 +429,16 @@ char* UIPitchShiftButtons(VocodecButton button, ButtonAction action)
 char* UINeartuneButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
-
-	// Can do this
-	if (action == ActionPress)
+	if (buttonActionsUI[ButtonA][ActionPress])
 	{
-		if (button == ButtonA)
-		{
-			writeString = "AUTOCHROM ON";
-			buttonActionsUI[ButtonA][ActionPress] = 0;
-		}
-		else if (button == ButtonB)
-		{
-			writeString = "AUTOCHROM OFF";
-			buttonActionsUI[ButtonB][ActionPress] = 0;
-		}
+		writeString = "AUTOCHROM ON";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
-	// or this
-//	if (buttonActionsUI[ButtonA][ActionPress])
-//	{
-//		writeString = "AUTOCHROM ON";
-//		buttonActionsUI[ButtonA][ActionPress] = 0;
-//	}
-//	if (buttonActionsUI[ButtonB][ActionPress])
-//	{
-//		writeString = "AUTOCHROM OFF";
-//		buttonActionsUI[ButtonB][ActionPress] = 0;
-//	}
-	// first is probably better because this and sfx are not run at the same interval
-	// ex. if a and b are pressed in the same UI block but separate audio blocks, and
-	// a is pushed second, the display and audio state with not match
-	// can't think of a way around that
+	if (buttonActionsUI[ButtonB][ActionPress])
+	{
+		writeString = "AUTOCHROM OFF";
+		buttonActionsUI[ButtonB][ActionPress] = 0;
+	}
 	return writeString;
 }
 
@@ -456,12 +451,39 @@ char* UIAutotuneButtons(VocodecButton button, ButtonAction action)
 char* UISamplerBPButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
+	if (buttonActionsUI[ButtonA][ActionPress])
+	{
+		writeString = "RECORD ON";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
+	if (buttonActionsUI[ButtonA][ActionRelease])
+	{
+		writeString = "RECORDED";
+		buttonActionsUI[ButtonA][ActionRelease] = 0;
+	}
+	if (buttonActionsUI[ButtonUp][ActionPress])
+	{
+		writeString = "SAMPLE CLEARED";
+		buttonActionsUI[ButtonUp][ActionPress] = 0;
+	}
 	return writeString;
 }
 
 char* UISamplerAuto1Buttons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
+	if (buttonActionsUI[ButtonA][ActionPress])
+	{
+		if (samplerMode == PlayLoop)
+		{
+			writeString = "LOOP";
+		}
+		else if (samplerMode == PlayBackAndForth)
+		{
+			writeString = "BACK'N'FORTH";
+		}
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
 	return writeString;
 }
 
@@ -469,6 +491,19 @@ char* UISamplerAuto1Buttons(VocodecButton button, ButtonAction action)
 char* UISamplerAuto2Buttons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
+
+	if (buttonActionsUI[ButtonA][ActionPress])
+	{
+		if (samplerMode == PlayLoop)
+		{
+			writeString = "LOOP";
+		}
+		else if (samplerMode == PlayBackAndForth)
+		{
+			writeString = "BACK'N'FORTH";
+		}
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
 	return writeString;
 }
 
@@ -499,6 +534,16 @@ char* UIBitcrusherButtons(VocodecButton button, ButtonAction action)
 char* UIDelayButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
+	if (buttonActionsUI[ButtonA][ActionPress])
+	{
+		writeString = "SHAPER ON";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
+	if (buttonActionsUI[ButtonB][ActionPress])
+	{
+		writeString = "SHAPER OFF";
+		buttonActionsUI[ButtonB][ActionPress] = 0;
+	}
 	return writeString;
 }
 

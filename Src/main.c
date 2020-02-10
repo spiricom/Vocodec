@@ -218,7 +218,7 @@ int main(void)
 
 	if (hi2c4.State == HAL_I2C_STATE_READY)
 	{
-	  OLED_process();
+	  OLED_draw();
 	}
 
   }

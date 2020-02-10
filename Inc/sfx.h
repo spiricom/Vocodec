@@ -24,6 +24,8 @@ extern tRamp polyRamp[NUM_VOC_VOICES];
 extern tSawtooth osc[NUM_VOC_VOICES];
 extern int autotuneChromatic;
 
+extern PlayMode samplerMode;
+
 void initGlobalSFXObjects();
 
 //1 vocoder internal poly

@@ -12,6 +12,7 @@
 #include "leaf.h"
 #include "codec.h"
 #include "ui.h"
+#include "oled.h"
 #include "tunings.h"
 #include "i2c.h"
 #include "gpio.h"
@@ -213,6 +214,8 @@ void audioFrame(uint16_t buffer_offset)
 	else numBuffersCleared = 0;
 
 	frameCompleted = TRUE;
+
+	OLED_process(); // process what to write to the screen but don't actually draw
 }
 
 
