@@ -52,7 +52,8 @@ typedef enum _ButtonAction
 {
 	ActionPress = 0,
 	ActionRelease,
-	ActionHold,
+	ActionHoldInstant,
+	ActionHoldContinuous,
 	ActionNil
 } ButtonAction;
 
@@ -84,7 +85,9 @@ void buttonCheck(void);
 
 void adcCheck(void);
 
-void changeTuning();
+void clearButtonActions(void);
+
+void changeTuning(void);
 
 void writeCurrentPresetToFlash(void);
 

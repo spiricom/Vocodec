@@ -25,6 +25,7 @@ extern tSawtooth osc[NUM_VOC_VOICES];
 extern int autotuneChromatic;
 
 extern PlayMode samplerMode;
+extern float sampleLength;
 
 void initGlobalSFXObjects();
 

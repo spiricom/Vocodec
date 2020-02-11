@@ -92,7 +92,7 @@ int delayShaper = 0;
 //sampler objects
 int samplePlayStart = 0;
 int samplePlayEnd = 0;
-int sampleLength = 0;
+float sampleLength = 0.0f;
 int crossfadeLength = 0;
 float samplerRate = 1.0f;
 float maxSampleSizeSeconds = 1.0f;
@@ -488,14 +488,16 @@ void SFXSamplerBPFrame()
 
 void SFXSamplerBPTick(float audioIn)
 {
+	int recordPosition = tBuffer_getRecordPosition(&buff);
+
+	sampleLength = recordPosition * leaf.invSampleRate;
 	knobParams[0] = smoothedADC[0] * sampleLength;
 	knobParams[1] = smoothedADC[1] * sampleLength;
 	knobParams[2] = (smoothedADC[2] - 0.5f) * 4.0f;
-
 	knobParams[3] = smoothedADC[3] * 4000.0f;
 
-	samplePlayStart = knobParams[0];
-	samplePlayEnd = knobParams[1];
+	samplePlayStart = smoothedADC[0] * recordPosition;
+	samplePlayEnd = smoothedADC[1] * recordPosition;
 	samplerRate = knobParams[2];
 	crossfadeLength = knobParams[3];
 	tSampler_setStart(&sampler, samplePlayStart);
@@ -516,7 +518,6 @@ void SFXSamplerBPTick(float audioIn)
 	else if (buttonActionsSFX[ButtonA][ActionRelease])
 	{
 		tBuffer_stop(&buff);
-		sampleLength = tBuffer_getRecordPosition(&buff);
 		tSampler_play(&sampler);
 		tSampler_setStart(&sampler, samplePlayStart);
 		tSampler_setEnd(&sampler, samplePlayEnd);
@@ -529,8 +530,6 @@ void SFXSamplerBPTick(float audioIn)
 		tBuffer_clear(&buff);
 		buttonActionsSFX[ButtonUp][ActionPress] = 0;
 	}
-
-
 
 	tBuffer_tick(&buff, audioIn);
 	sample = tanhf(tSampler_tick(&sampler));

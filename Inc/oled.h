@@ -44,6 +44,8 @@ void setLED_leftin_clip(uint8_t onOff);
 
 void setLED_rightin_clip(uint8_t onOff);
 
+int getCursorX(void);
+
 void OLED_process(void);
 
 void OLED_writePreset(void);

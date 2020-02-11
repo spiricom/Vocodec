@@ -218,6 +218,11 @@ void setLED_rightin_clip(uint8_t onOff)
 	}
 }
 
+int getCursorX()
+{
+	return GFXgetCursorX(&theGFX);
+}
+
 void OLED_process(void)
 {
 	if (writeKnobFlag >= 0)
@@ -263,10 +268,8 @@ void OLED_writeKnobParameter(uint8_t whichParam)
 			GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
 			OLEDclearLine(SecondLine);
 			OLEDwriteString(knobParamNames[currentPreset][whichParam], len, 0, SecondLine);
-			int xpos = GFXgetCursorX(&theGFX);
-			OLEDwriteString(" ", 1, xpos, SecondLine);
-			xpos = GFXgetCursorX(&theGFX);
-			OLEDwriteFloat(knobParams[whichParam], xpos, SecondLine);
+			OLEDwriteString(" ", 1, getCursorX(), SecondLine);
+			OLEDwriteFloat(knobParams[whichParam], getCursorX(), SecondLine);
 			//OLEDwriteString(knobParamNames[currentPreset][whichParam], strlen(knobParamNames[currentPreset][whichParam]), 0, SecondLine);
 		}
 	}

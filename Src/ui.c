@@ -241,15 +241,22 @@ void buttonCheck(void)
 			{
 				buttonHysteresis[i]++;
 			}
+			if (cleanButtonValues[i] == 1)
+			{
+				buttonActionsSFX[i][ActionHoldContinuous] = TRUE;
+				buttonActionsUI[i][ActionHoldContinuous] = TRUE;
+				writeButtonFlag = i;
+				writeActionFlag = ActionHoldContinuous;
+			}
 			if (buttonHysteresis[i] < buttonHysteresisThreshold)
 			{
 				if (buttonCounters[i] < buttonHoldMax) buttonCounters[i]++;
 				if ((buttonCounters[i] >= buttonHoldThreshold) && (cleanButtonValues[i] == 1))
 				{
-					buttonActionsSFX[i][ActionHold] = TRUE;
-					buttonActionsUI[i][ActionHold] = TRUE;
+					buttonActionsSFX[i][ActionHoldInstant] = TRUE;
+					buttonActionsUI[i][ActionHoldInstant] = TRUE;
 					writeButtonFlag = i;
-					writeActionFlag = ActionHold;
+					writeActionFlag = ActionHoldInstant;
 				}
 			}
 			else
@@ -451,14 +458,18 @@ char* UIAutotuneButtons(VocodecButton button, ButtonAction action)
 char* UISamplerBPButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
-	if (buttonActionsUI[ButtonA][ActionPress])
+	if (buttonActionsUI[ButtonA][ActionHoldContinuous])
 	{
-		writeString = "RECORD ON";
-		buttonActionsUI[ButtonA][ActionPress] = 0;
+		OLEDclearLine(SecondLine);
+		OLEDwriteString("REC ", 3, 0, SecondLine);
+		OLEDwriteFloat(sampleLength, getCursorX(), SecondLine);
+		buttonActionsUI[ButtonA][ActionHoldContinuous] = 0;
 	}
-	if (buttonActionsUI[ButtonA][ActionRelease])
+	else if (buttonActionsUI[ButtonA][ActionRelease])
 	{
-		writeString = "RECORDED";
+		OLEDclearLine(SecondLine);
+		OLEDwriteString("REC ", 3, 0, SecondLine);
+		OLEDwriteFloat(sampleLength, getCursorX(), SecondLine);
 		buttonActionsUI[ButtonA][ActionRelease] = 0;
 	}
 	if (buttonActionsUI[ButtonUp][ActionPress])
