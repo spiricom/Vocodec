@@ -11,7 +11,7 @@
 #define NUM_BUTTONS 10
 
 //PresetNil is used as a counter for the size of the enum
-typedef enum _VocodecPreset
+typedef enum _VocodecPresetType
 {
 	VocoderInternalPoly = 0,
 	VocoderInternalMono,
@@ -31,7 +31,7 @@ typedef enum _VocodecPreset
 	Reverb2,
 	LivingString,
 	PresetNil
-} VocodecPreset;
+} VocodecPresetType;
 
 typedef enum _VocodecButton
 {

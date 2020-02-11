@@ -371,7 +371,6 @@ void OLEDwriteLine(char* myCharArray, uint8_t arrayLength, OLEDLine line)
 	{
 		GFXwrite(&theGFX, myCharArray[i]);
 	}
-	//ssd1306_display_full_buffer();
 }
 
 void OLEDwriteInt(uint32_t myNumber, uint8_t numDigits, uint8_t startCursor, OLEDLine line)
@@ -476,4 +475,21 @@ void OLEDwriteFloat(float input, uint8_t startCursor, OLEDLine line)
 	int len = OLEDparseFixedFloat(oled_buffer, input, numDigits, numDecimal);
 
 	OLEDwriteString(oled_buffer, len, startCursor, line);
+}
+
+void OLEDdrawFloatArray(float* input, float min, float max, uint8_t size, uint8_t offset, uint8_t startCursor, OLEDLine line)
+{
+	uint8_t baseline = 0;
+	if (line == SecondLine) baseline = 16;
+	uint8_t height = 16;
+	if (line == BothLines) height = 32;
+
+	GFXfillRect(&theGFX, startCursor, (line%2)*16, size, 16*((line/2)+1), 0);
+
+	for (int i = 0; i < size; i++)
+	{
+		int h = ((float)(height) / (max - min)) * (input[i] - min);
+		GFXwritePixel(&theGFX, startCursor + size - ((i + offset) % size), baseline + h, 1);
+//		GFXwriteFastVLine(&theGFX, startCursor + size - ((i + offset) % size), center - (h/2), 1, 1);
+	}
 }

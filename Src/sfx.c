@@ -123,9 +123,6 @@ void initGlobalSFXObjects()
 		tRamp_init(&polyRamp[i], 10.0f, 1);
 	}
 
-
-
-
 	tRamp_init(&nearWetRamp, 10.0f, 1);
 	tRamp_init(&nearDryRamp, 10.0f, 1);
 	tRamp_init(&comp, 10.0f, 1);
@@ -141,7 +138,6 @@ void SFXVocoderIPAlloc()
 	{
 		tSawtooth_initToPool(&osc[i], &smallPool);
 	}
-
 }
 
 void SFXVocoderIPFrame()
@@ -484,6 +480,11 @@ void SFXSamplerBPAlloc()
 
 void SFXSamplerBPFrame()
 {
+	if (buttonActionsSFX[ButtonUp][ActionPress])
+	{
+		tBuffer_clear(&buff);
+		buttonActionsSFX[ButtonUp][ActionPress] = 0;
+	}
 }
 
 void SFXSamplerBPTick(float audioIn)
@@ -524,11 +525,6 @@ void SFXSamplerBPTick(float audioIn)
 		tSampler_setRate(&sampler, samplerRate);
 		tSampler_setCrossfadeLength(&sampler, crossfadeLength);
 		buttonActionsSFX[ButtonA][ActionRelease] = 0;
-	}
-	if (buttonActionsSFX[ButtonUp][ActionPress])
-	{
-		tBuffer_clear(&buff);
-		buttonActionsSFX[ButtonUp][ActionPress] = 0;
 	}
 
 	tBuffer_tick(&buff, audioIn);

@@ -43,8 +43,8 @@ uint8_t buttonActionsUI[NUM_BUTTONS][ActionNil];
 float knobParams[NUM_ADC_CHANNELS];
 char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
 
-VocodecPreset currentPreset = 0;
-VocodecPreset previousPreset = PresetNil;
+VocodecPresetType currentPreset = 0;
+VocodecPresetType previousPreset = PresetNil;
 uint8_t loadingPreset = 0;
 
 void initModeNames(void)
@@ -345,6 +345,17 @@ void buttonCheck(void)
 			OLED_writeTuning();
 			buttonActionsUI[ButtonE][ActionPress] = 0;
 		}
+
+		if (buttonActionsUI[ButtonEdit][ActionHoldContinuous] == 1)
+		{
+			OLEDdrawFloatArray(audioDisplayBuffer, -0.5f, 0.5f, 128, displayBufferIndex, 0, BothLines);
+			buttonActionsUI[ButtonEdit][ActionHoldContinuous] = 0;
+		}
+		if (buttonActionsUI[ButtonEdit][ActionRelease] == 1)
+		{
+			OLED_writePreset();
+			buttonActionsUI[ButtonEdit][ActionRelease] = 0;
+		}
 	}
 }
 
@@ -412,6 +423,7 @@ void writeCurrentPresetToFlash(void)
 char* UIVocoderIPButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
+
 	return writeString;
 }
 

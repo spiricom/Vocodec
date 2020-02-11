@@ -29,6 +29,13 @@ char small_memory[SMALL_MEM_SIZE];
 char medium_memory[MED_MEM_SIZE]__ATTR_RAM_D1;
 char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
 
+#define DISPLAY_BLOCK_SIZE 512
+float audioDisplayBuffer[128];
+uint8_t displayBufferIndex = 0;
+float displayBlockVal = 0.0f;
+uint32_t displayBlockCount = 0;
+
+
 void audioFrame(uint16_t buffer_offset);
 float audioTickL(float audioIn);
 float audioTickR(float audioIn);
@@ -206,6 +213,9 @@ void audioFrame(uint16_t buffer_offset)
 				{
 					freeFunctions[previousPreset]();
 				}
+				setLED_A(0);
+				setLED_B(0);
+				setLED_1(0);
 				allocFunctions[currentPreset]();
 				loadingPreset = 0;
 			}
@@ -225,7 +235,6 @@ float audioTickL(float audioIn)
 {
 	sample = 0.0f;
 
-
 	for (int i = 0; i < 6; i++)
 	{
 		smoothedADC[i] = tRamp_tick(&adc[i]);
@@ -243,7 +252,16 @@ float audioTickL(float audioIn)
 
 	tickFunctions[currentPreset](audioIn);
 
-
+	displayBlockVal += sample;
+	displayBlockCount++;
+	if (displayBlockCount >= DISPLAY_BLOCK_SIZE)
+	{
+		displayBlockVal *= INV_TWO_TO_9;
+		audioDisplayBuffer[displayBufferIndex] = displayBlockVal;
+		displayBlockVal = 0.0f;
+		displayBufferIndex++;
+		if (displayBufferIndex >= 128) displayBufferIndex = 0;
+	}
 
 	if ((audioIn >= 0.999999f) || (audioIn <= -0.999999f))
 	{

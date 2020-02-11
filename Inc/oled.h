@@ -82,5 +82,7 @@ void OLEDwriteFixedFloatLine(float input, uint8_t numDigits, uint8_t numDecimal,
 
 void OLEDwriteFloat(float input, uint8_t startCursor, OLEDLine line);
 
+void OLEDdrawFloatArray(float* input, float min, float max, uint8_t size, uint8_t offset, uint8_t startCursor, OLEDLine line);
+
 #endif /* OLED_H_ */
 

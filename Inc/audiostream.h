@@ -48,6 +48,8 @@ extern float rightOut;
 extern float rightIn;
 extern tRamp adc[6];
 extern float smoothedADC[6];
+extern float audioDisplayBuffer[128];
+extern uint8_t displayBufferIndex;
 
 /* Exported types ------------------------------------------------------------*/
 typedef enum
