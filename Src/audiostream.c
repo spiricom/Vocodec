@@ -252,13 +252,14 @@ float audioTickL(float audioIn)
 
 	tickFunctions[currentPreset](audioIn);
 
-	displayBlockVal += sample;
+	displayBlockVal += fabsf(sample);
 	displayBlockCount++;
 	if (displayBlockCount >= DISPLAY_BLOCK_SIZE)
 	{
 		displayBlockVal *= INV_TWO_TO_9;
 		audioDisplayBuffer[displayBufferIndex] = displayBlockVal;
 		displayBlockVal = 0.0f;
+		displayBlockCount = 0;
 		displayBufferIndex++;
 		if (displayBufferIndex >= 128) displayBufferIndex = 0;
 	}

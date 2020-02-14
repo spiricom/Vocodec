@@ -262,15 +262,15 @@ void OLED_writeKnobParameter(uint8_t whichParam)
 	// Knob params
 	if (whichParam < NUM_ADC_CHANNELS)
 	{
-		int len = strlen(knobParamNames[currentPreset][whichParam]);
+		int len = strlen(paramNames[currentPreset][whichParam]);
 		if (len > 0)
 		{
 			GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
 			OLEDclearLine(SecondLine);
-			OLEDwriteString(knobParamNames[currentPreset][whichParam], len, 0, SecondLine);
+			OLEDwriteString(paramNames[currentPreset][whichParam], len, 0, SecondLine);
 			OLEDwriteString(" ", 1, getCursorX(), SecondLine);
 			OLEDwriteFloat(knobParams[whichParam], getCursorX(), SecondLine);
-			//OLEDwriteString(knobParamNames[currentPreset][whichParam], strlen(knobParamNames[currentPreset][whichParam]), 0, SecondLine);
+			//OLEDwriteString(paramNames[currentPreset][whichParam], strlen(paramNames[currentPreset][whichParam]), 0, SecondLine);
 		}
 	}
 }
@@ -489,7 +489,7 @@ void OLEDdrawFloatArray(float* input, float min, float max, uint8_t size, uint8_
 	for (int i = 0; i < size; i++)
 	{
 		int h = ((float)(height) / (max - min)) * (input[i] - min);
-		GFXwritePixel(&theGFX, startCursor + size - ((i + offset) % size), baseline + h, 1);
+		GFXwritePixel(&theGFX, startCursor + size - 1 - ((i + offset) % size), baseline + h, 1);
 //		GFXwriteFastVLine(&theGFX, startCursor + size - ((i + offset) % size), center - (h/2), 1, 1);
 	}
 }

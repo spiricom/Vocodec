@@ -74,7 +74,7 @@ extern uint8_t loadingPreset;
 extern char* modeNames[PresetNil];
 extern char* modeNamesDetails[PresetNil];
 extern char* shortModeNames[PresetNil];
-extern char* knobParamNames[PresetNil][NUM_ADC_CHANNELS];
+extern char* paramNames[PresetNil][NUM_ADC_CHANNELS + NUM_BUTTONS];
 extern float knobParams[NUM_ADC_CHANNELS];
 extern uint8_t buttonActionsSFX[NUM_BUTTONS][ActionNil];
 extern char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
