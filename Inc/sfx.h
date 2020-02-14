@@ -27,6 +27,8 @@ extern int autotuneChromatic;
 extern PlayMode samplerMode;
 extern float sampleLength;
 
+extern uint32_t freeze;
+
 void initGlobalSFXObjects();
 
 //1 vocoder internal poly

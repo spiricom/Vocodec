@@ -1036,16 +1036,14 @@ void SFXReverbTick(float audioIn)
 			freeze = 1;
 			tDattorroReverb_setFreeze(&reverb, 1);
 			setLED_1(1);
-			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 		else
 		{
 			freeze = 0;
 			tDattorroReverb_setFreeze(&reverb, 0);
 			setLED_1(0);
-			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
-
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
 	}
 
 	//tDattorroReverb_setInputDelay(&reverb, smoothedADC[1] * 200.f);
@@ -1118,14 +1116,13 @@ void SFXReverb2Tick(float audioIn)
 		{
 			freeze = 1;
 			setLED_1(1);
-			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 		else
 		{
 			freeze = 0;
 			setLED_1(0);
-			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
 	}
 
 

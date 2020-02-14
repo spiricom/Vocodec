@@ -167,10 +167,10 @@ void initModeNames(void)
 	modeNames[SamplerAutoGrabExternal] = "AUTOSAMP2";
 	shortModeNames[SamplerAutoGrabExternal] = "A2";
 	modeNamesDetails[SamplerAutoGrabExternal] = "CH2 TRIG";
-	paramNames[SamplerAutoGrabExternal][0] = "";
-	paramNames[SamplerAutoGrabExternal][1] = "";
-	paramNames[SamplerAutoGrabExternal][2] = "";
-	paramNames[SamplerAutoGrabExternal][3] = "";
+	paramNames[SamplerAutoGrabExternal][0] = "THRESHOLD";
+	paramNames[SamplerAutoGrabExternal][1] = "WINDOW";
+	paramNames[SamplerAutoGrabExternal][2] = "REL THRESH";
+	paramNames[SamplerAutoGrabExternal][3] = "CROSSFADE";
 	paramNames[SamplerAutoGrabExternal][4] = "";
 	paramNames[SamplerAutoGrabExternal][5] = "";
 	paramNames[SamplerAutoGrabExternal][ButtonA] = "";
@@ -649,6 +649,12 @@ char* UIReverbButtons(VocodecButton button, ButtonAction action)
 char* UIReverb2Buttons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
+	if (buttonActionsUI[ButtonA][ActionPress])
+	{
+		if (freeze == 0) writeString = "FREEZE";
+		else writeString = "UNFREEZE";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
 	return writeString;
 }
 
