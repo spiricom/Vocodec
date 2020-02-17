@@ -64,17 +64,13 @@ void OLED_init(I2C_HandleTypeDef* hi2c)
 
 void initUIFunctionPointers(void)
 {
-	buttonActionFunctions[VocoderInternalPoly] = UIVocoderIPButtons;
-	buttonActionFunctions[VocoderInternalMono] = UIVocoderIMButtons;
-	buttonActionFunctions[VocoderExternal] = UIVocoderEButtons;
+	buttonActionFunctions[Vocoder] = UIVocoderButtons;
 	buttonActionFunctions[Pitchshift] = UIPitchShiftButtons;
 	buttonActionFunctions[AutotuneMono] = UINeartuneButtons;
 	buttonActionFunctions[AutotunePoly] = UIAutotuneButtons;
 	buttonActionFunctions[SamplerButtonPress] = UISamplerBPButtons;
-	buttonActionFunctions[SamplerAutoGrabInternal] = UISamplerAuto1Buttons;
-	buttonActionFunctions[SamplerAutoGrabExternal] = UISamplerAuto2Buttons;
-	buttonActionFunctions[DistortionTanH] = UIDistortionTanhButtons;
-	buttonActionFunctions[DistortionShaper] = UIDistortionShaperButtons;
+	buttonActionFunctions[SamplerAutoGrab] = UISamplerAutoButtons;
+	buttonActionFunctions[Distortion] = UIDistortionButtons;
 	buttonActionFunctions[Wavefolder] = UIWaveFolderButtons;
 	buttonActionFunctions[BitCrusher] = UIBitcrusherButtons;
 	buttonActionFunctions[Delay] = UIDelayButtons;

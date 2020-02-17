@@ -13,17 +13,13 @@
 //PresetNil is used as a counter for the size of the enum
 typedef enum _VocodecPresetType
 {
-	VocoderInternalPoly = 0,
-	VocoderInternalMono,
-	VocoderExternal,
+	Vocoder = 0,
 	Pitchshift,
 	AutotuneMono,
 	AutotunePoly,
 	SamplerButtonPress,
-	SamplerAutoGrabInternal,
-	SamplerAutoGrabExternal,
-	DistortionTanH,
-	DistortionShaper,
+	SamplerAutoGrab,
+	Distortion,
 	Wavefolder,
 	BitCrusher,
 	Delay,
@@ -91,17 +87,13 @@ void changeTuning(void);
 
 void writeCurrentPresetToFlash(void);
 
-char* UIVocoderIPButtons(VocodecButton button, ButtonAction action);
-char* UIVocoderIMButtons(VocodecButton button, ButtonAction action);
-char* UIVocoderEButtons(VocodecButton button, ButtonAction action);
+char* UIVocoderButtons(VocodecButton button, ButtonAction action);
 char* UIPitchShiftButtons(VocodecButton button, ButtonAction action);
 char* UINeartuneButtons(VocodecButton button, ButtonAction action);
 char* UIAutotuneButtons(VocodecButton button, ButtonAction action);
 char* UISamplerBPButtons(VocodecButton button, ButtonAction action);
-char* UISamplerAuto1Buttons(VocodecButton button, ButtonAction action);
-char* UISamplerAuto2Buttons(VocodecButton button, ButtonAction action);
-char* UIDistortionTanhButtons(VocodecButton button, ButtonAction action);
-char* UIDistortionShaperButtons(VocodecButton button, ButtonAction action);
+char* UISamplerAutoButtons(VocodecButton button, ButtonAction action);
+char* UIDistortionButtons(VocodecButton button, ButtonAction action);
 char* UIWaveFolderButtons(VocodecButton button, ButtonAction action);
 char* UIBitcrusherButtons(VocodecButton button, ButtonAction action);
 char* UIDelayButtons(VocodecButton button, ButtonAction action);

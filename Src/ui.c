@@ -16,6 +16,8 @@ uint16_t ADC_values[NUM_ADC_CHANNELS] __ATTR_RAM_D2;
 float floatADC[NUM_ADC_CHANNELS];
 float lastFloatADC[NUM_ADC_CHANNELS];
 float adcHysteresisThreshold = 0.001f;
+float adcHysteresisLowThreshold = 0.000001f;
+uint8_t adcStableCount[NUM_ADC_CHANNELS];
 
 uint8_t buttonValues[NUM_BUTTONS]; // Actual state of the buttons
 uint8_t buttonValuesPrev[NUM_BUTTONS];
@@ -45,6 +47,7 @@ uint8_t orderedParams[8];
 uint8_t buttonActionsSFX[NUM_BUTTONS][ActionNil];
 uint8_t buttonActionsUI[NUM_BUTTONS][ActionNil];
 float knobParams[NUM_ADC_CHANNELS];
+int8_t cvAddParam = -1;
 char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
 
 VocodecPresetType currentPreset = 0;
@@ -63,46 +66,23 @@ void initModeNames(void)
 	controlNames[ButtonB] = "B";
 	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 	{
+		adcStableCount[i] = 0;
 		orderedParams[i] = i;
 	}
 	orderedParams[6] = ButtonA;
 	orderedParams[7] = ButtonB;
 
-	modeNames[VocoderInternalPoly] = "VOCODER IP";
-	shortModeNames[VocoderInternalPoly] = "V1";
-	modeNamesDetails[VocoderInternalPoly] = "INTERNAL POLY";
-	paramNames[VocoderInternalPoly][0] = "VOLUME";
-	paramNames[VocoderInternalPoly][1] = "";
-	paramNames[VocoderInternalPoly][2] = "";
-	paramNames[VocoderInternalPoly][3] = "";
-	paramNames[VocoderInternalPoly][4] = "";
-	paramNames[VocoderInternalPoly][5] = "";
-	paramNames[VocoderInternalPoly][ButtonA] = "";
-	paramNames[VocoderInternalPoly][ButtonB] = "";
-
-	modeNames[VocoderInternalMono] = "VOCODER IM";
-	shortModeNames[VocoderInternalMono] = "V2";
-	modeNamesDetails[VocoderInternalMono] = "INTERNAL MONO";
-	paramNames[VocoderInternalMono][0] = "VOLUME";
-	paramNames[VocoderInternalMono][1] = "";
-	paramNames[VocoderInternalMono][2] = "";
-	paramNames[VocoderInternalMono][3] = "";
-	paramNames[VocoderInternalMono][4] = "";
-	paramNames[VocoderInternalMono][5] = "";
-	paramNames[VocoderInternalMono][ButtonA] = "";
-	paramNames[VocoderInternalMono][ButtonB] = "";
-
-	modeNames[VocoderExternal] = "VOCODEC E";
-	shortModeNames[VocoderExternal] = "VE";
-	modeNamesDetails[VocoderExternal] = "EXTERNAL";
-	paramNames[VocoderExternal][0] = "";
-	paramNames[VocoderExternal][1] = "";
-	paramNames[VocoderExternal][2] = "";
-	paramNames[VocoderExternal][3] = "";
-	paramNames[VocoderExternal][4] = "";
-	paramNames[VocoderExternal][5] = "";
-	paramNames[VocoderExternal][ButtonA] = "";
-	paramNames[VocoderExternal][ButtonB] = "";
+	modeNames[Vocoder] = "VOCODER";
+	shortModeNames[Vocoder] = "VC";
+	modeNamesDetails[Vocoder] = "";
+	paramNames[Vocoder][0] = "VOLUME";
+	paramNames[Vocoder][1] = "";
+	paramNames[Vocoder][2] = "";
+	paramNames[Vocoder][3] = "";
+	paramNames[Vocoder][4] = "";
+	paramNames[Vocoder][5] = "";
+	paramNames[Vocoder][NUM_ADC_CHANNELS + ButtonA] = "POLY MONO";
+	paramNames[Vocoder][NUM_ADC_CHANNELS + ButtonB] = "SOURCE";
 
 	modeNames[Pitchshift] = "PITCHSHIFT";
 	shortModeNames[Pitchshift] = "PS";
@@ -113,8 +93,8 @@ void initModeNames(void)
 	paramNames[Pitchshift][3] = "FORMANT";
 	paramNames[Pitchshift][4] = "";
 	paramNames[Pitchshift][5] = "";
-	paramNames[Pitchshift][ButtonA] = "";
-	paramNames[Pitchshift][ButtonB] = "";
+	paramNames[Pitchshift][NUM_ADC_CHANNELS + ButtonA] = "";
+	paramNames[Pitchshift][NUM_ADC_CHANNELS + ButtonB] = "";
 
 	modeNames[AutotuneMono] = "NEARTUNE";
 	shortModeNames[AutotuneMono] = "NT";
@@ -125,8 +105,8 @@ void initModeNames(void)
 	paramNames[AutotuneMono][3] = "";
 	paramNames[AutotuneMono][4] = "";
 	paramNames[AutotuneMono][5] = "";
-	paramNames[AutotuneMono][ButtonA] = "AUTOCHRM ON";
-	paramNames[AutotuneMono][ButtonB] = "AUTOCHRM OFF";
+	paramNames[AutotuneMono][NUM_ADC_CHANNELS + ButtonA] = "AUTOCHRM ON";
+	paramNames[AutotuneMono][NUM_ADC_CHANNELS + ButtonB] = "AUTOCHRM OFF";
 
 	modeNames[AutotunePoly] = "AUTOTUNE";
 	shortModeNames[AutotunePoly] = "AT";
@@ -137,8 +117,8 @@ void initModeNames(void)
 	paramNames[AutotunePoly][3] = "";
 	paramNames[AutotunePoly][4] = "";
 	paramNames[AutotunePoly][5] = "";
-	paramNames[AutotunePoly][ButtonA] = "";
-	paramNames[AutotunePoly][ButtonB] = "";
+	paramNames[AutotunePoly][NUM_ADC_CHANNELS + ButtonA] = "";
+	paramNames[AutotunePoly][NUM_ADC_CHANNELS + ButtonB] = "";
 
 	modeNames[SamplerButtonPress] = "SAMPLER BP";
 	shortModeNames[SamplerButtonPress] = "SB";
@@ -149,56 +129,32 @@ void initModeNames(void)
 	paramNames[SamplerButtonPress][3] = "CROSSFADE";
 	paramNames[SamplerButtonPress][4] = "";
 	paramNames[SamplerButtonPress][5] = "";
-	paramNames[SamplerButtonPress][ButtonA] = "";
-	paramNames[SamplerButtonPress][ButtonB] = "";
+	paramNames[SamplerButtonPress][NUM_ADC_CHANNELS + ButtonA] = "";
+	paramNames[SamplerButtonPress][NUM_ADC_CHANNELS + ButtonB] = "";
 
-	modeNames[SamplerAutoGrabInternal] = "AUTOSAMP1";
-	shortModeNames[SamplerAutoGrabInternal] = "A1";
-	modeNamesDetails[SamplerAutoGrabInternal] = "CH1 TRIG";
-	paramNames[SamplerAutoGrabInternal][0] = "THRESHOLD";
-	paramNames[SamplerAutoGrabInternal][1] = "WINDOW";
-	paramNames[SamplerAutoGrabInternal][2] = "REL THRESH";
-	paramNames[SamplerAutoGrabInternal][3] = "CROSSFADE";
-	paramNames[SamplerAutoGrabInternal][4] = "";
-	paramNames[SamplerAutoGrabInternal][5] = "";
-	paramNames[SamplerAutoGrabInternal][ButtonA] = "";
-	paramNames[SamplerAutoGrabInternal][ButtonB] = "";
+	modeNames[SamplerAutoGrab] = "AUTOSAMPLE";
+	shortModeNames[SamplerAutoGrab] = "AS";
+	modeNamesDetails[SamplerAutoGrab] = "";
+	paramNames[SamplerAutoGrab][0] = "THRESHOLD";
+	paramNames[SamplerAutoGrab][1] = "WINDOW";
+	paramNames[SamplerAutoGrab][2] = "REL THRESH";
+	paramNames[SamplerAutoGrab][3] = "CROSSFADE";
+	paramNames[SamplerAutoGrab][4] = "";
+	paramNames[SamplerAutoGrab][5] = "";
+	paramNames[SamplerAutoGrab][NUM_ADC_CHANNELS + ButtonA] = "PLAY MODE";
+	paramNames[SamplerAutoGrab][NUM_ADC_CHANNELS + ButtonB] = "TRIGGER CH";
 
-	modeNames[SamplerAutoGrabExternal] = "AUTOSAMP2";
-	shortModeNames[SamplerAutoGrabExternal] = "A2";
-	modeNamesDetails[SamplerAutoGrabExternal] = "CH2 TRIG";
-	paramNames[SamplerAutoGrabExternal][0] = "THRESHOLD";
-	paramNames[SamplerAutoGrabExternal][1] = "WINDOW";
-	paramNames[SamplerAutoGrabExternal][2] = "REL THRESH";
-	paramNames[SamplerAutoGrabExternal][3] = "CROSSFADE";
-	paramNames[SamplerAutoGrabExternal][4] = "";
-	paramNames[SamplerAutoGrabExternal][5] = "";
-	paramNames[SamplerAutoGrabExternal][ButtonA] = "";
-	paramNames[SamplerAutoGrabExternal][ButtonB] = "";
-
-	modeNames[DistortionTanH] = "DISTORT1";
-	shortModeNames[DistortionTanH] = "D1";
-	modeNamesDetails[DistortionTanH] = "TANH FUNCTION";
-	paramNames[DistortionTanH][0] = "GAIN";
-	paramNames[DistortionTanH][1] = "";
-	paramNames[DistortionTanH][2] = "";
-	paramNames[DistortionTanH][3] = "";
-	paramNames[DistortionTanH][4] = "";
-	paramNames[DistortionTanH][5] = "";
-	paramNames[DistortionTanH][ButtonA] = "";
-	paramNames[DistortionTanH][ButtonB] = "";
-
-	modeNames[DistortionShaper] = "DISTORT2";
-	shortModeNames[DistortionShaper] = "D2";
-	modeNamesDetails[DistortionShaper] = "WAVESHAPER";
-	paramNames[DistortionShaper][0] = "GAIN";
-	paramNames[DistortionShaper][1] = "";
-	paramNames[DistortionShaper][2] = "";
-	paramNames[DistortionShaper][3] = "";
-	paramNames[DistortionShaper][4] = "";
-	paramNames[DistortionShaper][5] = "";
-	paramNames[DistortionShaper][ButtonA] = "";
-	paramNames[DistortionShaper][ButtonB] = "";
+	modeNames[Distortion] = "DISTORTION";
+	shortModeNames[Distortion] = "DT";
+	modeNamesDetails[Distortion] = "";
+	paramNames[Distortion][0] = "GAIN";
+	paramNames[Distortion][1] = "";
+	paramNames[Distortion][2] = "";
+	paramNames[Distortion][3] = "";
+	paramNames[Distortion][4] = "";
+	paramNames[Distortion][5] = "";
+	paramNames[Distortion][NUM_ADC_CHANNELS + ButtonA] = "MODE";
+	paramNames[Distortion][NUM_ADC_CHANNELS + ButtonB] = "";
 
 	modeNames[Wavefolder] = "WAVEFOLD";
 	shortModeNames[Wavefolder] = "WF";
@@ -209,8 +165,8 @@ void initModeNames(void)
 	paramNames[Wavefolder][3] = "OFFSET3";
 	paramNames[Wavefolder][4] = "";
 	paramNames[Wavefolder][5] = "";
-	paramNames[Wavefolder][ButtonA] = "";
-	paramNames[Wavefolder][ButtonB] = "";
+	paramNames[Wavefolder][NUM_ADC_CHANNELS + ButtonA] = "";
+	paramNames[Wavefolder][NUM_ADC_CHANNELS + ButtonB] = "";
 
 	modeNames[BitCrusher] = "BITCRUSH";
 	shortModeNames[BitCrusher] = "BC";
@@ -221,8 +177,8 @@ void initModeNames(void)
 	paramNames[BitCrusher][3] = "OPERATION";
 	paramNames[BitCrusher][4] = "GAIN";
 	paramNames[BitCrusher][5] = "";
-	paramNames[BitCrusher][ButtonA] = "";
-	paramNames[BitCrusher][ButtonB] = "";
+	paramNames[BitCrusher][NUM_ADC_CHANNELS + ButtonA] = "";
+	paramNames[BitCrusher][NUM_ADC_CHANNELS + ButtonB] = "";
 
 	modeNames[Delay] = "DELAY";
 	shortModeNames[Delay] = "DL";
@@ -233,8 +189,8 @@ void initModeNames(void)
 	paramNames[Delay][3] = "LOWPASS";
 	paramNames[Delay][4] = "HIGHPASS";
 	paramNames[Delay][5] = "";
-	paramNames[Delay][ButtonA] = "";
-	paramNames[Delay][ButtonB] = "";
+	paramNames[Delay][NUM_ADC_CHANNELS + ButtonA] = "";
+	paramNames[Delay][NUM_ADC_CHANNELS + ButtonB] = "";
 
 	modeNames[Reverb] = "REVERB";
 	shortModeNames[Reverb] = "RV";
@@ -245,8 +201,8 @@ void initModeNames(void)
 	paramNames[Reverb][3] = "FB LOPASS";
 	paramNames[Reverb][4] = "FB GAIN";
 	paramNames[Reverb][5] = "";
-	paramNames[Reverb][ButtonA] = "";
-	paramNames[Reverb][ButtonB] = "";
+	paramNames[Reverb][NUM_ADC_CHANNELS + ButtonA] = "";
+	paramNames[Reverb][NUM_ADC_CHANNELS + ButtonB] = "";
 
 	modeNames[Reverb2] = "REVERB2";
 	shortModeNames[Reverb2] = "RV";
@@ -257,8 +213,8 @@ void initModeNames(void)
 	paramNames[Reverb2][3] = "PEAK_FREQ";
 	paramNames[Reverb2][4] = "PEAK_GAIN";
 	paramNames[Reverb2][5] = "";
-	paramNames[Reverb2][ButtonA] = "";
-	paramNames[Reverb2][ButtonB] = "";
+	paramNames[Reverb2][NUM_ADC_CHANNELS + ButtonA] = "";
+	paramNames[Reverb2][NUM_ADC_CHANNELS + ButtonB] = "";
 
 	modeNames[LivingString] = "STRING";
 	shortModeNames[LivingString] = "LS";
@@ -269,8 +225,8 @@ void initModeNames(void)
 	paramNames[LivingString][3] = "DAMPING";
 	paramNames[LivingString][4] = "PICK_POS";
 	paramNames[LivingString][5] = "";
-	paramNames[LivingString][ButtonA] = "";
-	paramNames[LivingString][ButtonB] = "";
+	paramNames[LivingString][NUM_ADC_CHANNELS + ButtonA] = "";
+	paramNames[LivingString][NUM_ADC_CHANNELS + ButtonB] = "";
 }
 
 void buttonCheck(void)
@@ -407,8 +363,12 @@ void buttonCheck(void)
 				OLEDwritePitchClass(keyCenter+60, 64, SecondLine);
 				buttonActionsUI[ButtonC][ActionPress] = 0;
 			}
+			if (buttonActionsUI[ButtonDown][ActionPress])
+			{
+				cvAddParam = -1;
+				buttonActionsUI[ButtonDown][ActionPress] = 0;
+			}
 //			OLEDdrawFloatArray(audioDisplayBuffer, -1.0f, 1.0f, 128, displayBufferIndex, 0, BothLines);
-			buttonActionsUI[ButtonEdit][ActionHoldContinuous] = 0;
 		}
 		if (buttonActionsUI[ButtonEdit][ActionRelease] == 1)
 		{
@@ -436,10 +396,30 @@ void adcCheck()
 	{
 		//floatADC[i] = (float) (ADC_values[i]>>8) * INV_TWO_TO_8;
 		floatADC[i] = (float) (ADC_values[i]>>6) * INV_TWO_TO_10;
+	}
+	for (int i = 0; i < 6; i++)
+	{
+		if (cvAddParam >= 0 && i == 5) continue;
+		if (cvAddParam == i) floatADC[i] += floatADC[5];
 
+		if (fastabsf(floatADC[i] - lastFloatADC[i]) < adcHysteresisLowThreshold && adcStableCount[i])
+		{
+			adcStableCount[i]--;
+			if (adcStableCount[i] == 0)
+			{
+				lastFloatADC[i] = floatADC[i];
+				writeKnobFlag = i;
+			}
+		}
+		else adcStableCount[i] = 10;
 
 		if (fastabsf(floatADC[i] - lastFloatADC[i]) > adcHysteresisThreshold)
 		{
+			if (buttonActionsUI[ButtonEdit][ActionHoldContinuous])
+			{
+				if (i != 5) cvAddParam = i;
+				buttonActionsUI[ButtonEdit][ActionHoldContinuous] = 0;
+			}
 			lastFloatADC[i] = floatADC[i];
 			writeKnobFlag = i;
 		}
@@ -490,22 +470,19 @@ void writeCurrentPresetToFlash(void)
 	}
 }
 
-char* UIVocoderIPButtons(VocodecButton button, ButtonAction action)
+char* UIVocoderButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
-
-	return writeString;
-}
-
-char* UIVocoderIMButtons(VocodecButton button, ButtonAction action)
-{
-	char* writeString = "";
-	return writeString;
-}
-
-char* UIVocoderEButtons(VocodecButton button, ButtonAction action)
-{
-	char* writeString = "";
+	if (buttonActionsUI[ButtonA][ActionPress] == 1)
+	{
+		writeString = (numVoices > 1) ? "POLY" : "MONO";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
+	if (buttonActionsUI[ButtonB][ActionPress] == 1)
+	{
+		writeString = (internalExternal > 0) ? "EXTERNAL" : "INTERNAL";
+		buttonActionsUI[ButtonB][ActionPress] = 0;
+	}
 	return writeString;
 }
 
@@ -562,7 +539,7 @@ char* UISamplerBPButtons(VocodecButton button, ButtonAction action)
 	return writeString;
 }
 
-char* UISamplerAuto1Buttons(VocodecButton button, ButtonAction action)
+char* UISamplerAutoButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
 	if (buttonActionsUI[ButtonA][ActionPress])
@@ -577,38 +554,22 @@ char* UISamplerAuto1Buttons(VocodecButton button, ButtonAction action)
 		}
 		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
-	return writeString;
-}
-
-
-char* UISamplerAuto2Buttons(VocodecButton button, ButtonAction action)
-{
-	char* writeString = "";
-
-	if (buttonActionsUI[ButtonA][ActionPress])
+	if (buttonActionsUI[ButtonB][ActionPress])
 	{
-		if (samplerMode == PlayLoop)
-		{
-			writeString = "LOOP";
-		}
-		else if (samplerMode == PlayBackAndForth)
-		{
-			writeString = "BACK'N'FORTH";
-		}
-		buttonActionsUI[ButtonA][ActionPress] = 0;
+		writeString = (triggerChannel > 0) ? "TRIG IN 2" : "TRIG IN 1";
+		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;
 }
 
-char* UIDistortionTanhButtons(VocodecButton button, ButtonAction action)
+char* UIDistortionButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
-	return writeString;
-}
-
-char* UIDistortionShaperButtons(VocodecButton button, ButtonAction action)
-{
-	char* writeString = "";
+	if (buttonActionsUI[ButtonA][ActionPress])
+	{
+		writeString = (distortionMode > 0) ? "SHAPER" : "TANH";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
 	return writeString;
 }
 
