@@ -126,7 +126,7 @@ void SFXVocoderAlloc()
 	{
 		tSawtooth_initToPool(&osc[i], &smallPool);
 	}
-	setLED_A(numVoices > 1);
+	setLED_A(numVoices == 1);
 	setLED_B(internalExternal);
 }
 
@@ -139,7 +139,7 @@ void SFXVocoderFrame()
 		numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
 		tPoly_setNumVoices(&poly, numVoices);
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
-		setLED_A(numVoices > 1);
+		setLED_A(numVoices == 1);
 	}
 	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
 	{

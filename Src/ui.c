@@ -475,7 +475,7 @@ char* UIVocoderButtons(VocodecButton button, ButtonAction action)
 	}
 	if (buttonActionsUI[ButtonB][ActionPress] == 1)
 	{
-		writeString = internalExternal ? "INTERNAL" : "EXTERNAL";
+		writeString = internalExternal ? "EXTERNAL" : "INTERNAL";
 		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;
@@ -546,7 +546,7 @@ char* UISamplerAutoButtons(VocodecButton button, ButtonAction action)
 	}
 	if (buttonActionsUI[ButtonB][ActionPress])
 	{
-		writeString = triggerChannel ? "CH1 TRIG" : "CH2 TRIG";
+		writeString = triggerChannel ? "CH2 TRIG" : "CH1 TRIG";
 		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;
@@ -557,7 +557,7 @@ char* UIDistortionButtons(VocodecButton button, ButtonAction action)
 	char* writeString = "";
 	if (buttonActionsUI[ButtonA][ActionPress])
 	{
-		writeString = distortionMode ? "TANH" : "SHAPER";
+		writeString = distortionMode ? "SHAPER" : "TANH";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
 	return writeString;
