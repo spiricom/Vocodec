@@ -453,7 +453,7 @@ void changeTuning()
 	}
 	if (currentPreset == AutotuneMono)
 	{
-		calculatePeriodArray();
+		calculateNoteArray();
 	}
 }
 

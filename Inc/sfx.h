@@ -131,8 +131,10 @@ void toggleBypass(void);
 void toggleSustain(void);
 
 void calculateFreq(int voice);
-void calculatePeriodArray(void);
-float nearestPeriod(float period);
+void calculateNoteArray(void);
+//void calculatePeriodArray(void);
+float nearestNote(float period);
+//float nearestPeriod(float period);
 
 void clearNotes(void);
 

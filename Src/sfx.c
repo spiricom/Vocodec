@@ -75,6 +75,7 @@ float myFreq;
 float myDetune[NUM_STRINGS];
 
 //control objects
+float notes[128];
 float notePeriods[128];
 float noteFreqs[128];
 int chordArray[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -110,7 +111,7 @@ uint32_t freeze = 0;
 
 void initGlobalSFXObjects()
 {
-	calculatePeriodArray();
+	calculateNoteArray();
 
 	tPoly_init(&poly, NUM_VOC_VOICES);
 	tPoly_setPitchGlideActive(&poly, FALSE);
@@ -297,7 +298,7 @@ void SFXPitchShiftFree(void)
 void SFXNeartuneAlloc()
 {
 	tAutotune_init(&autotuneMono, 1, 512, 256);
-	calculatePeriodArray();
+	calculateNoteArray();
 	tExpSmooth_init(&neartune_smoother, 100.0f, .007f);
 }
 
@@ -337,18 +338,23 @@ void SFXNeartuneTick(float audioIn)
 	//JS: suggested improvements -
 	// right now the period is used for "nearest pitch matching" but that is skewed - doing it on a midi note represetation would be more perceptually reasonable
 	// but it's a little expensive to use midi to freq and then put it to freq for the shifter.
-
-	float* samples = tAutotune_tick(&autotuneMono, audioIn);
-	float detectedPeriod = tAutotune_getInputPeriod(&autotuneMono);
-	float desiredSnap = nearestPeriod(detectedPeriod);
-
 	knobParams[0] = LEAF_clip(0.0f, smoothedADC[0] * 1.1f, 1.0f); // amount of forcing to new pitch
 	knobParams[1] = smoothedADC[1]; //speed to get to desired pitch shift
 	tExpSmooth_setFactor(&neartune_smoother, (knobParams[1] * .01f));
-	float destinationPeriod = (desiredSnap * knobParams[0]) + (detectedPeriod * (1.0f - knobParams[0]));
-	float destinationFreq = (leaf.sampleRate / destinationPeriod);
-	tExpSmooth_setDest(&neartune_smoother, destinationFreq);
+
+	float detectedPeriod = tAutotune_getInputPeriod(&autotuneMono);
+	if (detectedPeriod > 0.0f)
+	{
+		float detectedNote = LEAF_frequencyToMidi(leaf.sampleRate / detectedPeriod);
+		float desiredSnap = nearestNote(detectedPeriod);
+
+		float destinationNote = (desiredSnap * knobParams[0]) + (detectedNote * (1.0f - knobParams[0]));
+		float destinationFreq = LEAF_midiToFrequency(destinationNote);
+		tExpSmooth_setDest(&neartune_smoother, destinationFreq);
+	}
 	tAutotune_setFreq(&autotuneMono, tExpSmooth_tick(&neartune_smoother), 0);
+
+	float* samples = tAutotune_tick(&autotuneMono, audioIn);
 	//tAutotune_setFreq(&autotuneMono, leaf.sampleRate / nearestPeriod(tAutotune_getInputPeriod(&autotuneMono)), 0);
 	sample = samples[0] * tRamp_tick(&nearWetRamp);
 	sample += audioIn * tRamp_tick(&nearDryRamp); // crossfade to dry signal if no notes held down.
@@ -1047,20 +1053,32 @@ void calculateFreq(int voice)
 	freq[voice] = LEAF_midiToFrequency(tunedNote);
 }
 
-void calculatePeriodArray()
+void calculateNoteArray()
 {
 	for (int i = 0; i < 128; i++)
 	{
 		float tempNote = i;
 		float tempPitchClass = ((((int)tempNote) - keyCenter) % 12 );
 		float tunedNote = tempNote + centsDeviation[(int)tempPitchClass];
-		notePeriods[i] = 1.0f / LEAF_midiToFrequency(tunedNote) * leaf.sampleRate;
+		notes[i] = tunedNote;
 	}
 }
 
-float nearestPeriod(float period)
+//void calculatePeriodArray()
+//{
+//	for (int i = 0; i < 128; i++)
+//	{
+//		float tempNote = i;
+//		float tempPitchClass = ((((int)tempNote) - keyCenter) % 12 );
+//		float tunedNote = tempNote + centsDeviation[(int)tempPitchClass];
+//		notePeriods[i] = 1.0f / LEAF_midiToFrequency(tunedNote) * leaf.sampleRate;
+//	}
+//}
+
+float nearestNote(float period)
 {
-	float leastDifference = fabsf(period - notePeriods[0]);
+	float note = LEAF_frequencyToMidi(leaf.sampleRate / period);
+	float leastDifference = fabsf(note - notes[0]);
 	float difference;
 	int index = 0;
 	int* chord;
@@ -1079,7 +1097,7 @@ float nearestPeriod(float period)
 	{
 		if (chord[i%12] > 0)
 		{
-			difference = fabsf(period - notePeriods[i]);
+			difference = fabsf(note - notes[i]);
 			if(difference < leastDifference)
 			{
 				leastDifference = difference;
@@ -1088,9 +1106,43 @@ float nearestPeriod(float period)
 		}
 	}
 
-	return notePeriods[index];
+	return notes[index];
 
 }
+
+//float nearestPeriod(float period)
+//{
+//	float leastDifference = fabsf(period - notePeriods[0]);
+//	float difference;
+//	int index = 0;
+//	int* chord;
+//
+//	if (autotuneChromatic > 0)
+//	{
+//		chord = chromaticArray;
+//	}
+//	else
+//	{
+//		chord = chordArray;
+//	}
+//	//if (autotuneLock > 0) chord = lockArray;
+//
+//	for(int i = 1; i < 128; i++)
+//	{
+//		if (chord[i%12] > 0)
+//		{
+//			difference = fabsf(period - notePeriods[i]);
+//			if(difference < leastDifference)
+//			{
+//				leastDifference = difference;
+//				index = i;
+//			}
+//		}
+//	}
+//
+//	return notePeriods[index];
+//
+//}
 
 void noteOn(int key, int velocity)
 {
