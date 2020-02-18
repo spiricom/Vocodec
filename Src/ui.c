@@ -475,7 +475,7 @@ char* UIVocoderButtons(VocodecButton button, ButtonAction action)
 	}
 	if (buttonActionsUI[ButtonB][ActionPress] == 1)
 	{
-		writeString = (internalExternal > 0) ? "EXTERNAL" : "INTERNAL";
+		writeString = internalExternal ? "INTERNAL" : "EXTERNAL";
 		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;
@@ -492,13 +492,8 @@ char* UINeartuneButtons(VocodecButton button, ButtonAction action)
 	char* writeString = "";
 	if (buttonActionsUI[ButtonA][ActionPress])
 	{
-		writeString = "AUTOCHROM ON";
+		writeString = autotuneChromatic ? "AUTOCHROM ON" : "AUTOCHROM OFF";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
-	}
-	if (buttonActionsUI[ButtonB][ActionPress])
-	{
-		writeString = "AUTOCHROM OFF";
-		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;
 }
@@ -551,7 +546,7 @@ char* UISamplerAutoButtons(VocodecButton button, ButtonAction action)
 	}
 	if (buttonActionsUI[ButtonB][ActionPress])
 	{
-		writeString = (triggerChannel > 0) ? "TRIG IN 2" : "TRIG IN 1";
+		writeString = triggerChannel ? "CH1 TRIG" : "CH2 TRIG";
 		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;
@@ -562,7 +557,7 @@ char* UIDistortionButtons(VocodecButton button, ButtonAction action)
 	char* writeString = "";
 	if (buttonActionsUI[ButtonA][ActionPress])
 	{
-		writeString = (distortionMode > 0) ? "SHAPER" : "TANH";
+		writeString = distortionMode ? "TANH" : "SHAPER";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
 	return writeString;
@@ -585,13 +580,8 @@ char* UIDelayButtons(VocodecButton button, ButtonAction action)
 	char* writeString = "";
 	if (buttonActionsUI[ButtonA][ActionPress])
 	{
-		writeString = "SHAPER ON";
+		writeString = delayShaper ? "SHAPER ON" : "SHAPER OFF";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
-	}
-	if (buttonActionsUI[ButtonB][ActionPress])
-	{
-		writeString = "SHAPER OFF";
-		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;
 }
@@ -607,8 +597,7 @@ char* UIReverb2Buttons(VocodecButton button, ButtonAction action)
 	char* writeString = "";
 	if (buttonActionsUI[ButtonA][ActionPress])
 	{
-		if (freeze == 0) writeString = "FREEZE";
-		else writeString = "UNFREEZE";
+		writeString = freeze ? "FREEZE" : "UNFREEZE";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
 	return writeString;

@@ -80,11 +80,11 @@ float notePeriods[128];
 float noteFreqs[128];
 int chordArray[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int chromaticArray[12] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-int autotuneChromatic = 0;
+
 int lockArray[12];
 float freq[NUM_VOC_VOICES];
 float oversamplerArray[OVERSAMPLER_RATIO];
-int delayShaper = 0;
+
 
 //sampler objects
 int samplePlayStart = 0;
@@ -93,21 +93,6 @@ float sampleLength = 0.0f;
 int crossfadeLength = 0;
 float samplerRate = 1.0f;
 float maxSampleSizeSeconds = 1.0f;
-
-
-//autosamp objects
-volatile float currentPower = 0.0f;
-volatile float previousPower = 0.0f;
-float samp_thresh = 0.0f;
-volatile int samp_triggered = 0;
-uint32_t sample_countdown = 0;
-PlayMode samplerMode = PlayLoop;
-uint32_t powerCounter = 0;
-
-
-
-//reverb objects
-uint32_t freeze = 0;
 
 void initGlobalSFXObjects()
 {
@@ -141,6 +126,8 @@ void SFXVocoderAlloc()
 	{
 		tSawtooth_initToPool(&osc[i], &smallPool);
 	}
+	setLED_A(numVoices > 1);
+	setLED_B(internalExternal);
 }
 
 void SFXVocoderFrame()
@@ -152,11 +139,13 @@ void SFXVocoderFrame()
 		numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
 		tPoly_setNumVoices(&poly, numVoices);
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
+		setLED_A(numVoices > 1);
 	}
 	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
 	{
 		internalExternal = !internalExternal;
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
+		setLED_B(internalExternal);
 	}
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
@@ -295,11 +284,14 @@ void SFXPitchShiftFree(void)
 
 
 //5 neartune
+uint8_t autotuneChromatic = 0;
+
 void SFXNeartuneAlloc()
 {
 	tAutotune_init(&autotuneMono, 1, 512, 256);
 	calculateNoteArray();
 	tExpSmooth_init(&neartune_smoother, 100.0f, .007f);
+	setLED_A(autotuneChromatic);
 }
 
 void SFXNeartuneFrame()
@@ -318,18 +310,9 @@ void SFXNeartuneFrame()
 
 	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
-		autotuneChromatic = 1;
+		autotuneChromatic = !autotuneChromatic;
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
-		setLED_A(1);
-		setLED_B(0);
-	}
-
-	if (buttonActionsSFX[ButtonB][ActionPress])
-	{
-		autotuneChromatic = 0;
-		buttonActionsSFX[ButtonB][ActionPress] = 0;
-		setLED_A(0);
-		setLED_B(1);
+		setLED_A(autotuneChromatic);
 	}
 }
 
@@ -338,6 +321,7 @@ void SFXNeartuneTick(float audioIn)
 	//JS: suggested improvements -
 	// right now the period is used for "nearest pitch matching" but that is skewed - doing it on a midi note represetation would be more perceptually reasonable
 	// but it's a little expensive to use midi to freq and then put it to freq for the shifter.
+
 	knobParams[0] = LEAF_clip(0.0f, smoothedADC[0] * 1.1f, 1.0f); // amount of forcing to new pitch
 	knobParams[1] = smoothedADC[1]; //speed to get to desired pitch shift
 	tExpSmooth_setFactor(&neartune_smoother, (knobParams[1] * .01f));
@@ -463,6 +447,7 @@ void SFXSamplerBPTick(float audioIn)
 		}
 		tBuffer_record(&buff);
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
+		setLED_A(1);
 	}
 	else if (buttonActionsSFX[ButtonA][ActionRelease])
 	{
@@ -473,6 +458,7 @@ void SFXSamplerBPTick(float audioIn)
 		tSampler_setRate(&sampler, samplerRate);
 		tSampler_setCrossfadeLength(&sampler, crossfadeLength);
 		buttonActionsSFX[ButtonA][ActionRelease] = 0;
+		setLED_A(0);
 	}
 
 	tBuffer_tick(&buff, audioIn);
@@ -492,6 +478,14 @@ void SFXSamplerBPFree(void)
 
 
 //8 sampler - auto
+
+volatile float currentPower = 0.0f;
+volatile float previousPower = 0.0f;
+float samp_thresh = 0.0f;
+volatile int samp_triggered = 0;
+uint32_t sample_countdown = 0;
+PlayMode samplerMode = PlayLoop;
+uint32_t powerCounter = 0;
 uint8_t triggerChannel = 0;
 
 void SFXSamplerAutoAlloc()
@@ -502,6 +496,8 @@ void SFXSamplerAutoAlloc()
 	tSampler_setMode(&sampler, PlayLoop);
 	tEnvelopeFollower_init(&envfollow, 0.05f, 0.9999f);
 	tSampler_play(&sampler);
+	setLED_A(samplerMode == PlayBackAndForth);
+	setLED_B(triggerChannel);
 }
 
 void SFXSamplerAutoFrame()
@@ -575,6 +571,7 @@ void SFXSamplerAutoTick(float audioIn)
 	{
 		triggerChannel = (triggerChannel > 0) ? 0 : 1;
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
+		setLED_B(triggerChannel);
 	}
 	sample = tSampler_tick(&sampler);
 	rightOut = sample;
@@ -594,6 +591,7 @@ uint8_t distortionMode = 0;
 void SFXDistortionAlloc()
 {
 	tOversampler_init(&oversampler, OVERSAMPLER_RATIO, OVERSAMPLER_HQ);
+	setLED_A(distortionMode);
 }
 
 void SFXDistortionFrame()
@@ -602,6 +600,7 @@ void SFXDistortionFrame()
 	{
 		distortionMode = !distortionMode;
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
+		setLED_A(distortionMode);
 	}
 }
 
@@ -744,6 +743,8 @@ void SFXBitcrusherFree(void)
 
 
 //14 delay
+int delayShaper = 0;
+
 void SFXDelayAlloc()
 {
 	tTapeDelay_init(&delay, 2000, 30000);
@@ -757,6 +758,7 @@ void SFXDelayAlloc()
 	tHighpass_init(&delayShaperHp, 20.0f);
 	tFeedbackLeveler_init(&feedbackControl, .99f, 0.01, 0.125f, 0);
 
+	setLED_A(delayShaper);
 }
 
 void SFXDelayFrame()
@@ -764,18 +766,9 @@ void SFXDelayFrame()
 
 	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
-		delayShaper = 1;
+		delayShaper = !delayShaper;
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
-		setLED_A(1);
-		setLED_B(0);
-	}
-
-	if (buttonActionsSFX[ButtonB][ActionPress])
-	{
-		delayShaper = 0;
-		buttonActionsSFX[ButtonB][ActionPress] = 0;
-		setLED_A(0);
-		setLED_B(1);
+		setLED_A(delayShaper);
 	}
 }
 float delayFB1;
@@ -795,9 +788,6 @@ void SFXDelayTick(float audioIn)
 	tSVF_setFreq(&delayHP2, knobParams[4]);
 
 	//swap tanh for shaper and add cheap fixed highpass after both shapers
-
-
-
 
 	float input1, input2;
 
@@ -828,8 +818,6 @@ void SFXDelayTick(float audioIn)
 	sample = delayFB1;
 	rightOut = delayFB2;
 
-
-
 }
 
 void SFXDelayFree(void)
@@ -848,10 +836,13 @@ void SFXDelayFree(void)
 
 
 //15 reverb
+uint32_t freeze = 0;
+
 void SFXReverbAlloc()
 {
 	tDattorroReverb_init(&reverb);
 	tDattorroReverb_setMix(&reverb, 1.0f);
+	freeze = 0;
 }
 
 void SFXReverbFrame()
@@ -914,6 +905,7 @@ void SFXReverb2Alloc()
 	tSVF_init(&lowpass2, SVFTypeLowpass, 18000.0f, 0.75f);
 	tSVF_init(&highpass2, SVFTypeHighpass, 40.0f, 0.75f);
 	tSVF_init(&bandpass2, SVFTypeBandpass, 2000.0f, 1.0f);
+	freeze = 0;
 }
 
 void SFXReverb2Frame()

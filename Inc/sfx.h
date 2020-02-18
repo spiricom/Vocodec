@@ -22,7 +22,6 @@
 extern tPoly poly;
 extern tRamp polyRamp[NUM_VOC_VOICES];
 extern tSawtooth osc[NUM_VOC_VOICES];
-extern int autotuneChromatic;
 
 extern PlayMode samplerMode;
 extern float sampleLength;
@@ -47,6 +46,8 @@ void SFXPitchShiftTick(float audioIn);
 void SFXPitchShiftFree(void);
 
 //5 neartune
+extern uint8_t autotuneChromatic;
+
 void SFXNeartuneAlloc();
 void SFXNeartuneFrame();
 void SFXNeartuneTick(float audioIn);
@@ -96,6 +97,8 @@ void SFXBitcrusherFree(void);
 
 
 //14 delay
+extern int delayShaper;
+
 void SFXDelayAlloc();
 void SFXDelayFrame();
 void SFXDelayTick(float audioIn);
