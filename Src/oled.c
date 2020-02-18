@@ -258,6 +258,7 @@ void OLED_writeKnobParameter(uint8_t whichParam)
 	// Knob params
 	if (whichParam < NUM_ADC_CHANNELS)
 	{
+		floatADCUI[whichParam] = smoothedADC[whichParam];
 		int len = strlen(paramNames[currentPreset][whichParam]);
 		if (len > 0)
 		{

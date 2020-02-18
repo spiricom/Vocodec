@@ -63,6 +63,8 @@ extern int8_t writeKnobFlag;
 extern int8_t writeButtonFlag;
 extern int8_t writeActionFlag;
 
+extern float floatADCUI[NUM_ADC_CHANNELS];
+
 extern uint8_t currentPreset;
 extern uint8_t previousPreset;
 extern uint8_t loadingPreset;

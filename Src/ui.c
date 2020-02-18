@@ -15,9 +15,8 @@
 uint16_t ADC_values[NUM_ADC_CHANNELS] __ATTR_RAM_D2;
 float floatADC[NUM_ADC_CHANNELS];
 float lastFloatADC[NUM_ADC_CHANNELS];
+float floatADCUI[NUM_ADC_CHANNELS];
 float adcHysteresisThreshold = 0.001f;
-float adcHysteresisLowThreshold = 0.000001f;
-uint8_t adcStableCount[NUM_ADC_CHANNELS];
 
 uint8_t buttonValues[NUM_BUTTONS]; // Actual state of the buttons
 uint8_t buttonValuesPrev[NUM_BUTTONS];
@@ -66,7 +65,7 @@ void initModeNames(void)
 	controlNames[ButtonB] = "B";
 	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 	{
-		adcStableCount[i] = 0;
+		floatADCUI[i] = -1.0f;
 		orderedParams[i] = i;
 	}
 	orderedParams[6] = ButtonA;
@@ -402,17 +401,6 @@ void adcCheck()
 		if (cvAddParam >= 0 && i == 5) continue;
 		if (cvAddParam == i) floatADC[i] += floatADC[5];
 
-		if (fastabsf(floatADC[i] - lastFloatADC[i]) < adcHysteresisLowThreshold && adcStableCount[i])
-		{
-			adcStableCount[i]--;
-			if (adcStableCount[i] == 0)
-			{
-				lastFloatADC[i] = floatADC[i];
-				writeKnobFlag = i;
-			}
-		}
-		else adcStableCount[i] = 10;
-
 		if (fastabsf(floatADC[i] - lastFloatADC[i]) > adcHysteresisThreshold)
 		{
 			if (buttonActionsUI[ButtonEdit][ActionHoldContinuous])
@@ -422,6 +410,13 @@ void adcCheck()
 			}
 			lastFloatADC[i] = floatADC[i];
 			writeKnobFlag = i;
+		}
+		if (floatADCUI[i] > 0.0f) // only do the following check after the knob has already passed the above check once
+		{
+			if (fastabsf(smoothedADC[i] - floatADCUI[i]) > adcHysteresisThreshold)
+			{
+				writeKnobFlag = i;
+			}
 		}
 		tRamp_setDest(&adc[i], floatADC[i]);
 	}
