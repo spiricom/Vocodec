@@ -351,7 +351,11 @@ void buttonCheck(void)
 			buttonActionsUI[ButtonE][ActionPress] = 0;
 		}
 
-		// Trying out an audio display
+		if (buttonActionsUI[ButtonEdit][ActionPress])
+		{
+			OLED_writeEditScreen();
+			buttonActionsUI[ButtonEdit][ActionPress] = 0;
+		}
 		if (buttonActionsUI[ButtonEdit][ActionHoldContinuous] == 1)
 		{
 			if (buttonActionsUI[ButtonC][ActionPress] == 1)
@@ -374,7 +378,7 @@ void buttonCheck(void)
 			OLED_writePreset();
 			buttonActionsUI[ButtonEdit][ActionRelease] = 0;
 		}
-
+		// Trying out an audio display
 //		if (buttonActionsUI[ButtonEdit][ActionPress] == 1)
 //		{
 //			currentParamIndex++;

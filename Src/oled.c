@@ -253,6 +253,16 @@ void OLED_writePreset()
 	//save new preset to flash memory
 }
 
+void OLED_writeEditScreen()
+{
+	GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
+	OLEDclear();
+	char* first = "KNOB: SET CVPED";
+	if (cvAddParam >= 0) first = "DOWN: CLR CVPED";
+	OLEDwriteLine(first, strlen(first), FirstLine);
+	OLEDwriteString("C: SETS KEY", 12, 0, SecondLine);
+}
+
 void OLED_writeKnobParameter(uint8_t whichParam)
 {
 	// Knob params
