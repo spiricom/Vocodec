@@ -400,7 +400,7 @@ float sampleLength = 0.0f;
 int crossfadeLength = 0;
 float samplerRate = 1.0f;
 float maxSampleSizeSeconds = 1.0f;
-uint8_t samplePlaying = 0;
+uint8_t samplePlaying = 1;
 
 void SFXSamplerBPAlloc()
 {
@@ -434,7 +434,7 @@ void SFXSamplerBPTick(float audioIn)
 	tSampler_setRate(&sampler, samplerRate);
 	tSampler_setCrossfadeLength(&sampler, crossfadeLength);
 
-	if (buttonActionsSFX[ButtonUp][ActionPress])
+	if (buttonActionsSFX[ButtonDown][ActionPress])
 	{
 		if (samplePlaying)
 		{
@@ -446,25 +446,20 @@ void SFXSamplerBPTick(float audioIn)
 			samplePlaying = 1;
 			tSampler_play(&sampler);
 		}
-		buttonActionsSFX[ButtonUp][ActionPress] = 0;
+		buttonActionsSFX[ButtonDown][ActionPress] = 0;
 	}
 
 	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
-		if (samplePlaying)
-		{
-			samplePlaying = 0;
-			tSampler_stop(&sampler);
-		}
+		tSampler_stop(&sampler);
 		tBuffer_record(&buff);
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(1);
 	}
-	else if (buttonActionsSFX[ButtonA][ActionRelease])
+	if (buttonActionsSFX[ButtonA][ActionRelease])
 	{
 		tBuffer_stop(&buff);
-		samplePlaying = 1;
-		tSampler_play(&sampler);
+		if (samplePlaying) tSampler_play(&sampler);
 		tSampler_setStart(&sampler, samplePlayStart);
 		tSampler_setEnd(&sampler, samplePlayEnd);
 		tSampler_setRate(&sampler, samplerRate);

@@ -511,23 +511,25 @@ char* UIAutotuneButtons(VocodecButton button, ButtonAction action)
 char* UISamplerBPButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
-	if (buttonActionsUI[ButtonUp][ActionPress])
+	if (buttonActionsUI[ButtonDown][ActionPress])
 	{
-		writeString = samplePlaying ? "PLAYING" : "STOPPED";
-		buttonActionsUI[ButtonUp][ActionPress] = 0;
+		OLEDclearLine(SecondLine);
+		OLEDwriteFloat(sampleLength, 0, SecondLine);
+		OLEDwriteString(samplePlaying ? "PLAYING" : "STOPPED", 7, 48, SecondLine);
+		buttonActionsUI[ButtonDown][ActionPress] = 0;
 	}
 	if (buttonActionsUI[ButtonA][ActionHoldContinuous])
 	{
 		OLEDclearLine(SecondLine);
-		OLEDwriteString("REC ", 3, 0, SecondLine);
-		OLEDwriteFloat(sampleLength, getCursorX(), SecondLine);
+		OLEDwriteFloat(sampleLength, 0, SecondLine);
+		OLEDwriteString("RECORDING", 9, 48, SecondLine);
 		buttonActionsUI[ButtonA][ActionHoldContinuous] = 0;
 	}
-	else if (buttonActionsUI[ButtonA][ActionRelease])
+	if (buttonActionsUI[ButtonA][ActionRelease])
 	{
 		OLEDclearLine(SecondLine);
-		OLEDwriteString("REC ", 3, 0, SecondLine);
-		OLEDwriteFloat(sampleLength, getCursorX(), SecondLine);
+		OLEDwriteFloat(sampleLength, 0, SecondLine);
+		OLEDwriteString(samplePlaying ? "PLAYING" : "STOPPED", 7, 48, SecondLine);
 		buttonActionsUI[ButtonA][ActionRelease] = 0;
 	}
 	return writeString;

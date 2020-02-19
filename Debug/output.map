@@ -17305,1123 +17305,1125 @@ LOAD /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1
                 0x000000000800ca18                SFXSamplerBPFrame
  *fill*         0x000000000800ca1a        0x2 
  .text.SFXSamplerBPTick
-                0x000000000800ca1c      0x1ac Src/sfx.o
+                0x000000000800ca1c      0x1a0 Src/sfx.o
                 0x000000000800ca1c                SFXSamplerBPTick
  .text.SFXSamplerBPFree
-                0x000000000800cbc8       0x20 Src/sfx.o
-                0x000000000800cbc8                SFXSamplerBPFree
+                0x000000000800cbbc       0x20 Src/sfx.o
+                0x000000000800cbbc                SFXSamplerBPFree
  .text.SFXSamplerAutoAlloc
-                0x000000000800cbe8       0x8c Src/sfx.o
-                0x000000000800cbe8                SFXSamplerAutoAlloc
+                0x000000000800cbdc       0x8c Src/sfx.o
+                0x000000000800cbdc                SFXSamplerAutoAlloc
  .text.SFXSamplerAutoFrame
-                0x000000000800cc74        0x2 Src/sfx.o
-                0x000000000800cc74                SFXSamplerAutoFrame
- *fill*         0x000000000800cc76        0x2 
+                0x000000000800cc68        0x2 Src/sfx.o
+                0x000000000800cc68                SFXSamplerAutoFrame
+ *fill*         0x000000000800cc6a        0x2 
  .text.SFXSamplerAutoTick
-                0x000000000800cc78      0x1fc Src/sfx.o
-                0x000000000800cc78                SFXSamplerAutoTick
+                0x000000000800cc6c      0x1fc Src/sfx.o
+                0x000000000800cc6c                SFXSamplerAutoTick
  .text.SFXSamplerAutoFree
-                0x000000000800ce74       0x28 Src/sfx.o
-                0x000000000800ce74                SFXSamplerAutoFree
+                0x000000000800ce68       0x28 Src/sfx.o
+                0x000000000800ce68                SFXSamplerAutoFree
  .text.SFXDistortionAlloc
-                0x000000000800ce9c       0x20 Src/sfx.o
-                0x000000000800ce9c                SFXDistortionAlloc
+                0x000000000800ce90       0x20 Src/sfx.o
+                0x000000000800ce90                SFXDistortionAlloc
  .text.SFXDistortionFrame
-                0x000000000800cebc       0x30 Src/sfx.o
-                0x000000000800cebc                SFXDistortionFrame
+                0x000000000800ceb0       0x30 Src/sfx.o
+                0x000000000800ceb0                SFXDistortionFrame
  .text.SFXDistortionTick
-                0x000000000800ceec       0xb0 Src/sfx.o
-                0x000000000800ceec                SFXDistortionTick
+                0x000000000800cee0       0xb0 Src/sfx.o
+                0x000000000800cee0                SFXDistortionTick
  .text.SFXDistortionFree
-                0x000000000800cf9c       0x10 Src/sfx.o
-                0x000000000800cf9c                SFXDistortionFree
+                0x000000000800cf90       0x10 Src/sfx.o
+                0x000000000800cf90                SFXDistortionFree
  .text.SFXWaveFolderAlloc
-                0x000000000800cfac       0x3c Src/sfx.o
-                0x000000000800cfac                SFXWaveFolderAlloc
+                0x000000000800cfa0       0x3c Src/sfx.o
+                0x000000000800cfa0                SFXWaveFolderAlloc
  .text.SFXWaveFolderFrame
-                0x000000000800cfe8        0x2 Src/sfx.o
-                0x000000000800cfe8                SFXWaveFolderFrame
- *fill*         0x000000000800cfea        0x2 
+                0x000000000800cfdc        0x2 Src/sfx.o
+                0x000000000800cfdc                SFXWaveFolderFrame
+ *fill*         0x000000000800cfde        0x2 
  .text.SFXWaveFolderTick
-                0x000000000800cfec       0xf0 Src/sfx.o
-                0x000000000800cfec                SFXWaveFolderTick
+                0x000000000800cfe0       0xf0 Src/sfx.o
+                0x000000000800cfe0                SFXWaveFolderTick
  .text.SFXWaveFolderFree
-                0x000000000800d0dc       0x38 Src/sfx.o
-                0x000000000800d0dc                SFXWaveFolderFree
+                0x000000000800d0d0       0x38 Src/sfx.o
+                0x000000000800d0d0                SFXWaveFolderFree
  .text.SFXBitcrusherAlloc
-                0x000000000800d114       0x18 Src/sfx.o
-                0x000000000800d114                SFXBitcrusherAlloc
+                0x000000000800d108       0x18 Src/sfx.o
+                0x000000000800d108                SFXBitcrusherAlloc
  .text.SFXBitcrusherFrame
-                0x000000000800d12c        0x2 Src/sfx.o
-                0x000000000800d12c                SFXBitcrusherFrame
- *fill*         0x000000000800d12e        0x2 
+                0x000000000800d120        0x2 Src/sfx.o
+                0x000000000800d120                SFXBitcrusherFrame
+ *fill*         0x000000000800d122        0x2 
  .text.SFXBitcrusherTick
-                0x000000000800d130       0xec Src/sfx.o
-                0x000000000800d130                SFXBitcrusherTick
+                0x000000000800d124       0xec Src/sfx.o
+                0x000000000800d124                SFXBitcrusherTick
  .text.SFXBitcrusherFree
-                0x000000000800d21c       0x18 Src/sfx.o
-                0x000000000800d21c                SFXBitcrusherFree
+                0x000000000800d210       0x18 Src/sfx.o
+                0x000000000800d210                SFXBitcrusherFree
  .text.SFXDelayAlloc
-                0x000000000800d234       0xd4 Src/sfx.o
-                0x000000000800d234                SFXDelayAlloc
+                0x000000000800d228       0xd4 Src/sfx.o
+                0x000000000800d228                SFXDelayAlloc
  .text.SFXDelayFrame
-                0x000000000800d308       0x2c Src/sfx.o
-                0x000000000800d308                SFXDelayFrame
+                0x000000000800d2fc       0x2c Src/sfx.o
+                0x000000000800d2fc                SFXDelayFrame
  .text.SFXDelayTick
-                0x000000000800d334      0x234 Src/sfx.o
-                0x000000000800d334                SFXDelayTick
+                0x000000000800d328      0x234 Src/sfx.o
+                0x000000000800d328                SFXDelayTick
  .text.SFXDelayFree
-                0x000000000800d568       0x54 Src/sfx.o
-                0x000000000800d568                SFXDelayFree
+                0x000000000800d55c       0x54 Src/sfx.o
+                0x000000000800d55c                SFXDelayFree
  .text.SFXReverbAlloc
-                0x000000000800d5bc       0x24 Src/sfx.o
-                0x000000000800d5bc                SFXReverbAlloc
+                0x000000000800d5b0       0x24 Src/sfx.o
+                0x000000000800d5b0                SFXReverbAlloc
  .text.SFXReverbFrame
-                0x000000000800d5e0       0x70 Src/sfx.o
-                0x000000000800d5e0                SFXReverbFrame
+                0x000000000800d5d4       0x70 Src/sfx.o
+                0x000000000800d5d4                SFXReverbFrame
  .text.SFXReverbTick
-                0x000000000800d650       0xd0 Src/sfx.o
-                0x000000000800d650                SFXReverbTick
+                0x000000000800d644       0xd0 Src/sfx.o
+                0x000000000800d644                SFXReverbTick
  .text.SFXReverbFree
-                0x000000000800d720       0x10 Src/sfx.o
-                0x000000000800d720                SFXReverbFree
+                0x000000000800d714       0x10 Src/sfx.o
+                0x000000000800d714                SFXReverbFree
  .text.SFXReverb2Alloc
-                0x000000000800d730       0xc0 Src/sfx.o
-                0x000000000800d730                SFXReverb2Alloc
+                0x000000000800d724       0xc0 Src/sfx.o
+                0x000000000800d724                SFXReverb2Alloc
  .text.SFXReverb2Frame
-                0x000000000800d7f0        0x2 Src/sfx.o
-                0x000000000800d7f0                SFXReverb2Frame
- *fill*         0x000000000800d7f2        0x2 
+                0x000000000800d7e4        0x2 Src/sfx.o
+                0x000000000800d7e4                SFXReverb2Frame
+ *fill*         0x000000000800d7e6        0x2 
  .text.SFXReverb2Tick
-                0x000000000800d7f4      0x1b4 Src/sfx.o
-                0x000000000800d7f4                SFXReverb2Tick
+                0x000000000800d7e8      0x1b4 Src/sfx.o
+                0x000000000800d7e8                SFXReverb2Tick
  .text.SFXReverb2Free
-                0x000000000800d9a8       0x4c Src/sfx.o
-                0x000000000800d9a8                SFXReverb2Free
+                0x000000000800d99c       0x4c Src/sfx.o
+                0x000000000800d99c                SFXReverb2Free
  .text.SFXLivingStringAlloc
-                0x000000000800d9f4       0x9c Src/sfx.o
-                0x000000000800d9f4                SFXLivingStringAlloc
+                0x000000000800d9e8       0x9c Src/sfx.o
+                0x000000000800d9e8                SFXLivingStringAlloc
+ *fill*         0x000000000800da84        0x4 
  .text.SFXLivingStringFrame
-                0x000000000800da90      0x100 Src/sfx.o
-                0x000000000800da90                SFXLivingStringFrame
+                0x000000000800da88      0x100 Src/sfx.o
+                0x000000000800da88                SFXLivingStringFrame
  .text.SFXLivingStringTick
-                0x000000000800db90       0x60 Src/sfx.o
-                0x000000000800db90                SFXLivingStringTick
+                0x000000000800db88       0x60 Src/sfx.o
+                0x000000000800db88                SFXLivingStringTick
  .text.SFXLivingStringFree
-                0x000000000800dbf0       0x1c Src/sfx.o
-                0x000000000800dbf0                SFXLivingStringFree
+                0x000000000800dbe8       0x1c Src/sfx.o
+                0x000000000800dbe8                SFXLivingStringFree
  .text.calculateFreq
-                0x000000000800dc0c       0x70 Src/sfx.o
-                0x000000000800dc0c                calculateFreq
+                0x000000000800dc04       0x70 Src/sfx.o
+                0x000000000800dc04                calculateFreq
  .text.SFXVocoderFrame
-                0x000000000800dc7c       0xec Src/sfx.o
-                0x000000000800dc7c                SFXVocoderFrame
+                0x000000000800dc74       0xec Src/sfx.o
+                0x000000000800dc74                SFXVocoderFrame
  .text.SFXAutotuneFrame
-                0x000000000800dd68       0x48 Src/sfx.o
-                0x000000000800dd68                SFXAutotuneFrame
+                0x000000000800dd60       0x48 Src/sfx.o
+                0x000000000800dd60                SFXAutotuneFrame
  .text.calculateNoteArray
-                0x000000000800ddb0       0x70 Src/sfx.o
-                0x000000000800ddb0                calculateNoteArray
+                0x000000000800dda8       0x70 Src/sfx.o
+                0x000000000800dda8                calculateNoteArray
  .text.initGlobalSFXObjects
-                0x000000000800de20       0x6c Src/sfx.o
-                0x000000000800de20                initGlobalSFXObjects
+                0x000000000800de18       0x6c Src/sfx.o
+                0x000000000800de18                initGlobalSFXObjects
  .text.SFXNeartuneAlloc
-                0x000000000800de8c       0x44 Src/sfx.o
-                0x000000000800de8c                SFXNeartuneAlloc
+                0x000000000800de84       0x44 Src/sfx.o
+                0x000000000800de84                SFXNeartuneAlloc
  .text.nearestNote
-                0x000000000800ded0       0x9c Src/sfx.o
-                0x000000000800ded0                nearestNote
+                0x000000000800dec8       0x9c Src/sfx.o
+                0x000000000800dec8                nearestNote
  .text.SFXNeartuneTick
-                0x000000000800df6c      0x114 Src/sfx.o
-                0x000000000800df6c                SFXNeartuneTick
- .text.noteOn   0x000000000800e080       0xfc Src/sfx.o
-                0x000000000800e080                noteOn
- .text.noteOff  0x000000000800e17c       0x98 Src/sfx.o
-                0x000000000800e17c                noteOff
+                0x000000000800df64      0x114 Src/sfx.o
+                0x000000000800df64                SFXNeartuneTick
+ .text.noteOn   0x000000000800e078       0xfc Src/sfx.o
+                0x000000000800e078                noteOn
+ .text.noteOff  0x000000000800e174       0x98 Src/sfx.o
+                0x000000000800e174                noteOff
  .text.sustainOff
-                0x000000000800e214        0x2 Src/sfx.o
-                0x000000000800e214                sustainOff
+                0x000000000800e20c        0x2 Src/sfx.o
+                0x000000000800e20c                sustainOff
  .text.sustainOn
-                0x000000000800e216        0x2 Src/sfx.o
-                0x000000000800e216                sustainOn
+                0x000000000800e20e        0x2 Src/sfx.o
+                0x000000000800e20e                sustainOn
  .text.ssd1306_command
-                0x000000000800e218       0x34 Src/ssd1306.o
-                0x000000000800e218                ssd1306_command
+                0x000000000800e210       0x34 Src/ssd1306.o
+                0x000000000800e210                ssd1306_command
  .text.ssd1306_begin
-                0x000000000800e24c      0x108 Src/ssd1306.o
-                0x000000000800e24c                ssd1306_begin
+                0x000000000800e244      0x108 Src/ssd1306.o
+                0x000000000800e244                ssd1306_begin
  .text.ssd1306_move_raw
-                0x000000000800e354       0x3c Src/ssd1306.o
-                0x000000000800e354                ssd1306_move_raw
+                0x000000000800e34c       0x3c Src/ssd1306.o
+                0x000000000800e34c                ssd1306_move_raw
  .text.ssd1306_home
-                0x000000000800e390        0xc Src/ssd1306.o
-                0x000000000800e390                ssd1306_home
+                0x000000000800e388        0xc Src/ssd1306.o
+                0x000000000800e388                ssd1306_home
  .text.ssd1306_display_full_buffer
-                0x000000000800e39c       0x48 Src/ssd1306.o
-                0x000000000800e39c                ssd1306_display_full_buffer
+                0x000000000800e394       0x48 Src/ssd1306.o
+                0x000000000800e394                ssd1306_display_full_buffer
  .text.HAL_MspInit
-                0x000000000800e3e4       0x24 Src/stm32h7xx_hal_msp.o
-                0x000000000800e3e4                HAL_MspInit
+                0x000000000800e3dc       0x24 Src/stm32h7xx_hal_msp.o
+                0x000000000800e3dc                HAL_MspInit
  .text.NMI_Handler
-                0x000000000800e408        0x2 Src/stm32h7xx_it.o
-                0x000000000800e408                NMI_Handler
+                0x000000000800e400        0x2 Src/stm32h7xx_it.o
+                0x000000000800e400                NMI_Handler
  .text.MemManage_Handler
-                0x000000000800e40a        0x2 Src/stm32h7xx_it.o
-                0x000000000800e40a                MemManage_Handler
+                0x000000000800e402        0x2 Src/stm32h7xx_it.o
+                0x000000000800e402                MemManage_Handler
  .text.BusFault_Handler
-                0x000000000800e40c        0x2 Src/stm32h7xx_it.o
-                0x000000000800e40c                BusFault_Handler
+                0x000000000800e404        0x2 Src/stm32h7xx_it.o
+                0x000000000800e404                BusFault_Handler
  .text.UsageFault_Handler
-                0x000000000800e40e        0x2 Src/stm32h7xx_it.o
-                0x000000000800e40e                UsageFault_Handler
+                0x000000000800e406        0x2 Src/stm32h7xx_it.o
+                0x000000000800e406                UsageFault_Handler
  .text.SVC_Handler
-                0x000000000800e410        0x2 Src/stm32h7xx_it.o
-                0x000000000800e410                SVC_Handler
+                0x000000000800e408        0x2 Src/stm32h7xx_it.o
+                0x000000000800e408                SVC_Handler
  .text.DebugMon_Handler
-                0x000000000800e412        0x2 Src/stm32h7xx_it.o
-                0x000000000800e412                DebugMon_Handler
+                0x000000000800e40a        0x2 Src/stm32h7xx_it.o
+                0x000000000800e40a                DebugMon_Handler
  .text.PendSV_Handler
-                0x000000000800e414        0x2 Src/stm32h7xx_it.o
-                0x000000000800e414                PendSV_Handler
+                0x000000000800e40c        0x2 Src/stm32h7xx_it.o
+                0x000000000800e40c                PendSV_Handler
  .text.SysTick_Handler
-                0x000000000800e416        0x8 Src/stm32h7xx_it.o
-                0x000000000800e416                SysTick_Handler
- *fill*         0x000000000800e41e        0x2 
+                0x000000000800e40e        0x8 Src/stm32h7xx_it.o
+                0x000000000800e40e                SysTick_Handler
+ *fill*         0x000000000800e416        0x2 
  .text.DMA1_Stream0_IRQHandler
-                0x000000000800e420       0x10 Src/stm32h7xx_it.o
-                0x000000000800e420                DMA1_Stream0_IRQHandler
+                0x000000000800e418       0x10 Src/stm32h7xx_it.o
+                0x000000000800e418                DMA1_Stream0_IRQHandler
  .text.DMA1_Stream1_IRQHandler
-                0x000000000800e430       0x10 Src/stm32h7xx_it.o
-                0x000000000800e430                DMA1_Stream1_IRQHandler
+                0x000000000800e428       0x10 Src/stm32h7xx_it.o
+                0x000000000800e428                DMA1_Stream1_IRQHandler
  .text.DMA1_Stream2_IRQHandler
-                0x000000000800e440       0x10 Src/stm32h7xx_it.o
-                0x000000000800e440                DMA1_Stream2_IRQHandler
+                0x000000000800e438       0x10 Src/stm32h7xx_it.o
+                0x000000000800e438                DMA1_Stream2_IRQHandler
  .text.ADC_IRQHandler
-                0x000000000800e450       0x10 Src/stm32h7xx_it.o
-                0x000000000800e450                ADC_IRQHandler
+                0x000000000800e448       0x10 Src/stm32h7xx_it.o
+                0x000000000800e448                ADC_IRQHandler
  .text.I2C4_EV_IRQHandler
-                0x000000000800e460       0x10 Src/stm32h7xx_it.o
-                0x000000000800e460                I2C4_EV_IRQHandler
+                0x000000000800e458       0x10 Src/stm32h7xx_it.o
+                0x000000000800e458                I2C4_EV_IRQHandler
  .text.I2C4_ER_IRQHandler
-                0x000000000800e470       0x10 Src/stm32h7xx_it.o
-                0x000000000800e470                I2C4_ER_IRQHandler
+                0x000000000800e468       0x10 Src/stm32h7xx_it.o
+                0x000000000800e468                I2C4_ER_IRQHandler
  .text.OTG_FS_EP1_OUT_IRQHandler
-                0x000000000800e480       0x10 Src/stm32h7xx_it.o
-                0x000000000800e480                OTG_FS_EP1_OUT_IRQHandler
+                0x000000000800e478       0x10 Src/stm32h7xx_it.o
+                0x000000000800e478                OTG_FS_EP1_OUT_IRQHandler
  .text.OTG_FS_EP1_IN_IRQHandler
-                0x000000000800e490       0x10 Src/stm32h7xx_it.o
-                0x000000000800e490                OTG_FS_EP1_IN_IRQHandler
+                0x000000000800e488       0x10 Src/stm32h7xx_it.o
+                0x000000000800e488                OTG_FS_EP1_IN_IRQHandler
  .text.OTG_FS_IRQHandler
-                0x000000000800e4a0       0x10 Src/stm32h7xx_it.o
-                0x000000000800e4a0                OTG_FS_IRQHandler
+                0x000000000800e498       0x10 Src/stm32h7xx_it.o
+                0x000000000800e498                OTG_FS_IRQHandler
  .text.DMAMUX1_OVR_IRQHandler
-                0x000000000800e4b0       0x10 Src/stm32h7xx_it.o
-                0x000000000800e4b0                DMAMUX1_OVR_IRQHandler
+                0x000000000800e4a8       0x10 Src/stm32h7xx_it.o
+                0x000000000800e4a8                DMAMUX1_OVR_IRQHandler
  .text.BDMA_Channel0_IRQHandler
-                0x000000000800e4c0       0x10 Src/stm32h7xx_it.o
-                0x000000000800e4c0                BDMA_Channel0_IRQHandler
+                0x000000000800e4b8       0x10 Src/stm32h7xx_it.o
+                0x000000000800e4b8                BDMA_Channel0_IRQHandler
  .text.BDMA_Channel1_IRQHandler
-                0x000000000800e4d0       0x10 Src/stm32h7xx_it.o
-                0x000000000800e4d0                BDMA_Channel1_IRQHandler
- .text._sbrk    0x000000000800e4e0       0x3c Src/syscalls.o
-                0x000000000800e4e0                _sbrk
+                0x000000000800e4c8       0x10 Src/stm32h7xx_it.o
+                0x000000000800e4c8                BDMA_Channel1_IRQHandler
+ .text._sbrk    0x000000000800e4d8       0x3c Src/syscalls.o
+                0x000000000800e4d8                _sbrk
  .text.SystemInit
-                0x000000000800e51c       0x7c Src/system_stm32h7xx.o
-                0x000000000800e51c                SystemInit
+                0x000000000800e514       0x7c Src/system_stm32h7xx.o
+                0x000000000800e514                SystemInit
  .text.initModeNames
-                0x000000000800e598      0x43c Src/ui.o
-                0x000000000800e598                initModeNames
+                0x000000000800e590      0x43c Src/ui.o
+                0x000000000800e590                initModeNames
  .text.adcCheck
-                0x000000000800e9d4      0x128 Src/ui.o
-                0x000000000800e9d4                adcCheck
+                0x000000000800e9cc      0x128 Src/ui.o
+                0x000000000800e9cc                adcCheck
  .text.clearButtonActions
-                0x000000000800eafc       0x40 Src/ui.o
-                0x000000000800eafc                clearButtonActions
+                0x000000000800eaf4       0x40 Src/ui.o
+                0x000000000800eaf4                clearButtonActions
  .text.changeTuning
-                0x000000000800eb3c       0x48 Src/ui.o
-                0x000000000800eb3c                changeTuning
+                0x000000000800eb34       0x48 Src/ui.o
+                0x000000000800eb34                changeTuning
  .text.writeCurrentPresetToFlash
-                0x000000000800eb84       0x20 Src/ui.o
-                0x000000000800eb84                writeCurrentPresetToFlash
+                0x000000000800eb7c       0x20 Src/ui.o
+                0x000000000800eb7c                writeCurrentPresetToFlash
  .text.buttonCheck
-                0x000000000800eba4      0x36c Src/ui.o
-                0x000000000800eba4                buttonCheck
+                0x000000000800eb9c      0x36c Src/ui.o
+                0x000000000800eb9c                buttonCheck
  .text.UIVocoderButtons
-                0x000000000800ef10       0x60 Src/ui.o
-                0x000000000800ef10                UIVocoderButtons
+                0x000000000800ef08       0x60 Src/ui.o
+                0x000000000800ef08                UIVocoderButtons
  .text.UIPitchShiftButtons
-                0x000000000800ef70        0x8 Src/ui.o
-                0x000000000800ef70                UIPitchShiftButtons
+                0x000000000800ef68        0x8 Src/ui.o
+                0x000000000800ef68                UIPitchShiftButtons
  .text.UINeartuneButtons
-                0x000000000800ef78       0x34 Src/ui.o
-                0x000000000800ef78                UINeartuneButtons
+                0x000000000800ef70       0x34 Src/ui.o
+                0x000000000800ef70                UINeartuneButtons
  .text.UIAutotuneButtons
-                0x000000000800efac        0x8 Src/ui.o
-                0x000000000800efac                UIAutotuneButtons
+                0x000000000800efa4        0x8 Src/ui.o
+                0x000000000800efa4                UIAutotuneButtons
  .text.UISamplerBPButtons
-                0x000000000800efb4       0xb4 Src/ui.o
-                0x000000000800efb4                UISamplerBPButtons
+                0x000000000800efac       0xc0 Src/ui.o
+                0x000000000800efac                UISamplerBPButtons
  .text.UISamplerAutoButtons
-                0x000000000800f068       0x60 Src/ui.o
-                0x000000000800f068                UISamplerAutoButtons
+                0x000000000800f06c       0x60 Src/ui.o
+                0x000000000800f06c                UISamplerAutoButtons
  .text.UIDistortionButtons
-                0x000000000800f0c8       0x34 Src/ui.o
-                0x000000000800f0c8                UIDistortionButtons
+                0x000000000800f0cc       0x34 Src/ui.o
+                0x000000000800f0cc                UIDistortionButtons
  .text.UIWaveFolderButtons
-                0x000000000800f0fc        0x8 Src/ui.o
-                0x000000000800f0fc                UIWaveFolderButtons
+                0x000000000800f100        0x8 Src/ui.o
+                0x000000000800f100                UIWaveFolderButtons
  .text.UIBitcrusherButtons
-                0x000000000800f104        0x8 Src/ui.o
-                0x000000000800f104                UIBitcrusherButtons
+                0x000000000800f108        0x8 Src/ui.o
+                0x000000000800f108                UIBitcrusherButtons
  .text.UIDelayButtons
-                0x000000000800f10c       0x34 Src/ui.o
-                0x000000000800f10c                UIDelayButtons
+                0x000000000800f110       0x34 Src/ui.o
+                0x000000000800f110                UIDelayButtons
  .text.UIReverbButtons
-                0x000000000800f140        0x8 Src/ui.o
-                0x000000000800f140                UIReverbButtons
+                0x000000000800f144        0x8 Src/ui.o
+                0x000000000800f144                UIReverbButtons
  .text.UIReverb2Buttons
-                0x000000000800f148       0x34 Src/ui.o
-                0x000000000800f148                UIReverb2Buttons
+                0x000000000800f14c       0x34 Src/ui.o
+                0x000000000800f14c                UIReverb2Buttons
  .text.UILivingStringButtons
-                0x000000000800f17c        0x8 Src/ui.o
-                0x000000000800f17c                UILivingStringButtons
+                0x000000000800f180        0x8 Src/ui.o
+                0x000000000800f180                UILivingStringButtons
  .text.USBH_UserProcess
-                0x000000000800f184       0x74 Src/usb_host.o
+                0x000000000800f188       0x74 Src/usb_host.o
  .text.MX_USB_HOST_Init
-                0x000000000800f1f8       0x30 Src/usb_host.o
-                0x000000000800f1f8                MX_USB_HOST_Init
+                0x000000000800f1fc       0x30 Src/usb_host.o
+                0x000000000800f1fc                MX_USB_HOST_Init
  .text.MX_USB_HOST_Process
-                0x000000000800f228       0x14 Src/usb_host.o
-                0x000000000800f228                MX_USB_HOST_Process
+                0x000000000800f22c       0x14 Src/usb_host.o
+                0x000000000800f22c                MX_USB_HOST_Process
  .text.USBH_MIDI_ClassRequest
-                0x000000000800f23c        0xe Src/usbh_MIDI.o
+                0x000000000800f240        0xe Src/usbh_MIDI.o
  .text.USBH_MIDI_SOFProcess
-                0x000000000800f24a        0x4 Src/usbh_MIDI.o
+                0x000000000800f24e        0x4 Src/usbh_MIDI.o
  .text.USBH_MIDI_InterfaceDeInit
-                0x000000000800f24e       0x50 Src/usbh_MIDI.o
+                0x000000000800f252       0x50 Src/usbh_MIDI.o
  .text.USBH_MIDI_InterfaceInit
-                0x000000000800f29e      0x10a Src/usbh_MIDI.o
+                0x000000000800f2a2      0x10a Src/usbh_MIDI.o
  .text.USBH_MIDI_Stop
-                0x000000000800f3a8       0x2a Src/usbh_MIDI.o
-                0x000000000800f3a8                USBH_MIDI_Stop
+                0x000000000800f3ac       0x2a Src/usbh_MIDI.o
+                0x000000000800f3ac                USBH_MIDI_Stop
  .text.USBH_MIDI_Receive
-                0x000000000800f3d2       0x20 Src/usbh_MIDI.o
-                0x000000000800f3d2                USBH_MIDI_Receive
+                0x000000000800f3d6       0x20 Src/usbh_MIDI.o
+                0x000000000800f3d6                USBH_MIDI_Receive
  .text.USBH_MIDI_TransmitCallback
-                0x000000000800f3f2        0x2 Src/usbh_MIDI.o
-                0x000000000800f3f2                USBH_MIDI_TransmitCallback
+                0x000000000800f3f6        0x2 Src/usbh_MIDI.o
+                0x000000000800f3f6                USBH_MIDI_TransmitCallback
  .text.MIDI_ProcessTransmission
-                0x000000000800f3f4       0x8a Src/usbh_MIDI.o
- *fill*         0x000000000800f47e        0x2 
+                0x000000000800f3f8       0x8a Src/usbh_MIDI.o
+ *fill*         0x000000000800f482        0x2 
  .text.MIDI_ProcessReception
-                0x000000000800f480       0x6c Src/usbh_MIDI.o
+                0x000000000800f484       0x6c Src/usbh_MIDI.o
  .text.USBH_MIDI_Process
-                0x000000000800f4ec       0x40 Src/usbh_MIDI.o
+                0x000000000800f4f0       0x40 Src/usbh_MIDI.o
  .text.HAL_HCD_MspInit
-                0x000000000800f52c       0xa8 Src/usbh_conf.o
-                0x000000000800f52c                HAL_HCD_MspInit
+                0x000000000800f530       0xa8 Src/usbh_conf.o
+                0x000000000800f530                HAL_HCD_MspInit
  .text.HAL_HCD_SOF_Callback
-                0x000000000800f5d4        0xc Src/usbh_conf.o
-                0x000000000800f5d4                HAL_HCD_SOF_Callback
+                0x000000000800f5d8        0xc Src/usbh_conf.o
+                0x000000000800f5d8                HAL_HCD_SOF_Callback
  .text.HAL_HCD_Connect_Callback
-                0x000000000800f5e0        0xc Src/usbh_conf.o
-                0x000000000800f5e0                HAL_HCD_Connect_Callback
+                0x000000000800f5e4        0xc Src/usbh_conf.o
+                0x000000000800f5e4                HAL_HCD_Connect_Callback
  .text.HAL_HCD_Disconnect_Callback
-                0x000000000800f5ec        0xc Src/usbh_conf.o
-                0x000000000800f5ec                HAL_HCD_Disconnect_Callback
+                0x000000000800f5f0        0xc Src/usbh_conf.o
+                0x000000000800f5f0                HAL_HCD_Disconnect_Callback
  .text.HAL_HCD_HC_NotifyURBChange_Callback
-                0x000000000800f5f8        0x2 Src/usbh_conf.o
-                0x000000000800f5f8                HAL_HCD_HC_NotifyURBChange_Callback
+                0x000000000800f5fc        0x2 Src/usbh_conf.o
+                0x000000000800f5fc                HAL_HCD_HC_NotifyURBChange_Callback
  .text.HAL_HCD_PortEnabled_Callback
-                0x000000000800f5fa        0xc Src/usbh_conf.o
-                0x000000000800f5fa                HAL_HCD_PortEnabled_Callback
+                0x000000000800f5fe        0xc Src/usbh_conf.o
+                0x000000000800f5fe                HAL_HCD_PortEnabled_Callback
  .text.HAL_HCD_PortDisabled_Callback
-                0x000000000800f606        0xc Src/usbh_conf.o
-                0x000000000800f606                HAL_HCD_PortDisabled_Callback
- *fill*         0x000000000800f612        0x2 
+                0x000000000800f60a        0xc Src/usbh_conf.o
+                0x000000000800f60a                HAL_HCD_PortDisabled_Callback
+ *fill*         0x000000000800f616        0x2 
  .text.USBH_LL_Init
-                0x000000000800f614       0x58 Src/usbh_conf.o
-                0x000000000800f614                USBH_LL_Init
+                0x000000000800f618       0x58 Src/usbh_conf.o
+                0x000000000800f618                USBH_LL_Init
  .text.USBH_LL_GetSpeed
-                0x000000000800f66c       0x1c Src/usbh_conf.o
-                0x000000000800f66c                USBH_LL_GetSpeed
+                0x000000000800f670       0x1c Src/usbh_conf.o
+                0x000000000800f670                USBH_LL_GetSpeed
  .text.USBH_LL_GetLastXferSize
-                0x000000000800f688        0xc Src/usbh_conf.o
-                0x000000000800f688                USBH_LL_GetLastXferSize
+                0x000000000800f68c        0xc Src/usbh_conf.o
+                0x000000000800f68c                USBH_LL_GetLastXferSize
  .text.USBH_LL_GetURBState
-                0x000000000800f694        0xc Src/usbh_conf.o
-                0x000000000800f694                USBH_LL_GetURBState
+                0x000000000800f698        0xc Src/usbh_conf.o
+                0x000000000800f698                USBH_LL_GetURBState
  .text.USBH_LL_DriverVBUS
-                0x000000000800f6a0       0x1c Src/usbh_conf.o
-                0x000000000800f6a0                USBH_LL_DriverVBUS
+                0x000000000800f6a4       0x1c Src/usbh_conf.o
+                0x000000000800f6a4                USBH_LL_DriverVBUS
  .text.USBH_LL_SetToggle
-                0x000000000800f6bc       0x32 Src/usbh_conf.o
-                0x000000000800f6bc                USBH_LL_SetToggle
+                0x000000000800f6c0       0x32 Src/usbh_conf.o
+                0x000000000800f6c0                USBH_LL_SetToggle
  .text.USBH_Delay
-                0x000000000800f6ee        0x8 Src/usbh_conf.o
-                0x000000000800f6ee                USBH_Delay
+                0x000000000800f6f2        0x8 Src/usbh_conf.o
+                0x000000000800f6f2                USBH_Delay
  .text.USBH_Get_USB_Status
-                0x000000000800f6f6       0x12 Src/usbh_conf.o
-                0x000000000800f6f6                USBH_Get_USB_Status
+                0x000000000800f6fa       0x12 Src/usbh_conf.o
+                0x000000000800f6fa                USBH_Get_USB_Status
  .text.USBH_LL_Start
-                0x000000000800f708       0x10 Src/usbh_conf.o
-                0x000000000800f708                USBH_LL_Start
+                0x000000000800f70c       0x10 Src/usbh_conf.o
+                0x000000000800f70c                USBH_LL_Start
  .text.USBH_LL_Stop
-                0x000000000800f718       0x10 Src/usbh_conf.o
-                0x000000000800f718                USBH_LL_Stop
+                0x000000000800f71c       0x10 Src/usbh_conf.o
+                0x000000000800f71c                USBH_LL_Stop
  .text.USBH_LL_ResetPort
-                0x000000000800f728       0x10 Src/usbh_conf.o
-                0x000000000800f728                USBH_LL_ResetPort
+                0x000000000800f72c       0x10 Src/usbh_conf.o
+                0x000000000800f72c                USBH_LL_ResetPort
  .text.USBH_LL_OpenPipe
-                0x000000000800f738       0x26 Src/usbh_conf.o
-                0x000000000800f738                USBH_LL_OpenPipe
+                0x000000000800f73c       0x26 Src/usbh_conf.o
+                0x000000000800f73c                USBH_LL_OpenPipe
  .text.USBH_LL_ClosePipe
-                0x000000000800f75e       0x10 Src/usbh_conf.o
-                0x000000000800f75e                USBH_LL_ClosePipe
+                0x000000000800f762       0x10 Src/usbh_conf.o
+                0x000000000800f762                USBH_LL_ClosePipe
  .text.USBH_LL_SubmitURB
-                0x000000000800f76e       0x2a Src/usbh_conf.o
-                0x000000000800f76e                USBH_LL_SubmitURB
+                0x000000000800f772       0x2a Src/usbh_conf.o
+                0x000000000800f772                USBH_LL_SubmitURB
  .text.MX_DriverVbusFS
-                0x000000000800f798       0x18 Src/usbh_platform.o
-                0x000000000800f798                MX_DriverVbusFS
+                0x000000000800f79c       0x18 Src/usbh_platform.o
+                0x000000000800f79c                MX_DriverVbusFS
+ *fill*         0x000000000800f7b4        0x4 
  .text.mayer_fht
-                0x000000000800f7b0      0x468 leaf/LEAF/Externals/d_fft_mayer.o
-                0x000000000800f7b0                mayer_fht
+                0x000000000800f7b8      0x468 leaf/LEAF/Externals/d_fft_mayer.o
+                0x000000000800f7b8                mayer_fht
  .text.mayer_realfft
-                0x000000000800fc18       0x56 leaf/LEAF/Externals/d_fft_mayer.o
-                0x000000000800fc18                mayer_realfft
+                0x000000000800fc20       0x56 leaf/LEAF/Externals/d_fft_mayer.o
+                0x000000000800fc20                mayer_realfft
  .text.mayer_realifft
-                0x000000000800fc6e       0x48 leaf/LEAF/Externals/d_fft_mayer.o
-                0x000000000800fc6e                mayer_realifft
- *fill*         0x000000000800fcb6        0x2 
+                0x000000000800fc76       0x48 leaf/LEAF/Externals/d_fft_mayer.o
+                0x000000000800fc76                mayer_realifft
+ *fill*         0x000000000800fcbe        0x2 
  .text.snac_biasbuf
-                0x000000000800fcb8       0x84 leaf/LEAF/Src/leaf-analysis.o
+                0x000000000800fcc0       0x84 leaf/LEAF/Src/leaf-analysis.o
  .text.snac_normalize
-                0x000000000800fd3c       0xf0 leaf/LEAF/Src/leaf-analysis.o
+                0x000000000800fd44       0xf0 leaf/LEAF/Src/leaf-analysis.o
  .text.snac_autocorrelation
-                0x000000000800fe2c       0x80 leaf/LEAF/Src/leaf-analysis.o
+                0x000000000800fe34       0x80 leaf/LEAF/Src/leaf-analysis.o
  .text.snac_pickpeak
-                0x000000000800feac       0xd4 leaf/LEAF/Src/leaf-analysis.o
+                0x000000000800feb4       0xd4 leaf/LEAF/Src/leaf-analysis.o
  .text.snac_spectralpeak
-                0x000000000800ff80      0x118 leaf/LEAF/Src/leaf-analysis.o
+                0x000000000800ff88      0x118 leaf/LEAF/Src/leaf-analysis.o
  .text.snac_periodandfidelity
-                0x0000000008010098       0x4e leaf/LEAF/Src/leaf-analysis.o
+                0x00000000080100a0       0x4e leaf/LEAF/Src/leaf-analysis.o
  .text.snac_analyzeframe
-                0x00000000080100e6       0x88 leaf/LEAF/Src/leaf-analysis.o
+                0x00000000080100ee       0x88 leaf/LEAF/Src/leaf-analysis.o
  .text.tEnvelopeFollower_init
-                0x000000000801016e       0x2a leaf/LEAF/Src/leaf-analysis.o
-                0x000000000801016e                tEnvelopeFollower_init
+                0x0000000008010176       0x2a leaf/LEAF/Src/leaf-analysis.o
+                0x0000000008010176                tEnvelopeFollower_init
  .text.tEnvelopeFollower_free
-                0x0000000008010198        0xa leaf/LEAF/Src/leaf-analysis.o
-                0x0000000008010198                tEnvelopeFollower_free
- *fill*         0x00000000080101a2        0x2 
+                0x00000000080101a0        0xa leaf/LEAF/Src/leaf-analysis.o
+                0x00000000080101a0                tEnvelopeFollower_free
+ *fill*         0x00000000080101aa        0x2 
  .text.tEnvelopeFollower_tick
-                0x00000000080101a4       0x60 leaf/LEAF/Src/leaf-analysis.o
-                0x00000000080101a4                tEnvelopeFollower_tick
+                0x00000000080101ac       0x60 leaf/LEAF/Src/leaf-analysis.o
+                0x00000000080101ac                tEnvelopeFollower_tick
  .text.tPowerFollower_init
-                0x0000000008010204       0x2e leaf/LEAF/Src/leaf-analysis.o
-                0x0000000008010204                tPowerFollower_init
+                0x000000000801020c       0x2e leaf/LEAF/Src/leaf-analysis.o
+                0x000000000801020c                tPowerFollower_init
  .text.tPowerFollower_free
-                0x0000000008010232        0xa leaf/LEAF/Src/leaf-analysis.o
-                0x0000000008010232                tPowerFollower_free
+                0x000000000801023a        0xa leaf/LEAF/Src/leaf-analysis.o
+                0x000000000801023a                tPowerFollower_free
  .text.tPowerFollower_initToPool
-                0x000000000801023c       0x30 leaf/LEAF/Src/leaf-analysis.o
-                0x000000000801023c                tPowerFollower_initToPool
+                0x0000000008010244       0x30 leaf/LEAF/Src/leaf-analysis.o
+                0x0000000008010244                tPowerFollower_initToPool
  .text.tPowerFollower_freeFromPool
-                0x000000000801026c        0xc leaf/LEAF/Src/leaf-analysis.o
-                0x000000000801026c                tPowerFollower_freeFromPool
+                0x0000000008010274        0xc leaf/LEAF/Src/leaf-analysis.o
+                0x0000000008010274                tPowerFollower_freeFromPool
  .text.tPowerFollower_tick
-                0x0000000008010278       0x24 leaf/LEAF/Src/leaf-analysis.o
-                0x0000000008010278                tPowerFollower_tick
+                0x0000000008010280       0x24 leaf/LEAF/Src/leaf-analysis.o
+                0x0000000008010280                tPowerFollower_tick
  .text.tEnvPD_init
-                0x000000000801029c      0x12c leaf/LEAF/Src/leaf-analysis.o
-                0x000000000801029c                tEnvPD_init
+                0x00000000080102a4      0x12c leaf/LEAF/Src/leaf-analysis.o
+                0x00000000080102a4                tEnvPD_init
  .text.tEnvPD_free
-                0x00000000080103c8        0xa leaf/LEAF/Src/leaf-analysis.o
-                0x00000000080103c8                tEnvPD_free
+                0x00000000080103d0        0xa leaf/LEAF/Src/leaf-analysis.o
+                0x00000000080103d0                tEnvPD_free
  .text.tEnvPD_tick
-                0x00000000080103d2       0x14 leaf/LEAF/Src/leaf-analysis.o
-                0x00000000080103d2                tEnvPD_tick
+                0x00000000080103da       0x14 leaf/LEAF/Src/leaf-analysis.o
+                0x00000000080103da                tEnvPD_tick
  .text.tEnvPD_processBlock
-                0x00000000080103e6       0x76 leaf/LEAF/Src/leaf-analysis.o
-                0x00000000080103e6                tEnvPD_processBlock
+                0x00000000080103ee       0x76 leaf/LEAF/Src/leaf-analysis.o
+                0x00000000080103ee                tEnvPD_processBlock
  .text.tSNAC_free
-                0x000000000801045c       0x24 leaf/LEAF/Src/leaf-analysis.o
-                0x000000000801045c                tSNAC_free
+                0x0000000008010464       0x24 leaf/LEAF/Src/leaf-analysis.o
+                0x0000000008010464                tSNAC_free
  .text.tSNAC_ioSamples
-                0x0000000008010480       0x62 leaf/LEAF/Src/leaf-analysis.o
-                0x0000000008010480                tSNAC_ioSamples
+                0x0000000008010488       0x62 leaf/LEAF/Src/leaf-analysis.o
+                0x0000000008010488                tSNAC_ioSamples
  .text.tSNAC_setOverlap
-                0x00000000080104e2       0x1c leaf/LEAF/Src/leaf-analysis.o
-                0x00000000080104e2                tSNAC_setOverlap
- *fill*         0x00000000080104fe        0x2 
+                0x00000000080104ea       0x1c leaf/LEAF/Src/leaf-analysis.o
+                0x00000000080104ea                tSNAC_setOverlap
+ *fill*         0x0000000008010506        0x2 
  .text.tSNAC_init
-                0x0000000008010500       0x6c leaf/LEAF/Src/leaf-analysis.o
-                0x0000000008010500                tSNAC_init
+                0x0000000008010508       0x6c leaf/LEAF/Src/leaf-analysis.o
+                0x0000000008010508                tSNAC_init
  .text.tSNAC_getPeriod
-                0x000000000801056c        0x8 leaf/LEAF/Src/leaf-analysis.o
-                0x000000000801056c                tSNAC_getPeriod
+                0x0000000008010574        0x8 leaf/LEAF/Src/leaf-analysis.o
+                0x0000000008010574                tSNAC_getPeriod
  .text.tPeriodDetection_init
-                0x0000000008010574       0x90 leaf/LEAF/Src/leaf-analysis.o
-                0x0000000008010574                tPeriodDetection_init
+                0x000000000801057c       0x90 leaf/LEAF/Src/leaf-analysis.o
+                0x000000000801057c                tPeriodDetection_init
  .text.tPeriodDetection_free
-                0x0000000008010604       0x18 leaf/LEAF/Src/leaf-analysis.o
-                0x0000000008010604                tPeriodDetection_free
+                0x000000000801060c       0x18 leaf/LEAF/Src/leaf-analysis.o
+                0x000000000801060c                tPeriodDetection_free
  .text.tPeriodDetection_findPeriod
-                0x000000000801061c       0x84 leaf/LEAF/Src/leaf-analysis.o
-                0x000000000801061c                tPeriodDetection_findPeriod
+                0x0000000008010624       0x84 leaf/LEAF/Src/leaf-analysis.o
+                0x0000000008010624                tPeriodDetection_findPeriod
  .text.tLinearDelay_free
-                0x00000000080106a0       0x12 leaf/LEAF/Src/leaf-delay.o
-                0x00000000080106a0                tLinearDelay_free
+                0x00000000080106a8       0x12 leaf/LEAF/Src/leaf-delay.o
+                0x00000000080106a8                tLinearDelay_free
  .text.tLinearDelay_clear
-                0x00000000080106b2       0x1a leaf/LEAF/Src/leaf-delay.o
-                0x00000000080106b2                tLinearDelay_clear
+                0x00000000080106ba       0x1a leaf/LEAF/Src/leaf-delay.o
+                0x00000000080106ba                tLinearDelay_clear
  .text.tLinearDelay_tick
-                0x00000000080106cc       0x8a leaf/LEAF/Src/leaf-delay.o
-                0x00000000080106cc                tLinearDelay_tick
+                0x00000000080106d4       0x8a leaf/LEAF/Src/leaf-delay.o
+                0x00000000080106d4                tLinearDelay_tick
  .text.tLinearDelay_tickIn
-                0x0000000008010756       0x2a leaf/LEAF/Src/leaf-delay.o
-                0x0000000008010756                tLinearDelay_tickIn
+                0x000000000801075e       0x2a leaf/LEAF/Src/leaf-delay.o
+                0x000000000801075e                tLinearDelay_tickIn
  .text.tLinearDelay_tickOut
-                0x0000000008010780       0x60 leaf/LEAF/Src/leaf-delay.o
-                0x0000000008010780                tLinearDelay_tickOut
+                0x0000000008010788       0x60 leaf/LEAF/Src/leaf-delay.o
+                0x0000000008010788                tLinearDelay_tickOut
  .text.tLinearDelay_setDelay
-                0x00000000080107e0       0x78 leaf/LEAF/Src/leaf-delay.o
-                0x00000000080107e0                tLinearDelay_setDelay
+                0x00000000080107e8       0x78 leaf/LEAF/Src/leaf-delay.o
+                0x00000000080107e8                tLinearDelay_setDelay
  .text.tLinearDelay_init
-                0x0000000008010858       0x70 leaf/LEAF/Src/leaf-delay.o
-                0x0000000008010858                tLinearDelay_init
+                0x0000000008010860       0x70 leaf/LEAF/Src/leaf-delay.o
+                0x0000000008010860                tLinearDelay_init
  .text.tLinearDelay_getDelay
-                0x00000000080108c8        0x8 leaf/LEAF/Src/leaf-delay.o
-                0x00000000080108c8                tLinearDelay_getDelay
- .text.tLinearDelay_getLastOut
                 0x00000000080108d0        0x8 leaf/LEAF/Src/leaf-delay.o
-                0x00000000080108d0                tLinearDelay_getLastOut
+                0x00000000080108d0                tLinearDelay_getDelay
+ .text.tLinearDelay_getLastOut
+                0x00000000080108d8        0x8 leaf/LEAF/Src/leaf-delay.o
+                0x00000000080108d8                tLinearDelay_getLastOut
  .text.tTapeDelay_free
-                0x00000000080108d8       0x12 leaf/LEAF/Src/leaf-delay.o
-                0x00000000080108d8                tTapeDelay_free
- *fill*         0x00000000080108ea        0x2 
+                0x00000000080108e0       0x12 leaf/LEAF/Src/leaf-delay.o
+                0x00000000080108e0                tTapeDelay_free
+ *fill*         0x00000000080108f2        0x2 
  .text.tTapeDelay_tick
-                0x00000000080108ec       0xfc leaf/LEAF/Src/leaf-delay.o
-                0x00000000080108ec                tTapeDelay_tick
+                0x00000000080108f4       0xfc leaf/LEAF/Src/leaf-delay.o
+                0x00000000080108f4                tTapeDelay_tick
  .text.tTapeDelay_setDelay
-                0x00000000080109e8       0x1e leaf/LEAF/Src/leaf-delay.o
-                0x00000000080109e8                tTapeDelay_setDelay
+                0x00000000080109f0       0x1e leaf/LEAF/Src/leaf-delay.o
+                0x00000000080109f0                tTapeDelay_setDelay
  .text.tTapeDelay_init
-                0x0000000008010a06       0x46 leaf/LEAF/Src/leaf-delay.o
-                0x0000000008010a06                tTapeDelay_init
+                0x0000000008010a0e       0x46 leaf/LEAF/Src/leaf-delay.o
+                0x0000000008010a0e                tTapeDelay_init
  .text.tTapeDelay_tapOut
-                0x0000000008010a4c       0x8a leaf/LEAF/Src/leaf-delay.o
-                0x0000000008010a4c                tTapeDelay_tapOut
+                0x0000000008010a54       0x8a leaf/LEAF/Src/leaf-delay.o
+                0x0000000008010a54                tTapeDelay_tapOut
  .text.tSampleReducer_init
-                0x0000000008010ad6       0x1c leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010ad6                tSampleReducer_init
+                0x0000000008010ade       0x1c leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010ade                tSampleReducer_init
  .text.tSampleReducer_free
-                0x0000000008010af2        0xa leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010af2                tSampleReducer_free
+                0x0000000008010afa        0xa leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010afa                tSampleReducer_free
  .text.tSampleReducer_tick
-                0x0000000008010afc       0x2c leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010afc                tSampleReducer_tick
+                0x0000000008010b04       0x2c leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010b04                tSampleReducer_tick
  .text.tSampleReducer_setRatio
-                0x0000000008010b28       0x2a leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010b28                tSampleReducer_setRatio
- *fill*         0x0000000008010b52        0x2 
+                0x0000000008010b30       0x2a leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010b30                tSampleReducer_setRatio
+ *fill*         0x0000000008010b5a        0x2 
  .text.tOversampler_init
-                0x0000000008010b54       0x98 leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010b54                tOversampler_init
+                0x0000000008010b5c       0x98 leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010b5c                tOversampler_init
  .text.tOversampler_free
-                0x0000000008010bec       0x18 leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010bec                tOversampler_free
+                0x0000000008010bf4       0x18 leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010bf4                tOversampler_free
  .text.tOversampler_upsample
-                0x0000000008010c04       0xa0 leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010c04                tOversampler_upsample
+                0x0000000008010c0c       0xa0 leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010c0c                tOversampler_upsample
  .text.tOversampler_downsample
-                0x0000000008010ca4       0x68 leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010ca4                tOversampler_downsample
- *fill*         0x0000000008010d0c        0x4 
+                0x0000000008010cac       0x68 leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010cac                tOversampler_downsample
+ *fill*         0x0000000008010d14        0x4 
  .text.tLockhartWavefolder_init
-                0x0000000008010d10       0xc8 leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010d10                tLockhartWavefolder_init
+                0x0000000008010d18       0xc8 leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010d18                tLockhartWavefolder_init
  .text.tLockhartWavefolder_free
-                0x0000000008010dd8        0xa leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010dd8                tLockhartWavefolder_free
- *fill*         0x0000000008010de2        0x6 
+                0x0000000008010de0        0xa leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010de0                tLockhartWavefolder_free
+ *fill*         0x0000000008010dea        0x6 
  .text.tLockhartWavefolderLambert
-                0x0000000008010de8       0x78 leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010de8                tLockhartWavefolderLambert
+                0x0000000008010df0       0x78 leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010df0                tLockhartWavefolderLambert
  .text.tLockhartWavefolder_tick
-                0x0000000008010e60      0x100 leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010e60                tLockhartWavefolder_tick
+                0x0000000008010e68      0x100 leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010e68                tLockhartWavefolder_tick
  .text.tCrusher_init
-                0x0000000008010f60       0x5c leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010f60                tCrusher_init
+                0x0000000008010f68       0x5c leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010f68                tCrusher_init
  .text.tCrusher_free
-                0x0000000008010fbc       0x14 leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010fbc                tCrusher_free
+                0x0000000008010fc4       0x14 leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010fc4                tCrusher_free
  .text.tCrusher_tick
-                0x0000000008010fd0       0x54 leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008010fd0                tCrusher_tick
+                0x0000000008010fd8       0x54 leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008010fd8                tCrusher_tick
  .text.tCrusher_setOperation
-                0x0000000008011024       0x14 leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008011024                tCrusher_setOperation
+                0x000000000801102c       0x14 leaf/LEAF/Src/leaf-distortion.o
+                0x000000000801102c                tCrusher_setOperation
  .text.tCrusher_setQuality
-                0x0000000008011038       0x58 leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008011038                tCrusher_setQuality
+                0x0000000008011040       0x58 leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008011040                tCrusher_setQuality
  .text.tCrusher_setRound
-                0x0000000008011090        0xc leaf/LEAF/Src/leaf-distortion.o
-                0x0000000008011090                tCrusher_setRound
+                0x0000000008011098        0xc leaf/LEAF/Src/leaf-distortion.o
+                0x0000000008011098                tCrusher_setRound
  .text.tCrusher_setSamplingRatio
-                0x000000000801109c       0x12 leaf/LEAF/Src/leaf-distortion.o
-                0x000000000801109c                tCrusher_setSamplingRatio
+                0x00000000080110a4       0x12 leaf/LEAF/Src/leaf-distortion.o
+                0x00000000080110a4                tCrusher_setSamplingRatio
  .text.tFeedbackLeveler_init
-                0x00000000080110ae       0x40 leaf/LEAF/Src/leaf-dynamics.o
-                0x00000000080110ae                tFeedbackLeveler_init
+                0x00000000080110b6       0x40 leaf/LEAF/Src/leaf-dynamics.o
+                0x00000000080110b6                tFeedbackLeveler_init
  .text.tFeedbackLeveler_free
-                0x00000000080110ee       0x14 leaf/LEAF/Src/leaf-dynamics.o
-                0x00000000080110ee                tFeedbackLeveler_free
+                0x00000000080110f6       0x14 leaf/LEAF/Src/leaf-dynamics.o
+                0x00000000080110f6                tFeedbackLeveler_free
  .text.tFeedbackLeveler_initToPool
-                0x0000000008011102       0x46 leaf/LEAF/Src/leaf-dynamics.o
-                0x0000000008011102                tFeedbackLeveler_initToPool
+                0x000000000801110a       0x46 leaf/LEAF/Src/leaf-dynamics.o
+                0x000000000801110a                tFeedbackLeveler_initToPool
  .text.tFeedbackLeveler_freeFromPool
-                0x0000000008011148       0x18 leaf/LEAF/Src/leaf-dynamics.o
-                0x0000000008011148                tFeedbackLeveler_freeFromPool
+                0x0000000008011150       0x18 leaf/LEAF/Src/leaf-dynamics.o
+                0x0000000008011150                tFeedbackLeveler_freeFromPool
  .text.tFeedbackLeveler_tick
-                0x0000000008011160       0x54 leaf/LEAF/Src/leaf-dynamics.o
-                0x0000000008011160                tFeedbackLeveler_tick
+                0x0000000008011168       0x54 leaf/LEAF/Src/leaf-dynamics.o
+                0x0000000008011168                tFeedbackLeveler_tick
  .text.pitchdown
-                0x00000000080111b4      0x142 leaf/LEAF/Src/leaf-effects.o
- *fill*         0x00000000080112f6        0x2 
- .text.pitchup  0x00000000080112f8      0x1b4 leaf/LEAF/Src/leaf-effects.o
+                0x00000000080111bc      0x142 leaf/LEAF/Src/leaf-effects.o
+ *fill*         0x00000000080112fe        0x2 
+ .text.pitchup  0x0000000008011300      0x1b4 leaf/LEAF/Src/leaf-effects.o
  .text.solad_init
-                0x00000000080114ac       0x1c leaf/LEAF/Src/leaf-effects.o
+                0x00000000080114b4       0x1c leaf/LEAF/Src/leaf-effects.o
  .text.pitchshift_attackdetect
-                0x00000000080114c8       0xa0 leaf/LEAF/Src/leaf-effects.o
+                0x00000000080114d0       0xa0 leaf/LEAF/Src/leaf-effects.o
  .text.tTalkbox_free
-                0x0000000008011568       0x2a leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011568                tTalkbox_free
- *fill*         0x0000000008011592        0x2 
+                0x0000000008011570       0x2a leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011570                tTalkbox_free
+ *fill*         0x000000000801159a        0x2 
  .text.tTalkbox_update
-                0x0000000008011594      0x100 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011594                tTalkbox_update
+                0x000000000801159c      0x100 leaf/LEAF/Src/leaf-effects.o
+                0x000000000801159c                tTalkbox_update
  .text.tTalkbox_suspend
-                0x0000000008011694       0x56 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011694                tTalkbox_suspend
+                0x000000000801169c       0x56 leaf/LEAF/Src/leaf-effects.o
+                0x000000000801169c                tTalkbox_suspend
  .text.tTalkbox_init
-                0x00000000080116ea       0x62 leaf/LEAF/Src/leaf-effects.o
-                0x00000000080116ea                tTalkbox_init
+                0x00000000080116f2       0x62 leaf/LEAF/Src/leaf-effects.o
+                0x00000000080116f2                tTalkbox_init
  .text.tTalkbox_lpcDurbin
-                0x000000000801174c      0x10c leaf/LEAF/Src/leaf-effects.o
-                0x000000000801174c                tTalkbox_lpcDurbin
+                0x0000000008011754      0x10c leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011754                tTalkbox_lpcDurbin
  .text.tTalkbox_lpc
-                0x0000000008011858      0x15c leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011858                tTalkbox_lpc
+                0x0000000008011860      0x15c leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011860                tTalkbox_lpc
  .text.tTalkbox_tick
-                0x00000000080119b4      0x244 leaf/LEAF/Src/leaf-effects.o
-                0x00000000080119b4                tTalkbox_tick
+                0x00000000080119bc      0x244 leaf/LEAF/Src/leaf-effects.o
+                0x00000000080119bc                tTalkbox_tick
  .text.tSOLAD_init
-                0x0000000008011bf8       0x26 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011bf8                tSOLAD_init
+                0x0000000008011c00       0x26 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011c00                tSOLAD_init
  .text.tSOLAD_free
-                0x0000000008011c1e       0x12 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011c1e                tSOLAD_free
+                0x0000000008011c26       0x12 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011c26                tSOLAD_free
  .text.tSOLAD_ioSamples
-                0x0000000008011c30       0x60 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011c30                tSOLAD_ioSamples
+                0x0000000008011c38       0x60 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011c38                tSOLAD_ioSamples
  .text.tSOLAD_setPeriod
-                0x0000000008011c90       0x40 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011c90                tSOLAD_setPeriod
+                0x0000000008011c98       0x40 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011c98                tSOLAD_setPeriod
  .text.tSOLAD_setPitchFactor
-                0x0000000008011cd0       0x12 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011cd0                tSOLAD_setPitchFactor
- *fill*         0x0000000008011ce2        0x2 
+                0x0000000008011cd8       0x12 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011cd8                tSOLAD_setPitchFactor
+ *fill*         0x0000000008011cea        0x2 
  .text.tSOLAD_setReadLag
-                0x0000000008011ce4       0x3c leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011ce4                tSOLAD_setReadLag
+                0x0000000008011cec       0x3c leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011cec                tSOLAD_setReadLag
  .text.tPitchShift_init
-                0x0000000008011d20       0x5c leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011d20                tPitchShift_init
+                0x0000000008011d28       0x5c leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011d28                tPitchShift_init
  .text.tPitchShift_free
-                0x0000000008011d7c       0x18 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011d7c                tPitchShift_free
+                0x0000000008011d84       0x18 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011d84                tPitchShift_free
  .text.tPitchShift_setPitchFactor
-                0x0000000008011d94        0x8 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011d94                tPitchShift_setPitchFactor
+                0x0000000008011d9c        0x8 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011d9c                tPitchShift_setPitchFactor
  .text.tPitchShift_shift
-                0x0000000008011d9c       0x84 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011d9c                tPitchShift_shift
+                0x0000000008011da4       0x84 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011da4                tPitchShift_shift
  .text.tPitchShift_shiftToFreq
-                0x0000000008011e20       0xb0 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011e20                tPitchShift_shiftToFreq
+                0x0000000008011e28       0xb0 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011e28                tPitchShift_shiftToFreq
  .text.tRetune_free
-                0x0000000008011ed0       0x50 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011ed0                tRetune_free
+                0x0000000008011ed8       0x50 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011ed8                tRetune_free
  .text.tRetune_tick
-                0x0000000008011f20       0x30 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011f20                tRetune_tick
+                0x0000000008011f28       0x30 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011f28                tRetune_tick
  .text.tRetune_setPitchFactor
-                0x0000000008011f50       0x20 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011f50                tRetune_setPitchFactor
+                0x0000000008011f58       0x20 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011f58                tRetune_setPitchFactor
  .text.tRetune_setTimeConstant
-                0x0000000008011f70       0x3c leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011f70                tRetune_setTimeConstant
+                0x0000000008011f78       0x3c leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011f78                tRetune_setTimeConstant
  .text.tRetune_init
-                0x0000000008011fac       0xc4 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008011fac                tRetune_init
+                0x0000000008011fb4       0xc4 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008011fb4                tRetune_init
  .text.tAutotune_free
-                0x0000000008012070       0x50 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008012070                tAutotune_free
+                0x0000000008012078       0x50 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008012078                tAutotune_free
  .text.tAutotune_tick
-                0x00000000080120c0       0x4c leaf/LEAF/Src/leaf-effects.o
-                0x00000000080120c0                tAutotune_tick
+                0x00000000080120c8       0x4c leaf/LEAF/Src/leaf-effects.o
+                0x00000000080120c8                tAutotune_tick
  .text.tAutotune_setFreq
-                0x000000000801210c        0xe leaf/LEAF/Src/leaf-effects.o
-                0x000000000801210c                tAutotune_setFreq
- *fill*         0x000000000801211a        0x2 
+                0x0000000008012114        0xe leaf/LEAF/Src/leaf-effects.o
+                0x0000000008012114                tAutotune_setFreq
+ *fill*         0x0000000008012122        0x2 
  .text.tAutotune_setTimeConstant
-                0x000000000801211c       0x3c leaf/LEAF/Src/leaf-effects.o
-                0x000000000801211c                tAutotune_setTimeConstant
+                0x0000000008012124       0x3c leaf/LEAF/Src/leaf-effects.o
+                0x0000000008012124                tAutotune_setTimeConstant
  .text.tAutotune_init
-                0x0000000008012158       0xc4 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008012158                tAutotune_init
+                0x0000000008012160       0xc4 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008012160                tAutotune_init
  .text.tAutotune_getInputPeriod
-                0x000000000801221c        0x8 leaf/LEAF/Src/leaf-effects.o
-                0x000000000801221c                tAutotune_getInputPeriod
+                0x0000000008012224        0x8 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008012224                tAutotune_getInputPeriod
  .text.tFormantShifter_initToPool
-                0x0000000008012224      0x184 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008012224                tFormantShifter_initToPool
+                0x000000000801222c      0x184 leaf/LEAF/Src/leaf-effects.o
+                0x000000000801222c                tFormantShifter_initToPool
  .text.tFormantShifter_freeFromPool
-                0x00000000080123a8       0x82 leaf/LEAF/Src/leaf-effects.o
-                0x00000000080123a8                tFormantShifter_freeFromPool
- *fill*         0x000000000801242a        0x2 
+                0x00000000080123b0       0x82 leaf/LEAF/Src/leaf-effects.o
+                0x00000000080123b0                tFormantShifter_freeFromPool
+ *fill*         0x0000000008012432        0x2 
  .text.tFormantShifter_remove
-                0x000000000801242c      0x10c leaf/LEAF/Src/leaf-effects.o
-                0x000000000801242c                tFormantShifter_remove
+                0x0000000008012434      0x10c leaf/LEAF/Src/leaf-effects.o
+                0x0000000008012434                tFormantShifter_remove
  .text.tFormantShifter_add
-                0x0000000008012538      0x240 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008012538                tFormantShifter_add
+                0x0000000008012540      0x240 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008012540                tFormantShifter_add
  .text.tFormantShifter_setShiftFactor
-                0x0000000008012778        0x8 leaf/LEAF/Src/leaf-effects.o
-                0x0000000008012778                tFormantShifter_setShiftFactor
+                0x0000000008012780        0x8 leaf/LEAF/Src/leaf-effects.o
+                0x0000000008012780                tFormantShifter_setShiftFactor
  .text.tFormantShifter_setIntensity
-                0x0000000008012780       0x3c leaf/LEAF/Src/leaf-effects.o
-                0x0000000008012780                tFormantShifter_setIntensity
+                0x0000000008012788       0x3c leaf/LEAF/Src/leaf-effects.o
+                0x0000000008012788                tFormantShifter_setIntensity
  .text.tRamp_init
-                0x00000000080127bc       0x88 leaf/LEAF/Src/leaf-envelopes.o
-                0x00000000080127bc                tRamp_init
+                0x00000000080127c4       0x88 leaf/LEAF/Src/leaf-envelopes.o
+                0x00000000080127c4                tRamp_init
  .text.tRamp_free
-                0x0000000008012844        0xa leaf/LEAF/Src/leaf-envelopes.o
-                0x0000000008012844                tRamp_free
- *fill*         0x000000000801284e        0x2 
+                0x000000000801284c        0xa leaf/LEAF/Src/leaf-envelopes.o
+                0x000000000801284c                tRamp_free
+ *fill*         0x0000000008012856        0x2 
  .text.tRamp_initToPool
-                0x0000000008012850       0x88 leaf/LEAF/Src/leaf-envelopes.o
-                0x0000000008012850                tRamp_initToPool
+                0x0000000008012858       0x88 leaf/LEAF/Src/leaf-envelopes.o
+                0x0000000008012858                tRamp_initToPool
  .text.tRamp_freeFromPool
-                0x00000000080128d8        0xc leaf/LEAF/Src/leaf-envelopes.o
-                0x00000000080128d8                tRamp_freeFromPool
+                0x00000000080128e0        0xc leaf/LEAF/Src/leaf-envelopes.o
+                0x00000000080128e0                tRamp_freeFromPool
  .text.tRamp_setTime
-                0x00000000080128e4       0x48 leaf/LEAF/Src/leaf-envelopes.o
-                0x00000000080128e4                tRamp_setTime
+                0x00000000080128ec       0x48 leaf/LEAF/Src/leaf-envelopes.o
+                0x00000000080128ec                tRamp_setTime
  .text.tRamp_setDest
-                0x000000000801292c       0x30 leaf/LEAF/Src/leaf-envelopes.o
-                0x000000000801292c                tRamp_setDest
+                0x0000000008012934       0x30 leaf/LEAF/Src/leaf-envelopes.o
+                0x0000000008012934                tRamp_setDest
  .text.tRamp_setVal
-                0x000000000801295c       0x30 leaf/LEAF/Src/leaf-envelopes.o
-                0x000000000801295c                tRamp_setVal
+                0x0000000008012964       0x30 leaf/LEAF/Src/leaf-envelopes.o
+                0x0000000008012964                tRamp_setVal
  .text.tRamp_tick
-                0x000000000801298c       0x4e leaf/LEAF/Src/leaf-envelopes.o
-                0x000000000801298c                tRamp_tick
+                0x0000000008012994       0x4e leaf/LEAF/Src/leaf-envelopes.o
+                0x0000000008012994                tRamp_tick
  .text.tRamp_sample
-                0x00000000080129da        0x8 leaf/LEAF/Src/leaf-envelopes.o
-                0x00000000080129da                tRamp_sample
- *fill*         0x00000000080129e2        0x2 
+                0x00000000080129e2        0x8 leaf/LEAF/Src/leaf-envelopes.o
+                0x00000000080129e2                tRamp_sample
+ *fill*         0x00000000080129ea        0x2 
  .text.tExpSmooth_init
-                0x00000000080129e4       0x5c leaf/LEAF/Src/leaf-envelopes.o
-                0x00000000080129e4                tExpSmooth_init
+                0x00000000080129ec       0x5c leaf/LEAF/Src/leaf-envelopes.o
+                0x00000000080129ec                tExpSmooth_init
  .text.tExpSmooth_free
-                0x0000000008012a40        0xa leaf/LEAF/Src/leaf-envelopes.o
-                0x0000000008012a40                tExpSmooth_free
- *fill*         0x0000000008012a4a        0x2 
+                0x0000000008012a48        0xa leaf/LEAF/Src/leaf-envelopes.o
+                0x0000000008012a48                tExpSmooth_free
+ *fill*         0x0000000008012a52        0x2 
  .text.tExpSmooth_setFactor
-                0x0000000008012a4c       0x3c leaf/LEAF/Src/leaf-envelopes.o
-                0x0000000008012a4c                tExpSmooth_setFactor
+                0x0000000008012a54       0x3c leaf/LEAF/Src/leaf-envelopes.o
+                0x0000000008012a54                tExpSmooth_setFactor
  .text.tExpSmooth_setDest
-                0x0000000008012a88        0x8 leaf/LEAF/Src/leaf-envelopes.o
-                0x0000000008012a88                tExpSmooth_setDest
+                0x0000000008012a90        0x8 leaf/LEAF/Src/leaf-envelopes.o
+                0x0000000008012a90                tExpSmooth_setDest
  .text.tExpSmooth_tick
-                0x0000000008012a90       0x24 leaf/LEAF/Src/leaf-envelopes.o
-                0x0000000008012a90                tExpSmooth_tick
+                0x0000000008012a98       0x24 leaf/LEAF/Src/leaf-envelopes.o
+                0x0000000008012a98                tExpSmooth_tick
  .text.tAllpass_init
-                0x0000000008012ab4       0x34 leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012ab4                tAllpass_init
+                0x0000000008012abc       0x34 leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012abc                tAllpass_init
  .text.tAllpass_free
-                0x0000000008012ae8       0x12 leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012ae8                tAllpass_free
+                0x0000000008012af0       0x12 leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012af0                tAllpass_free
  .text.tAllpass_setDelay
-                0x0000000008012afa        0xc leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012afa                tAllpass_setDelay
+                0x0000000008012b02        0xc leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012b02                tAllpass_setDelay
  .text.tAllpass_setGain
-                0x0000000008012b06        0x8 leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012b06                tAllpass_setGain
+                0x0000000008012b0e        0x8 leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012b0e                tAllpass_setGain
  .text.tAllpass_tick
-                0x0000000008012b0e       0x38 leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012b0e                tAllpass_tick
+                0x0000000008012b16       0x38 leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012b16                tAllpass_tick
  .text.tOnePole_free
-                0x0000000008012b46        0xa leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012b46                tOnePole_free
+                0x0000000008012b4e        0xa leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012b4e                tOnePole_free
  .text.tOnePole_setFreq
-                0x0000000008012b50       0x38 leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012b50                tOnePole_setFreq
+                0x0000000008012b58       0x38 leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012b58                tOnePole_setFreq
  .text.tOnePole_init
-                0x0000000008012b88       0x34 leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012b88                tOnePole_init
+                0x0000000008012b90       0x34 leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012b90                tOnePole_init
  .text.tOnePole_tick
-                0x0000000008012bbc       0x2c leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012bbc                tOnePole_tick
+                0x0000000008012bc4       0x2c leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012bc4                tOnePole_tick
  .text.tSVF_init
-                0x0000000008012be8       0x7c leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012be8                tSVF_init
+                0x0000000008012bf0       0x7c leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012bf0                tSVF_init
  .text.tSVF_free
-                0x0000000008012c64        0xa leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012c64                tSVF_free
- *fill*         0x0000000008012c6e        0x2 
+                0x0000000008012c6c        0xa leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012c6c                tSVF_free
+ *fill*         0x0000000008012c76        0x2 
  .text.tSVF_tick
-                0x0000000008012c70       0xa8 leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012c70                tSVF_tick
+                0x0000000008012c78       0xa8 leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012c78                tSVF_tick
  .text.tSVF_setFreq
-                0x0000000008012d18       0x54 leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012d18                tSVF_setFreq
+                0x0000000008012d20       0x54 leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012d20                tSVF_setFreq
  .text.tHighpass_init
-                0x0000000008012d6c       0x40 leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012d6c                tHighpass_init
+                0x0000000008012d74       0x40 leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012d74                tHighpass_init
  .text.tHighpass_free
-                0x0000000008012dac        0xa leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012dac                tHighpass_free
- *fill*         0x0000000008012db6        0x2 
+                0x0000000008012db4        0xa leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012db4                tHighpass_free
+ *fill*         0x0000000008012dbe        0x2 
  .text.tHighpass_initToPool
-                0x0000000008012db8       0x40 leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012db8                tHighpass_initToPool
+                0x0000000008012dc0       0x40 leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012dc0                tHighpass_initToPool
  .text.tHighpass_freeFromPool
-                0x0000000008012df8        0xc leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012df8                tHighpass_freeFromPool
+                0x0000000008012e00        0xc leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012e00                tHighpass_freeFromPool
  .text.tHighpass_setFreq
-                0x0000000008012e04       0x24 leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012e04                tHighpass_setFreq
+                0x0000000008012e0c       0x24 leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012e0c                tHighpass_setFreq
  .text.tHighpass_tick
-                0x0000000008012e28       0x28 leaf/LEAF/Src/leaf-filters.o
-                0x0000000008012e28                tHighpass_tick
+                0x0000000008012e30       0x28 leaf/LEAF/Src/leaf-filters.o
+                0x0000000008012e30                tHighpass_tick
  .text.interpolate3max
-                0x0000000008012e50       0x46 leaf/LEAF/Src/leaf-math.o
-                0x0000000008012e50                interpolate3max
+                0x0000000008012e58       0x46 leaf/LEAF/Src/leaf-math.o
+                0x0000000008012e58                interpolate3max
  .text.interpolate3phase
-                0x0000000008012e96       0x3e leaf/LEAF/Src/leaf-math.o
-                0x0000000008012e96                interpolate3phase
+                0x0000000008012e9e       0x3e leaf/LEAF/Src/leaf-math.o
+                0x0000000008012e9e                interpolate3phase
  .text.fastabsf
-                0x0000000008012ed4        0xe leaf/LEAF/Src/leaf-math.o
-                0x0000000008012ed4                fastabsf
- *fill*         0x0000000008012ee2        0x2 
+                0x0000000008012edc        0xe leaf/LEAF/Src/leaf-math.o
+                0x0000000008012edc                fastabsf
+ *fill*         0x0000000008012eea        0x2 
  .text.fastexpf
-                0x0000000008012ee4       0x40 leaf/LEAF/Src/leaf-math.o
-                0x0000000008012ee4                fastexpf
+                0x0000000008012eec       0x40 leaf/LEAF/Src/leaf-math.o
+                0x0000000008012eec                fastexpf
  .text.fastexp2f
-                0x0000000008012f24       0xa0 leaf/LEAF/Src/leaf-math.o
-                0x0000000008012f24                fastexp2f
+                0x0000000008012f2c       0xa0 leaf/LEAF/Src/leaf-math.o
+                0x0000000008012f2c                fastexp2f
  .text.LEAF_crossfade
-                0x0000000008012fc4       0x3a leaf/LEAF/Src/leaf-math.o
-                0x0000000008012fc4                LEAF_crossfade
- *fill*         0x0000000008012ffe        0x2 
+                0x0000000008012fcc       0x3a leaf/LEAF/Src/leaf-math.o
+                0x0000000008012fcc                LEAF_crossfade
+ *fill*         0x0000000008013006        0x2 
  .text.LEAF_frequencyToMidi
-                0x0000000008013000       0x44 leaf/LEAF/Src/leaf-math.o
-                0x0000000008013000                LEAF_frequencyToMidi
+                0x0000000008013008       0x44 leaf/LEAF/Src/leaf-math.o
+                0x0000000008013008                LEAF_frequencyToMidi
  .text.LEAF_round
-                0x0000000008013044       0x2c leaf/LEAF/Src/leaf-math.o
-                0x0000000008013044                LEAF_round
+                0x000000000801304c       0x2c leaf/LEAF/Src/leaf-math.o
+                0x000000000801304c                LEAF_round
  .text.LEAF_bitwise_xor
-                0x0000000008013070       0x18 leaf/LEAF/Src/leaf-math.o
-                0x0000000008013070                LEAF_bitwise_xor
+                0x0000000008013078       0x18 leaf/LEAF/Src/leaf-math.o
+                0x0000000008013078                LEAF_bitwise_xor
  .text.LEAF_clip
-                0x0000000008013088       0x20 leaf/LEAF/Src/leaf-math.o
-                0x0000000008013088                LEAF_clip
+                0x0000000008013090       0x20 leaf/LEAF/Src/leaf-math.o
+                0x0000000008013090                LEAF_clip
  .text.LEAF_shaper
-                0x00000000080130a8       0x98 leaf/LEAF/Src/leaf-math.o
-                0x00000000080130a8                LEAF_shaper
+                0x00000000080130b0       0x98 leaf/LEAF/Src/leaf-math.o
+                0x00000000080130b0                LEAF_shaper
  .text.LEAF_clipInt
-                0x0000000008013140       0x10 leaf/LEAF/Src/leaf-math.o
-                0x0000000008013140                LEAF_clipInt
+                0x0000000008013148       0x10 leaf/LEAF/Src/leaf-math.o
+                0x0000000008013148                LEAF_clipInt
  .text.LEAF_isPrime
-                0x0000000008013150       0x5c leaf/LEAF/Src/leaf-math.o
-                0x0000000008013150                LEAF_isPrime
+                0x0000000008013158       0x5c leaf/LEAF/Src/leaf-math.o
+                0x0000000008013158                LEAF_isPrime
  .text.LEAF_midiToFrequency
-                0x00000000080131ac       0x68 leaf/LEAF/Src/leaf-math.o
-                0x00000000080131ac                LEAF_midiToFrequency
+                0x00000000080131b4       0x68 leaf/LEAF/Src/leaf-math.o
+                0x00000000080131b4                LEAF_midiToFrequency
  .text.LEAF_interpolate_hermite_x
-                0x0000000008013214       0x46 leaf/LEAF/Src/leaf-math.o
-                0x0000000008013214                LEAF_interpolate_hermite_x
- *fill*         0x000000000801325a        0x2 
- .text.mtof     0x000000000801325c       0x58 leaf/LEAF/Src/leaf-math.o
-                0x000000000801325c                mtof
+                0x000000000801321c       0x46 leaf/LEAF/Src/leaf-math.o
+                0x000000000801321c                LEAF_interpolate_hermite_x
+ *fill*         0x0000000008013262        0x2 
+ .text.mtof     0x0000000008013264       0x58 leaf/LEAF/Src/leaf-math.o
+                0x0000000008013264                mtof
  .text.faster_mtof
-                0x00000000080132b4       0x20 leaf/LEAF/Src/leaf-math.o
-                0x00000000080132b4                faster_mtof
- *fill*         0x00000000080132d4        0x4 
- .text.powtodb  0x00000000080132d8       0x54 leaf/LEAF/Src/leaf-math.o
-                0x00000000080132d8                powtodb
+                0x00000000080132bc       0x20 leaf/LEAF/Src/leaf-math.o
+                0x00000000080132bc                faster_mtof
+ *fill*         0x00000000080132dc        0x4 
+ .text.powtodb  0x00000000080132e0       0x54 leaf/LEAF/Src/leaf-math.o
+                0x00000000080132e0                powtodb
  .text.mpool_create
-                0x000000000801332c       0x40 leaf/LEAF/Src/leaf-mempool.o
-                0x000000000801332c                mpool_create
+                0x0000000008013334       0x40 leaf/LEAF/Src/leaf-mempool.o
+                0x0000000008013334                mpool_create
  .text.leaf_pool_init
-                0x000000000801336c       0x18 leaf/LEAF/Src/leaf-mempool.o
-                0x000000000801336c                leaf_pool_init
+                0x0000000008013374       0x18 leaf/LEAF/Src/leaf-mempool.o
+                0x0000000008013374                leaf_pool_init
  .text.mpool_alloc
-                0x0000000008013384       0x8c leaf/LEAF/Src/leaf-mempool.o
-                0x0000000008013384                mpool_alloc
+                0x000000000801338c       0x8c leaf/LEAF/Src/leaf-mempool.o
+                0x000000000801338c                mpool_alloc
  .text.mpool_calloc
-                0x0000000008013410       0x9c leaf/LEAF/Src/leaf-mempool.o
-                0x0000000008013410                mpool_calloc
+                0x0000000008013418       0x9c leaf/LEAF/Src/leaf-mempool.o
+                0x0000000008013418                mpool_calloc
  .text.leaf_alloc
-                0x00000000080134ac       0x10 leaf/LEAF/Src/leaf-mempool.o
-                0x00000000080134ac                leaf_alloc
+                0x00000000080134b4       0x10 leaf/LEAF/Src/leaf-mempool.o
+                0x00000000080134b4                leaf_alloc
  .text.leaf_calloc
-                0x00000000080134bc       0x10 leaf/LEAF/Src/leaf-mempool.o
-                0x00000000080134bc                leaf_calloc
+                0x00000000080134c4       0x10 leaf/LEAF/Src/leaf-mempool.o
+                0x00000000080134c4                leaf_calloc
  .text.mpool_free
-                0x00000000080134cc       0x9c leaf/LEAF/Src/leaf-mempool.o
-                0x00000000080134cc                mpool_free
+                0x00000000080134d4       0x9c leaf/LEAF/Src/leaf-mempool.o
+                0x00000000080134d4                mpool_free
  .text.leaf_free
-                0x0000000008013568       0x10 leaf/LEAF/Src/leaf-mempool.o
-                0x0000000008013568                leaf_free
+                0x0000000008013570       0x10 leaf/LEAF/Src/leaf-mempool.o
+                0x0000000008013570                leaf_free
  .text.tMempool_initToPool
-                0x0000000008013578       0x1e leaf/LEAF/Src/leaf-mempool.o
-                0x0000000008013578                tMempool_initToPool
- *fill*         0x0000000008013596        0x2 
+                0x0000000008013580       0x1e leaf/LEAF/Src/leaf-mempool.o
+                0x0000000008013580                tMempool_initToPool
+ *fill*         0x000000000801359e        0x2 
  .text.tMempool_init
-                0x0000000008013598       0x10 leaf/LEAF/Src/leaf-mempool.o
-                0x0000000008013598                tMempool_init
+                0x00000000080135a0       0x10 leaf/LEAF/Src/leaf-mempool.o
+                0x00000000080135a0                tMempool_init
  .text.tStack_init
-                0x00000000080135a8       0x34 leaf/LEAF/Src/leaf-midi.o
-                0x00000000080135a8                tStack_init
+                0x00000000080135b0       0x34 leaf/LEAF/Src/leaf-midi.o
+                0x00000000080135b0                tStack_init
  .text.tStack_contains
-                0x00000000080135dc       0x1e leaf/LEAF/Src/leaf-midi.o
-                0x00000000080135dc                tStack_contains
+                0x00000000080135e4       0x1e leaf/LEAF/Src/leaf-midi.o
+                0x00000000080135e4                tStack_contains
  .text.tStack_add
-                0x00000000080135fa       0x64 leaf/LEAF/Src/leaf-midi.o
-                0x00000000080135fa                tStack_add
+                0x0000000008013602       0x64 leaf/LEAF/Src/leaf-midi.o
+                0x0000000008013602                tStack_add
  .text.tStack_remove
-                0x000000000801365e       0x5c leaf/LEAF/Src/leaf-midi.o
-                0x000000000801365e                tStack_remove
+                0x0000000008013666       0x5c leaf/LEAF/Src/leaf-midi.o
+                0x0000000008013666                tStack_remove
  .text.tStack_getSize
-                0x00000000080136ba        0x8 leaf/LEAF/Src/leaf-midi.o
-                0x00000000080136ba                tStack_getSize
- .text.tStack_get
                 0x00000000080136c2        0x8 leaf/LEAF/Src/leaf-midi.o
-                0x00000000080136c2                tStack_get
- *fill*         0x00000000080136ca        0x2 
+                0x00000000080136c2                tStack_getSize
+ .text.tStack_get
+                0x00000000080136ca        0x8 leaf/LEAF/Src/leaf-midi.o
+                0x00000000080136ca                tStack_get
+ *fill*         0x00000000080136d2        0x2 
  .text.tPoly_init
-                0x00000000080136cc       0xd8 leaf/LEAF/Src/leaf-midi.o
-                0x00000000080136cc                tPoly_init
+                0x00000000080136d4       0xd8 leaf/LEAF/Src/leaf-midi.o
+                0x00000000080136d4                tPoly_init
  .text.tPoly_tickPitchGlide
-                0x00000000080137a4       0x1c leaf/LEAF/Src/leaf-midi.o
-                0x00000000080137a4                tPoly_tickPitchGlide
+                0x00000000080137ac       0x1c leaf/LEAF/Src/leaf-midi.o
+                0x00000000080137ac                tPoly_tickPitchGlide
  .text.tPoly_tickPitchBend
-                0x00000000080137c0        0xe leaf/LEAF/Src/leaf-midi.o
-                0x00000000080137c0                tPoly_tickPitchBend
+                0x00000000080137c8        0xe leaf/LEAF/Src/leaf-midi.o
+                0x00000000080137c8                tPoly_tickPitchBend
  .text.tPoly_tickPitch
-                0x00000000080137ce       0x10 leaf/LEAF/Src/leaf-midi.o
-                0x00000000080137ce                tPoly_tickPitch
- *fill*         0x00000000080137de        0x2 
+                0x00000000080137d6       0x10 leaf/LEAF/Src/leaf-midi.o
+                0x00000000080137d6                tPoly_tickPitch
+ *fill*         0x00000000080137e6        0x2 
  .text.tPoly_noteOff
-                0x00000000080137e0       0xd4 leaf/LEAF/Src/leaf-midi.o
-                0x00000000080137e0                tPoly_noteOff
+                0x00000000080137e8       0xd4 leaf/LEAF/Src/leaf-midi.o
+                0x00000000080137e8                tPoly_noteOff
  .text.tPoly_orderedAddToStack
-                0x00000000080138b4       0x66 leaf/LEAF/Src/leaf-midi.o
-                0x00000000080138b4                tPoly_orderedAddToStack
+                0x00000000080138bc       0x66 leaf/LEAF/Src/leaf-midi.o
+                0x00000000080138bc                tPoly_orderedAddToStack
  .text.tPoly_noteOn
-                0x000000000801391a      0x126 leaf/LEAF/Src/leaf-midi.o
-                0x000000000801391a                tPoly_noteOn
+                0x0000000008013922      0x126 leaf/LEAF/Src/leaf-midi.o
+                0x0000000008013922                tPoly_noteOn
  .text.tPoly_setNumVoices
-                0x0000000008013a40        0xe leaf/LEAF/Src/leaf-midi.o
-                0x0000000008013a40                tPoly_setNumVoices
+                0x0000000008013a48        0xe leaf/LEAF/Src/leaf-midi.o
+                0x0000000008013a48                tPoly_setNumVoices
  .text.tPoly_setPitchGlideActive
-                0x0000000008013a4e        0x6 leaf/LEAF/Src/leaf-midi.o
-                0x0000000008013a4e                tPoly_setPitchGlideActive
+                0x0000000008013a56        0x6 leaf/LEAF/Src/leaf-midi.o
+                0x0000000008013a56                tPoly_setPitchGlideActive
  .text.tPoly_getNumVoices
-                0x0000000008013a54        0x6 leaf/LEAF/Src/leaf-midi.o
-                0x0000000008013a54                tPoly_getNumVoices
+                0x0000000008013a5c        0x6 leaf/LEAF/Src/leaf-midi.o
+                0x0000000008013a5c                tPoly_getNumVoices
  .text.tPoly_getNumActiveVoices
-                0x0000000008013a5a        0xa leaf/LEAF/Src/leaf-midi.o
-                0x0000000008013a5a                tPoly_getNumActiveVoices
+                0x0000000008013a62        0xa leaf/LEAF/Src/leaf-midi.o
+                0x0000000008013a62                tPoly_getNumActiveVoices
  .text.tPoly_getPitch
-                0x0000000008013a64       0x28 leaf/LEAF/Src/leaf-midi.o
-                0x0000000008013a64                tPoly_getPitch
+                0x0000000008013a6c       0x28 leaf/LEAF/Src/leaf-midi.o
+                0x0000000008013a6c                tPoly_getPitch
  .text.tPoly_getVelocity
-                0x0000000008013a8c        0xc leaf/LEAF/Src/leaf-midi.o
-                0x0000000008013a8c                tPoly_getVelocity
+                0x0000000008013a94        0xc leaf/LEAF/Src/leaf-midi.o
+                0x0000000008013a94                tPoly_getVelocity
  .text.tPoly_isOn
-                0x0000000008013a98       0x14 leaf/LEAF/Src/leaf-midi.o
-                0x0000000008013a98                tPoly_isOn
+                0x0000000008013aa0       0x14 leaf/LEAF/Src/leaf-midi.o
+                0x0000000008013aa0                tPoly_isOn
  .text.tCycle_init
-                0x0000000008013aac       0x14 leaf/LEAF/Src/leaf-oscillators.o
-                0x0000000008013aac                tCycle_init
+                0x0000000008013ab4       0x14 leaf/LEAF/Src/leaf-oscillators.o
+                0x0000000008013ab4                tCycle_init
  .text.tCycle_free
-                0x0000000008013ac0        0xa leaf/LEAF/Src/leaf-oscillators.o
-                0x0000000008013ac0                tCycle_free
- *fill*         0x0000000008013aca        0x2 
+                0x0000000008013ac8        0xa leaf/LEAF/Src/leaf-oscillators.o
+                0x0000000008013ac8                tCycle_free
+ *fill*         0x0000000008013ad2        0x2 
  .text.tCycle_setFreq
-                0x0000000008013acc       0x30 leaf/LEAF/Src/leaf-oscillators.o
-                0x0000000008013acc                tCycle_setFreq
+                0x0000000008013ad4       0x30 leaf/LEAF/Src/leaf-oscillators.o
+                0x0000000008013ad4                tCycle_setFreq
  .text.tCycle_tick
-                0x0000000008013afc       0x80 leaf/LEAF/Src/leaf-oscillators.o
-                0x0000000008013afc                tCycle_tick
+                0x0000000008013b04       0x80 leaf/LEAF/Src/leaf-oscillators.o
+                0x0000000008013b04                tCycle_tick
  .text.tSawtooth_initToPool
-                0x0000000008013b7c       0x16 leaf/LEAF/Src/leaf-oscillators.o
-                0x0000000008013b7c                tSawtooth_initToPool
+                0x0000000008013b84       0x16 leaf/LEAF/Src/leaf-oscillators.o
+                0x0000000008013b84                tSawtooth_initToPool
  .text.tSawtooth_freeFromPool
-                0x0000000008013b92        0xc leaf/LEAF/Src/leaf-oscillators.o
-                0x0000000008013b92                tSawtooth_freeFromPool
- *fill*         0x0000000008013b9e        0x2 
+                0x0000000008013b9a        0xc leaf/LEAF/Src/leaf-oscillators.o
+                0x0000000008013b9a                tSawtooth_freeFromPool
+ *fill*         0x0000000008013ba6        0x2 
  .text.tSawtooth_setFreq
-                0x0000000008013ba0       0x30 leaf/LEAF/Src/leaf-oscillators.o
-                0x0000000008013ba0                tSawtooth_setFreq
+                0x0000000008013ba8       0x30 leaf/LEAF/Src/leaf-oscillators.o
+                0x0000000008013ba8                tSawtooth_setFreq
  .text.tSawtooth_tick
-                0x0000000008013bd0      0x3ac leaf/LEAF/Src/leaf-oscillators.o
-                0x0000000008013bd0                tSawtooth_tick
+                0x0000000008013bd8      0x3ac leaf/LEAF/Src/leaf-oscillators.o
+                0x0000000008013bd8                tSawtooth_tick
  .text.tLivingString_free
-                0x0000000008013f7c       0x7c leaf/LEAF/Src/leaf-physical.o
-                0x0000000008013f7c                tLivingString_free
+                0x0000000008013f84       0x7c leaf/LEAF/Src/leaf-physical.o
+                0x0000000008013f84                tLivingString_free
  .text.tLivingString_setFreq
-                0x0000000008013ff8       0x4c leaf/LEAF/Src/leaf-physical.o
-                0x0000000008013ff8                tLivingString_setFreq
+                0x0000000008014000       0x4c leaf/LEAF/Src/leaf-physical.o
+                0x0000000008014000                tLivingString_setFreq
  .text.tLivingString_setPickPos
-                0x0000000008014044       0x38 leaf/LEAF/Src/leaf-physical.o
-                0x0000000008014044                tLivingString_setPickPos
+                0x000000000801404c       0x38 leaf/LEAF/Src/leaf-physical.o
+                0x000000000801404c                tLivingString_setPickPos
  .text.tLivingString_init
-                0x000000000801407c      0x15c leaf/LEAF/Src/leaf-physical.o
-                0x000000000801407c                tLivingString_init
+                0x0000000008014084      0x15c leaf/LEAF/Src/leaf-physical.o
+                0x0000000008014084                tLivingString_init
  .text.tLivingString_setDampFreq
-                0x00000000080141d8       0x3e leaf/LEAF/Src/leaf-physical.o
-                0x00000000080141d8                tLivingString_setDampFreq
+                0x00000000080141e0       0x3e leaf/LEAF/Src/leaf-physical.o
+                0x00000000080141e0                tLivingString_setDampFreq
  .text.tLivingString_setDecay
-                0x0000000008014216        0x8 leaf/LEAF/Src/leaf-physical.o
-                0x0000000008014216                tLivingString_setDecay
+                0x000000000801421e        0x8 leaf/LEAF/Src/leaf-physical.o
+                0x000000000801421e                tLivingString_setDecay
  .text.tLivingString_tick
-                0x000000000801421e      0x188 leaf/LEAF/Src/leaf-physical.o
-                0x000000000801421e                tLivingString_tick
+                0x0000000008014226      0x188 leaf/LEAF/Src/leaf-physical.o
+                0x0000000008014226                tLivingString_tick
  .text.tNReverb_free
-                0x00000000080143a6       0x36 leaf/LEAF/Src/leaf-reverb.o
-                0x00000000080143a6                tNReverb_free
+                0x00000000080143ae       0x36 leaf/LEAF/Src/leaf-reverb.o
+                0x00000000080143ae                tNReverb_free
  .text.tNReverb_setT60
-                0x00000000080143dc       0x80 leaf/LEAF/Src/leaf-reverb.o
-                0x00000000080143dc                tNReverb_setT60
+                0x00000000080143e4       0x80 leaf/LEAF/Src/leaf-reverb.o
+                0x00000000080143e4                tNReverb_setT60
  .text.tNReverb_init
-                0x000000000801445c      0x178 leaf/LEAF/Src/leaf-reverb.o
-                0x000000000801445c                tNReverb_init
+                0x0000000008014464      0x178 leaf/LEAF/Src/leaf-reverb.o
+                0x0000000008014464                tNReverb_init
  .text.tNReverb_setMix
-                0x00000000080145d4        0x8 leaf/LEAF/Src/leaf-reverb.o
-                0x00000000080145d4                tNReverb_setMix
+                0x00000000080145dc        0x8 leaf/LEAF/Src/leaf-reverb.o
+                0x00000000080145dc                tNReverb_setMix
  .text.tNReverb_tickStereo
-                0x00000000080145dc      0x178 leaf/LEAF/Src/leaf-reverb.o
-                0x00000000080145dc                tNReverb_tickStereo
+                0x00000000080145e4      0x178 leaf/LEAF/Src/leaf-reverb.o
+                0x00000000080145e4                tNReverb_tickStereo
  .text.tDattorroReverb_free
-                0x0000000008014754       0xa4 leaf/LEAF/Src/leaf-reverb.o
-                0x0000000008014754                tDattorroReverb_free
+                0x000000000801475c       0xa4 leaf/LEAF/Src/leaf-reverb.o
+                0x000000000801475c                tDattorroReverb_free
  .text.tDattorroReverb_tickStereo
-                0x00000000080147f8      0x34c leaf/LEAF/Src/leaf-reverb.o
-                0x00000000080147f8                tDattorroReverb_tickStereo
+                0x0000000008014800      0x34c leaf/LEAF/Src/leaf-reverb.o
+                0x0000000008014800                tDattorroReverb_tickStereo
  .text.tDattorroReverb_setMix
-                0x0000000008014b44       0x20 leaf/LEAF/Src/leaf-reverb.o
-                0x0000000008014b44                tDattorroReverb_setMix
+                0x0000000008014b4c       0x20 leaf/LEAF/Src/leaf-reverb.o
+                0x0000000008014b4c                tDattorroReverb_setMix
  .text.tDattorroReverb_setFreeze
-                0x0000000008014b64       0xa0 leaf/LEAF/Src/leaf-reverb.o
-                0x0000000008014b64                tDattorroReverb_setFreeze
+                0x0000000008014b6c       0xa0 leaf/LEAF/Src/leaf-reverb.o
+                0x0000000008014b6c                tDattorroReverb_setFreeze
  .text.tDattorroReverb_setHP
-                0x0000000008014c04       0x3c leaf/LEAF/Src/leaf-reverb.o
-                0x0000000008014c04                tDattorroReverb_setHP
+                0x0000000008014c0c       0x3c leaf/LEAF/Src/leaf-reverb.o
+                0x0000000008014c0c                tDattorroReverb_setHP
  .text.tDattorroReverb_setSize
-                0x0000000008014c40       0xcc leaf/LEAF/Src/leaf-reverb.o
-                0x0000000008014c40                tDattorroReverb_setSize
+                0x0000000008014c48       0xcc leaf/LEAF/Src/leaf-reverb.o
+                0x0000000008014c48                tDattorroReverb_setSize
  .text.tDattorroReverb_setInputDelay
-                0x0000000008014d0c       0x34 leaf/LEAF/Src/leaf-reverb.o
-                0x0000000008014d0c                tDattorroReverb_setInputDelay
+                0x0000000008014d14       0x34 leaf/LEAF/Src/leaf-reverb.o
+                0x0000000008014d14                tDattorroReverb_setInputDelay
  .text.tDattorroReverb_setInputFilter
-                0x0000000008014d40       0x2c leaf/LEAF/Src/leaf-reverb.o
-                0x0000000008014d40                tDattorroReverb_setInputFilter
+                0x0000000008014d48       0x2c leaf/LEAF/Src/leaf-reverb.o
+                0x0000000008014d48                tDattorroReverb_setInputFilter
  .text.tDattorroReverb_setFeedbackFilter
-                0x0000000008014d6c       0x38 leaf/LEAF/Src/leaf-reverb.o
-                0x0000000008014d6c                tDattorroReverb_setFeedbackFilter
+                0x0000000008014d74       0x38 leaf/LEAF/Src/leaf-reverb.o
+                0x0000000008014d74                tDattorroReverb_setFeedbackFilter
  .text.tDattorroReverb_setFeedbackGain
-                0x0000000008014da4        0x8 leaf/LEAF/Src/leaf-reverb.o
-                0x0000000008014da4                tDattorroReverb_setFeedbackGain
+                0x0000000008014dac        0x8 leaf/LEAF/Src/leaf-reverb.o
+                0x0000000008014dac                tDattorroReverb_setFeedbackGain
  .text.tDattorroReverb_init
-                0x0000000008014dac      0x2f4 leaf/LEAF/Src/leaf-reverb.o
-                0x0000000008014dac                tDattorroReverb_init
+                0x0000000008014db4      0x2f4 leaf/LEAF/Src/leaf-reverb.o
+                0x0000000008014db4                tDattorroReverb_init
  .text.handleStartEndChange
-                0x00000000080150a0       0x4e leaf/LEAF/Src/leaf-sampling.o
+                0x00000000080150a8       0x4e leaf/LEAF/Src/leaf-sampling.o
  .text.tBuffer_initToPool
-                0x00000000080150ee       0x2a leaf/LEAF/Src/leaf-sampling.o
-                0x00000000080150ee                tBuffer_initToPool
+                0x00000000080150f6       0x2a leaf/LEAF/Src/leaf-sampling.o
+                0x00000000080150f6                tBuffer_initToPool
  .text.tBuffer_freeFromPool
-                0x0000000008015118       0x18 leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015118                tBuffer_freeFromPool
+                0x0000000008015120       0x18 leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015120                tBuffer_freeFromPool
  .text.tBuffer_record
-                0x0000000008015130        0xc leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015130                tBuffer_record
+                0x0000000008015138        0xc leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015138                tBuffer_record
  .text.tBuffer_stop
-                0x000000000801513c        0xc leaf/LEAF/Src/leaf-sampling.o
-                0x000000000801513c                tBuffer_stop
+                0x0000000008015144        0xc leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015144                tBuffer_stop
  .text.tBuffer_tick
-                0x0000000008015148       0x38 leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015148                tBuffer_tick
+                0x0000000008015150       0x38 leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015150                tBuffer_tick
  .text.tBuffer_getRecordPosition
-                0x0000000008015180        0x6 leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015180                tBuffer_getRecordPosition
+                0x0000000008015188        0x6 leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015188                tBuffer_getRecordPosition
  .text.tBuffer_setRecordMode
-                0x0000000008015186        0x6 leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015186                tBuffer_setRecordMode
+                0x000000000801518e        0x6 leaf/LEAF/Src/leaf-sampling.o
+                0x000000000801518e                tBuffer_setRecordMode
  .text.tSampler_initToPool
-                0x000000000801518c       0x78 leaf/LEAF/Src/leaf-sampling.o
-                0x000000000801518c                tSampler_initToPool
+                0x0000000008015194       0x78 leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015194                tSampler_initToPool
  .text.tSampler_init
-                0x0000000008015204       0x10 leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015204                tSampler_init
+                0x000000000801520c       0x10 leaf/LEAF/Src/leaf-sampling.o
+                0x000000000801520c                tSampler_init
  .text.tSampler_freeFromPool
-                0x0000000008015214       0x16 leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015214                tSampler_freeFromPool
- *fill*         0x000000000801522a        0x2 
+                0x000000000801521c       0x16 leaf/LEAF/Src/leaf-sampling.o
+                0x000000000801521c                tSampler_freeFromPool
+ *fill*         0x0000000008015232        0x2 
  .text.tSampler_free
-                0x000000000801522c       0x10 leaf/LEAF/Src/leaf-sampling.o
-                0x000000000801522c                tSampler_free
+                0x0000000008015234       0x10 leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015234                tSampler_free
  .text.tSampler_setMode
-                0x000000000801523c        0x8 leaf/LEAF/Src/leaf-sampling.o
-                0x000000000801523c                tSampler_setMode
+                0x0000000008015244        0x8 leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015244                tSampler_setMode
  .text.tSampler_setCrossfadeLength
-                0x0000000008015244       0x4c leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015244                tSampler_setCrossfadeLength
+                0x000000000801524c       0x4c leaf/LEAF/Src/leaf-sampling.o
+                0x000000000801524c                tSampler_setCrossfadeLength
  .text.tSampler_play
-                0x0000000008015290       0x94 leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015290                tSampler_play
+                0x0000000008015298       0x94 leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015298                tSampler_play
  .text.tSampler_stop
-                0x0000000008015324       0x1c leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015324                tSampler_stop
+                0x000000000801532c       0x1c leaf/LEAF/Src/leaf-sampling.o
+                0x000000000801532c                tSampler_stop
  .text.tSampler_setStart
-                0x0000000008015340       0xd0 leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015340                tSampler_setStart
+                0x0000000008015348       0xd0 leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015348                tSampler_setStart
  .text.tSampler_setEnd
-                0x0000000008015410       0xe0 leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015410                tSampler_setEnd
+                0x0000000008015418       0xe0 leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015418                tSampler_setEnd
  .text.attemptStartEndChange
-                0x00000000080154f0       0x20 leaf/LEAF/Src/leaf-sampling.o
+                0x00000000080154f8       0x20 leaf/LEAF/Src/leaf-sampling.o
  .text.tSampler_tick
-                0x0000000008015510      0x550 leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015510                tSampler_tick
+                0x0000000008015518      0x550 leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015518                tSampler_tick
  .text.tSampler_setRate
-                0x0000000008015a60       0x2c leaf/LEAF/Src/leaf-sampling.o
-                0x0000000008015a60                tSampler_setRate
+                0x0000000008015a68       0x2c leaf/LEAF/Src/leaf-sampling.o
+                0x0000000008015a68                tSampler_setRate
  .text.LEAF_init
-                0x0000000008015a8c       0x48 leaf/LEAF/Src/leaf.o
-                0x0000000008015a8c                LEAF_init
+                0x0000000008015a94       0x48 leaf/LEAF/Src/leaf.o
+                0x0000000008015a94                LEAF_init
  .text.Reset_Handler
-                0x0000000008015ad4       0x50 startup/startup_stm32h743xx.o
-                0x0000000008015ad4                Reset_Handler
- *fill*         0x0000000008015b24        0xc 
+                0x0000000008015adc       0x50 startup/startup_stm32h743xx.o
+                0x0000000008015adc                Reset_Handler
+ *fill*         0x0000000008015b2c        0x4 
  .text.Default_Handler
                 0x0000000008015b30       0x34 startup/startup_stm32h743xx.o
                 0x0000000008015b30                DMA1_Stream3_IRQHandler
@@ -18722,7 +18724,7 @@ LOAD /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1
 .iplt           0x0000000008018fbc        0x0
  .iplt          0x0000000008018fbc        0x0 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/crtbegin.o
 
-.rodata         0x0000000008018fc0   0x11c398
+.rodata         0x0000000008018fc0   0x11c3a0
                 0x0000000008018fc0                . = ALIGN (0x4)
  *(.rodata)
  .rodata        0x0000000008018fc0        0x8 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_dma.o
@@ -18866,97 +18868,98 @@ LOAD /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1
                                          0x3e (size before relaxing)
  *fill*         0x000000000813466b        0x1 
  .rodata.str1.4
-                0x000000000813466c      0x3a1 Src/ui.o
-                                        0x3a9 (size before relaxing)
- *fill*         0x0000000008134a0d        0x3 
+                0x000000000813466c      0x3a5 Src/ui.o
+                                        0x3ad (size before relaxing)
+ *fill*         0x0000000008134a11        0x3 
  .rodata.str1.4
-                0x0000000008134a10        0x5 Src/usbh_MIDI.o
- *fill*         0x0000000008134a15        0x3 
+                0x0000000008134a14        0x5 Src/usbh_MIDI.o
+ *fill*         0x0000000008134a19        0x3 
  .rodata.atanhi
-                0x0000000008134a18       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_atan.o)
+                0x0000000008134a1c       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_atan.o)
  .rodata.atanlo
-                0x0000000008134a28       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_atan.o)
+                0x0000000008134a2c       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_atan.o)
+ *fill*         0x0000000008134a3c        0x4 
  .rodata.__exp2f_data
-                0x0000000008134a38      0x148 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_exp2_data.o)
-                0x0000000008134a38                __exp2f_data
+                0x0000000008134a40      0x148 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_exp2_data.o)
+                0x0000000008134a40                __exp2f_data
  .rodata.__log2f_data
-                0x0000000008134b80      0x120 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_log2_data.o)
-                0x0000000008134b80                __log2f_data
+                0x0000000008134b88      0x120 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_log2_data.o)
+                0x0000000008134b88                __log2f_data
  .rodata.__logf_data
-                0x0000000008134ca0      0x120 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_log_data.o)
-                0x0000000008134ca0                __logf_data
+                0x0000000008134ca8      0x120 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_log_data.o)
+                0x0000000008134ca8                __logf_data
  .rodata.__powf_log2_data
-                0x0000000008134dc0      0x128 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_pow_log2_data.o)
-                0x0000000008134dc0                __powf_log2_data
+                0x0000000008134dc8      0x128 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_pow_log2_data.o)
+                0x0000000008134dc8                __powf_log2_data
  .rodata.exp.str1.4
-                0x0000000008134ee8        0x4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_exp.o)
+                0x0000000008134ef0        0x4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_exp.o)
  .rodata.fmod.str1.4
-                0x0000000008134eec        0x5 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_fmod.o)
- *fill*         0x0000000008134ef1        0x3 
+                0x0000000008134ef4        0x5 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_fmod.o)
+ *fill*         0x0000000008134ef9        0x3 
  .rodata.log.str1.4
-                0x0000000008134ef4        0x4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_log.o)
+                0x0000000008134efc        0x4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_log.o)
                                           0x5 (size before relaxing)
  .rodata.pow.str1.4
-                0x0000000008134ef8        0x4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_pow.o)
+                0x0000000008134f00        0x4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_pow.o)
  .rodata.sqrt.str1.4
-                0x0000000008134efc        0x5 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_sqrt.o)
- *fill*         0x0000000008134f01        0x3 
+                0x0000000008134f04        0x5 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_sqrt.o)
+ *fill*         0x0000000008134f09        0x3 
  .rodata.sqrtf.str1.4
-                0x0000000008134f04        0x8 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-wf_sqrt.o)
+                0x0000000008134f0c        0x8 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-wf_sqrt.o)
                                           0x6 (size before relaxing)
- *fill*         0x0000000008134f0c        0x4 
- .rodata.halF   0x0000000008134f10       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_exp.o)
- .rodata.ln2HI  0x0000000008134f20       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_exp.o)
- .rodata.ln2LO  0x0000000008134f30       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_exp.o)
- .rodata.Zero   0x0000000008134f40       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_fmod.o)
+ *fill*         0x0000000008134f14        0x4 
+ .rodata.halF   0x0000000008134f18       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_exp.o)
+ .rodata.ln2HI  0x0000000008134f28       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_exp.o)
+ .rodata.ln2LO  0x0000000008134f38       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_exp.o)
+ .rodata.Zero   0x0000000008134f48       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_fmod.o)
  .rodata.__ieee754_pow.str1.4
-                0x0000000008134f50        0x1 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_pow.o)
+                0x0000000008134f58        0x1 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_pow.o)
  .rodata.npio2_hw
-                0x0000000008134f50       0x80 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_rem_pio2.o)
+                0x0000000008134f58       0x80 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_rem_pio2.o)
  .rodata.two_over_pi
-                0x0000000008134fd0      0x318 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_rem_pio2.o)
- .rodata.PIo2   0x00000000081352e8       0x2c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_rem_pio2.o)
+                0x0000000008134fd8      0x318 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_rem_pio2.o)
+ .rodata.PIo2   0x00000000081352f0       0x2c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_rem_pio2.o)
  .rodata.init_jk
-                0x0000000008135314        0xc /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_rem_pio2.o)
- .rodata.TWO52  0x0000000008135320       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_rint.o)
+                0x000000000813531c        0xc /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_rem_pio2.o)
+ .rodata.TWO52  0x0000000008135328       0x10 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_rint.o)
  .rodata.__utoa.str1.1
-                0x0000000008135330       0x25 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-utoa.o)
-                0x0000000008135358                . = ALIGN (0x4)
- *fill*         0x0000000008135355        0x3 
+                0x0000000008135338       0x25 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-utoa.o)
+                0x0000000008135360                . = ALIGN (0x4)
+ *fill*         0x000000000813535d        0x3 
 
 .ARM.extab
  *(.ARM.extab* .gnu.linkonce.armextab.*)
 
-.ARM            0x0000000008135358        0x8
-                0x0000000008135358                __exidx_start = .
+.ARM            0x0000000008135360        0x8
+                0x0000000008135360                __exidx_start = .
  *(.ARM.exidx*)
- .ARM.exidx     0x0000000008135358        0x8 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_udivmoddi4.o)
-                0x0000000008135360                __exidx_end = .
+ .ARM.exidx     0x0000000008135360        0x8 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_udivmoddi4.o)
+                0x0000000008135368                __exidx_end = .
 
-.rel.dyn        0x0000000008135360        0x0
- .rel.iplt      0x0000000008135360        0x0 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/crtbegin.o
+.rel.dyn        0x0000000008135368        0x0
+ .rel.iplt      0x0000000008135368        0x0 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/crtbegin.o
 
-.preinit_array  0x0000000008135360        0x0
-                0x0000000008135360                PROVIDE (__preinit_array_start = .)
+.preinit_array  0x0000000008135368        0x0
+                0x0000000008135368                PROVIDE (__preinit_array_start = .)
  *(.preinit_array*)
-                0x0000000008135360                PROVIDE (__preinit_array_end = .)
+                0x0000000008135368                PROVIDE (__preinit_array_end = .)
 
-.init_array     0x0000000008135360        0x4
-                0x0000000008135360                PROVIDE (__init_array_start = .)
+.init_array     0x0000000008135368        0x4
+                0x0000000008135368                PROVIDE (__init_array_start = .)
  *(SORT_BY_NAME(.init_array.*))
  *(.init_array*)
- .init_array    0x0000000008135360        0x4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/crtbegin.o
-                0x0000000008135364                PROVIDE (__init_array_end = .)
+ .init_array    0x0000000008135368        0x4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/crtbegin.o
+                0x000000000813536c                PROVIDE (__init_array_end = .)
 
-.fini_array     0x0000000008135364        0x4
+.fini_array     0x000000000813536c        0x4
                 [!provide]                        PROVIDE (__fini_array_start = .)
  *(SORT_BY_NAME(.fini_array.*))
  *(.fini_array*)
- .fini_array    0x0000000008135364        0x4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/crtbegin.o
+ .fini_array    0x000000000813536c        0x4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/crtbegin.o
                 [!provide]                        PROVIDE (__fini_array_end = .)
-                0x0000000008135368                _sidata = LOADADDR (.data)
+                0x0000000008135370                _sidata = LOADADDR (.data)
 
-.data           0x0000000020000000     0x10a8 load address 0x0000000008135368
+.data           0x0000000020000000     0x10a8 load address 0x0000000008135370
                 0x0000000020000000                . = ALIGN (0x4)
                 0x0000000020000000                _sdata = .
  *(.data)
@@ -19033,11 +19036,11 @@ LOAD /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1
                 0x00000000200010a8                . = ALIGN (0x4)
                 0x00000000200010a8                _edata = .
 
-.igot.plt       0x00000000200010a8        0x0 load address 0x0000000008136410
+.igot.plt       0x00000000200010a8        0x0 load address 0x0000000008136418
  .igot.plt      0x00000000200010a8        0x0 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/crtbegin.o
                 0x00000000200010a8                . = ALIGN (0x4)
 
-.bss            0x00000000200010a8     0x3d38 load address 0x0000000008136410
+.bss            0x00000000200010a8     0x3d38 load address 0x0000000008136418
                 0x00000000200010a8                _sbss = .
                 0x00000000200010a8                __bss_start__ = _sbss
  *(.bss)
@@ -19279,7 +19282,7 @@ LOAD /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1
                 0x0000000020004de0                __bss_end__ = _ebss
 
 ._user_heap_stack
-                0x0000000020004de0      0x600 load address 0x0000000008136410
+                0x0000000020004de0      0x600 load address 0x0000000008136418
                 0x0000000020004de0                . = ALIGN (0x8)
                 0x0000000020004de0                PROVIDE (end = .)
                 [!provide]                        PROVIDE (_end = .)
@@ -19596,7 +19599,7 @@ LOAD /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1
                 0x0000000000001aaa       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/crtn.o
 OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
 
-.debug_info     0x0000000000000000    0x85c96
+.debug_info     0x0000000000000000    0x85cb8
  .debug_info    0x0000000000000000     0x1ed0 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
  .debug_info    0x0000000000001ed0     0x3305 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.o
  .debug_info    0x00000000000051d5     0x334a Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.o
@@ -19643,29 +19646,29 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_info    0x0000000000053e31      0xfd3 Src/syscalls.o
  .debug_info    0x0000000000054e04     0x133a Src/system_stm32h7xx.o
  .debug_info    0x000000000005613e      0xb59 Src/tunings.o
- .debug_info    0x0000000000056c97     0x2103 Src/ui.o
- .debug_info    0x0000000000058d9a     0x152c Src/usb_host.o
- .debug_info    0x000000000005a2c6     0x1b26 Src/usbh_MIDI.o
- .debug_info    0x000000000005bdec     0x2a8f Src/usbh_conf.o
- .debug_info    0x000000000005e87b      0xbe1 Src/usbh_platform.o
- .debug_info    0x000000000005f45c      0x7bd leaf/LEAF/Externals/d_fft_mayer.o
- .debug_info    0x000000000005fc19     0x2c35 leaf/LEAF/Src/leaf-analysis.o
- .debug_info    0x000000000006284e     0x2b11 leaf/LEAF/Src/leaf-delay.o
- .debug_info    0x000000000006535f     0x1ccd leaf/LEAF/Src/leaf-distortion.o
- .debug_info    0x000000000006702c     0x1466 leaf/LEAF/Src/leaf-dynamics.o
- .debug_info    0x0000000000068492     0x4c56 leaf/LEAF/Src/leaf-effects.o
- .debug_info    0x000000000006d0e8     0x1ce8 leaf/LEAF/Src/leaf-envelopes.o
- .debug_info    0x000000000006edd0     0x3f65 leaf/LEAF/Src/leaf-filters.o
- .debug_info    0x0000000000072d35     0x1ac8 leaf/LEAF/Src/leaf-math.o
- .debug_info    0x00000000000747fd     0x1445 leaf/LEAF/Src/leaf-mempool.o
- .debug_info    0x0000000000075c42     0x2087 leaf/LEAF/Src/leaf-midi.o
- .debug_info    0x0000000000077cc9     0x23db leaf/LEAF/Src/leaf-oscillators.o
- .debug_info    0x000000000007a0a4     0x4465 leaf/LEAF/Src/leaf-physical.o
- .debug_info    0x000000000007e509     0x3bab leaf/LEAF/Src/leaf-reverb.o
- .debug_info    0x00000000000820b4     0x2235 leaf/LEAF/Src/leaf-sampling.o
- .debug_info    0x00000000000842e9      0xc7c leaf/LEAF/Src/leaf-tables.o
- .debug_info    0x0000000000084f65      0xd0f leaf/LEAF/Src/leaf.o
- .debug_info    0x0000000000085c74       0x22 startup/startup_stm32h743xx.o
+ .debug_info    0x0000000000056c97     0x2125 Src/ui.o
+ .debug_info    0x0000000000058dbc     0x152c Src/usb_host.o
+ .debug_info    0x000000000005a2e8     0x1b26 Src/usbh_MIDI.o
+ .debug_info    0x000000000005be0e     0x2a8f Src/usbh_conf.o
+ .debug_info    0x000000000005e89d      0xbe1 Src/usbh_platform.o
+ .debug_info    0x000000000005f47e      0x7bd leaf/LEAF/Externals/d_fft_mayer.o
+ .debug_info    0x000000000005fc3b     0x2c35 leaf/LEAF/Src/leaf-analysis.o
+ .debug_info    0x0000000000062870     0x2b11 leaf/LEAF/Src/leaf-delay.o
+ .debug_info    0x0000000000065381     0x1ccd leaf/LEAF/Src/leaf-distortion.o
+ .debug_info    0x000000000006704e     0x1466 leaf/LEAF/Src/leaf-dynamics.o
+ .debug_info    0x00000000000684b4     0x4c56 leaf/LEAF/Src/leaf-effects.o
+ .debug_info    0x000000000006d10a     0x1ce8 leaf/LEAF/Src/leaf-envelopes.o
+ .debug_info    0x000000000006edf2     0x3f65 leaf/LEAF/Src/leaf-filters.o
+ .debug_info    0x0000000000072d57     0x1ac8 leaf/LEAF/Src/leaf-math.o
+ .debug_info    0x000000000007481f     0x1445 leaf/LEAF/Src/leaf-mempool.o
+ .debug_info    0x0000000000075c64     0x2087 leaf/LEAF/Src/leaf-midi.o
+ .debug_info    0x0000000000077ceb     0x23db leaf/LEAF/Src/leaf-oscillators.o
+ .debug_info    0x000000000007a0c6     0x4465 leaf/LEAF/Src/leaf-physical.o
+ .debug_info    0x000000000007e52b     0x3bab leaf/LEAF/Src/leaf-reverb.o
+ .debug_info    0x00000000000820d6     0x2235 leaf/LEAF/Src/leaf-sampling.o
+ .debug_info    0x000000000008430b      0xc7c leaf/LEAF/Src/leaf-tables.o
+ .debug_info    0x0000000000084f87      0xd0f leaf/LEAF/Src/leaf.o
+ .debug_info    0x0000000000085c96       0x22 startup/startup_stm32h743xx.o
 
 .debug_abbrev   0x0000000000000000     0xd4c8
  .debug_abbrev  0x0000000000000000      0x31f Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
@@ -19738,7 +19741,7 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_abbrev  0x000000000000d257      0x25f leaf/LEAF/Src/leaf.o
  .debug_abbrev  0x000000000000d4b6       0x12 startup/startup_stm32h743xx.o
 
-.debug_loc      0x0000000000000000    0x2e7a5
+.debug_loc      0x0000000000000000    0x2e735
  .debug_loc     0x0000000000000000      0x400 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
  .debug_loc     0x0000000000000400     0x1d4c Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.o
  .debug_loc     0x000000000000214c     0x1f57 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.o
@@ -19778,27 +19781,27 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_loc     0x00000000000191ed      0x3c4 Src/ssd1306.o
  .debug_loc     0x00000000000195b1      0x3af Src/syscalls.o
  .debug_loc     0x0000000000019960      0x10c Src/system_stm32h7xx.o
- .debug_loc     0x0000000000019a6c      0x5e4 Src/ui.o
- .debug_loc     0x000000000001a050       0x77 Src/usb_host.o
- .debug_loc     0x000000000001a0c7      0x488 Src/usbh_MIDI.o
- .debug_loc     0x000000000001a54f      0x817 Src/usbh_conf.o
- .debug_loc     0x000000000001ad66       0x55 Src/usbh_platform.o
- .debug_loc     0x000000000001adbb      0xde6 leaf/LEAF/Externals/d_fft_mayer.o
- .debug_loc     0x000000000001bba1     0x1c9b leaf/LEAF/Src/leaf-analysis.o
- .debug_loc     0x000000000001d83c     0x12fe leaf/LEAF/Src/leaf-delay.o
- .debug_loc     0x000000000001eb3a     0x1016 leaf/LEAF/Src/leaf-distortion.o
- .debug_loc     0x000000000001fb50      0x648 leaf/LEAF/Src/leaf-dynamics.o
- .debug_loc     0x0000000000020198     0x2e41 leaf/LEAF/Src/leaf-effects.o
- .debug_loc     0x0000000000022fd9      0xe2b leaf/LEAF/Src/leaf-envelopes.o
- .debug_loc     0x0000000000023e04     0x2321 leaf/LEAF/Src/leaf-filters.o
- .debug_loc     0x0000000000026125     0x135e leaf/LEAF/Src/leaf-math.o
- .debug_loc     0x0000000000027483      0x6a4 leaf/LEAF/Src/leaf-mempool.o
- .debug_loc     0x0000000000027b27      0xe1f leaf/LEAF/Src/leaf-midi.o
- .debug_loc     0x0000000000028946     0x160b leaf/LEAF/Src/leaf-oscillators.o
- .debug_loc     0x0000000000029f51     0x1d5d leaf/LEAF/Src/leaf-physical.o
- .debug_loc     0x000000000002bcae     0x1573 leaf/LEAF/Src/leaf-reverb.o
- .debug_loc     0x000000000002d221     0x14ae leaf/LEAF/Src/leaf-sampling.o
- .debug_loc     0x000000000002e6cf       0xd6 leaf/LEAF/Src/leaf.o
+ .debug_loc     0x0000000000019a6c      0x574 Src/ui.o
+ .debug_loc     0x0000000000019fe0       0x77 Src/usb_host.o
+ .debug_loc     0x000000000001a057      0x488 Src/usbh_MIDI.o
+ .debug_loc     0x000000000001a4df      0x817 Src/usbh_conf.o
+ .debug_loc     0x000000000001acf6       0x55 Src/usbh_platform.o
+ .debug_loc     0x000000000001ad4b      0xde6 leaf/LEAF/Externals/d_fft_mayer.o
+ .debug_loc     0x000000000001bb31     0x1c9b leaf/LEAF/Src/leaf-analysis.o
+ .debug_loc     0x000000000001d7cc     0x12fe leaf/LEAF/Src/leaf-delay.o
+ .debug_loc     0x000000000001eaca     0x1016 leaf/LEAF/Src/leaf-distortion.o
+ .debug_loc     0x000000000001fae0      0x648 leaf/LEAF/Src/leaf-dynamics.o
+ .debug_loc     0x0000000000020128     0x2e41 leaf/LEAF/Src/leaf-effects.o
+ .debug_loc     0x0000000000022f69      0xe2b leaf/LEAF/Src/leaf-envelopes.o
+ .debug_loc     0x0000000000023d94     0x2321 leaf/LEAF/Src/leaf-filters.o
+ .debug_loc     0x00000000000260b5     0x135e leaf/LEAF/Src/leaf-math.o
+ .debug_loc     0x0000000000027413      0x6a4 leaf/LEAF/Src/leaf-mempool.o
+ .debug_loc     0x0000000000027ab7      0xe1f leaf/LEAF/Src/leaf-midi.o
+ .debug_loc     0x00000000000288d6     0x160b leaf/LEAF/Src/leaf-oscillators.o
+ .debug_loc     0x0000000000029ee1     0x1d5d leaf/LEAF/Src/leaf-physical.o
+ .debug_loc     0x000000000002bc3e     0x1573 leaf/LEAF/Src/leaf-reverb.o
+ .debug_loc     0x000000000002d1b1     0x14ae leaf/LEAF/Src/leaf-sampling.o
+ .debug_loc     0x000000000002e65f       0xd6 leaf/LEAF/Src/leaf.o
 
 .debug_aranges  0x0000000000000000     0x38c8
  .debug_aranges
@@ -20184,7 +20187,7 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_macro   0x0000000000044740      0x160 leaf/LEAF/Src/leaf-tables.o
  .debug_macro   0x00000000000448a0      0x338 leaf/LEAF/Src/leaf.o
 
-.debug_line     0x0000000000000000    0x32db0
+.debug_line     0x0000000000000000    0x32dc5
  .debug_line    0x0000000000000000      0xc7a Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
  .debug_line    0x0000000000000c7a     0x1656 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.o
  .debug_line    0x00000000000022d0     0x14a1 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.o
@@ -20224,36 +20227,36 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_line    0x000000000001d967      0xf49 Src/oled.o
  .debug_line    0x000000000001e8b0      0x8a6 Src/rng.o
  .debug_line    0x000000000001f156      0x92c Src/sai.o
- .debug_line    0x000000000001fa82     0x1380 Src/sfx.o
- .debug_line    0x0000000000020e02      0x9d8 Src/ssd1306.o
- .debug_line    0x00000000000217da      0x880 Src/stm32h7xx_hal_msp.o
- .debug_line    0x000000000002205a      0x9d9 Src/stm32h7xx_it.o
- .debug_line    0x0000000000022a33      0x5dd Src/syscalls.o
- .debug_line    0x0000000000023010      0x8cb Src/system_stm32h7xx.o
- .debug_line    0x00000000000238db      0x871 Src/tunings.o
- .debug_line    0x000000000002414c      0xf15 Src/ui.o
- .debug_line    0x0000000000025061      0xabf Src/usb_host.o
- .debug_line    0x0000000000025b20      0xbe3 Src/usbh_MIDI.o
- .debug_line    0x0000000000026703      0xc49 Src/usbh_conf.o
- .debug_line    0x000000000002734c      0x897 Src/usbh_platform.o
- .debug_line    0x0000000000027be3      0x35d leaf/LEAF/Externals/d_fft_mayer.o
- .debug_line    0x0000000000027f40      0xbfa leaf/LEAF/Src/leaf-analysis.o
- .debug_line    0x0000000000028b3a      0xe9f leaf/LEAF/Src/leaf-delay.o
- .debug_line    0x00000000000299d9      0x7de leaf/LEAF/Src/leaf-distortion.o
- .debug_line    0x000000000002a1b7      0x665 leaf/LEAF/Src/leaf-dynamics.o
- .debug_line    0x000000000002a81c     0x13ba leaf/LEAF/Src/leaf-effects.o
- .debug_line    0x000000000002bbd6      0xab1 leaf/LEAF/Src/leaf-envelopes.o
- .debug_line    0x000000000002c687     0x1151 leaf/LEAF/Src/leaf-filters.o
- .debug_line    0x000000000002d7d8      0x787 leaf/LEAF/Src/leaf-math.o
- .debug_line    0x000000000002df5f      0x83b leaf/LEAF/Src/leaf-mempool.o
- .debug_line    0x000000000002e79a      0x9ee leaf/LEAF/Src/leaf-midi.o
- .debug_line    0x000000000002f188      0xc28 leaf/LEAF/Src/leaf-oscillators.o
- .debug_line    0x000000000002fdb0      0xc73 leaf/LEAF/Src/leaf-physical.o
- .debug_line    0x0000000000030a23      0xc96 leaf/LEAF/Src/leaf-reverb.o
- .debug_line    0x00000000000316b9      0xca0 leaf/LEAF/Src/leaf-sampling.o
- .debug_line    0x0000000000032359      0x3b8 leaf/LEAF/Src/leaf-tables.o
- .debug_line    0x0000000000032711      0x617 leaf/LEAF/Src/leaf.o
- .debug_line    0x0000000000032d28       0x88 startup/startup_stm32h743xx.o
+ .debug_line    0x000000000001fa82     0x1382 Src/sfx.o
+ .debug_line    0x0000000000020e04      0x9d8 Src/ssd1306.o
+ .debug_line    0x00000000000217dc      0x880 Src/stm32h7xx_hal_msp.o
+ .debug_line    0x000000000002205c      0x9d9 Src/stm32h7xx_it.o
+ .debug_line    0x0000000000022a35      0x5dd Src/syscalls.o
+ .debug_line    0x0000000000023012      0x8cb Src/system_stm32h7xx.o
+ .debug_line    0x00000000000238dd      0x871 Src/tunings.o
+ .debug_line    0x000000000002414e      0xf28 Src/ui.o
+ .debug_line    0x0000000000025076      0xabf Src/usb_host.o
+ .debug_line    0x0000000000025b35      0xbe3 Src/usbh_MIDI.o
+ .debug_line    0x0000000000026718      0xc49 Src/usbh_conf.o
+ .debug_line    0x0000000000027361      0x897 Src/usbh_platform.o
+ .debug_line    0x0000000000027bf8      0x35d leaf/LEAF/Externals/d_fft_mayer.o
+ .debug_line    0x0000000000027f55      0xbfa leaf/LEAF/Src/leaf-analysis.o
+ .debug_line    0x0000000000028b4f      0xe9f leaf/LEAF/Src/leaf-delay.o
+ .debug_line    0x00000000000299ee      0x7de leaf/LEAF/Src/leaf-distortion.o
+ .debug_line    0x000000000002a1cc      0x665 leaf/LEAF/Src/leaf-dynamics.o
+ .debug_line    0x000000000002a831     0x13ba leaf/LEAF/Src/leaf-effects.o
+ .debug_line    0x000000000002bbeb      0xab1 leaf/LEAF/Src/leaf-envelopes.o
+ .debug_line    0x000000000002c69c     0x1151 leaf/LEAF/Src/leaf-filters.o
+ .debug_line    0x000000000002d7ed      0x787 leaf/LEAF/Src/leaf-math.o
+ .debug_line    0x000000000002df74      0x83b leaf/LEAF/Src/leaf-mempool.o
+ .debug_line    0x000000000002e7af      0x9ee leaf/LEAF/Src/leaf-midi.o
+ .debug_line    0x000000000002f19d      0xc28 leaf/LEAF/Src/leaf-oscillators.o
+ .debug_line    0x000000000002fdc5      0xc73 leaf/LEAF/Src/leaf-physical.o
+ .debug_line    0x0000000000030a38      0xc96 leaf/LEAF/Src/leaf-reverb.o
+ .debug_line    0x00000000000316ce      0xca0 leaf/LEAF/Src/leaf-sampling.o
+ .debug_line    0x000000000003236e      0x3b8 leaf/LEAF/Src/leaf-tables.o
+ .debug_line    0x0000000000032726      0x617 leaf/LEAF/Src/leaf.o
+ .debug_line    0x0000000000032d3d       0x88 startup/startup_stm32h743xx.o
 
 .debug_str      0x0000000000000000   0x17d24a
  .debug_str     0x0000000000000000   0x166bee Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
@@ -20349,7 +20352,7 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_str     0x0000000000179069       0x11 Src/tunings.o
                                      0x16625e (size before relaxing)
  .debug_str     0x000000000017907a      0x24b Src/ui.o
-                                     0x16939b (size before relaxing)
+                                     0x169390 (size before relaxing)
  .debug_str     0x00000000001792c5       0x28 Src/usb_host.o
                                      0x1691c1 (size before relaxing)
  .debug_str     0x00000000001792ed      0x2f3 Src/usbh_MIDI.o
@@ -20466,7 +20469,7 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .comment       0x000000000000007f       0x80 leaf/LEAF/Src/leaf-tables.o
  .comment       0x000000000000007f       0x80 leaf/LEAF/Src/leaf.o
 
-.debug_frame    0x0000000000000000     0xb524
+.debug_frame    0x0000000000000000     0xb510
  .debug_frame   0x0000000000000000      0x3d4 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
  .debug_frame   0x00000000000003d4      0x2f4 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.o
  .debug_frame   0x00000000000006c8      0x338 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.o
@@ -20512,77 +20515,77 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_frame   0x00000000000052cc      0x1b8 Src/stm32h7xx_it.o
  .debug_frame   0x0000000000005484      0x1a8 Src/syscalls.o
  .debug_frame   0x000000000000562c       0x3c Src/system_stm32h7xx.o
- .debug_frame   0x0000000000005668      0x19c Src/ui.o
- .debug_frame   0x0000000000005804       0x5c Src/usb_host.o
- .debug_frame   0x0000000000005860      0x14c Src/usbh_MIDI.o
- .debug_frame   0x00000000000059ac      0x254 Src/usbh_conf.o
- .debug_frame   0x0000000000005c00       0x28 Src/usbh_platform.o
- .debug_frame   0x0000000000005c28       0xb8 leaf/LEAF/Externals/d_fft_mayer.o
- .debug_frame   0x0000000000005ce0      0x654 leaf/LEAF/Src/leaf-analysis.o
- .debug_frame   0x0000000000006334      0x6f0 leaf/LEAF/Src/leaf-delay.o
- .debug_frame   0x0000000000006a24      0x364 leaf/LEAF/Src/leaf-distortion.o
- .debug_frame   0x0000000000006d88      0x1d8 leaf/LEAF/Src/leaf-dynamics.o
- .debug_frame   0x0000000000006f60      0x89c leaf/LEAF/Src/leaf-effects.o
- .debug_frame   0x00000000000077fc      0x3c8 leaf/LEAF/Src/leaf-envelopes.o
- .debug_frame   0x0000000000007bc4      0xb9c leaf/LEAF/Src/leaf-filters.o
- .debug_frame   0x0000000000008760      0x438 leaf/LEAF/Src/leaf-math.o
- .debug_frame   0x0000000000008b98      0x1d4 leaf/LEAF/Src/leaf-mempool.o
- .debug_frame   0x0000000000008d6c      0x338 leaf/LEAF/Src/leaf-midi.o
- .debug_frame   0x00000000000090a4      0x4c8 leaf/LEAF/Src/leaf-oscillators.o
- .debug_frame   0x000000000000956c      0x878 leaf/LEAF/Src/leaf-physical.o
- .debug_frame   0x0000000000009de4      0x4ec leaf/LEAF/Src/leaf-reverb.o
- .debug_frame   0x000000000000a2d0      0x434 leaf/LEAF/Src/leaf-sampling.o
- .debug_frame   0x000000000000a704       0x5c leaf/LEAF/Src/leaf.o
- .debug_frame   0x000000000000a760       0x2c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_atan.o)
- .debug_frame   0x000000000000a78c       0x34 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_cos.o)
- .debug_frame   0x000000000000a7c0       0x30 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_exp.o)
- .debug_frame   0x000000000000a7f0       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_fabs.o)
- .debug_frame   0x000000000000a810       0x50 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_log.o)
- .debug_frame   0x000000000000a860       0x74 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_log2.o)
- .debug_frame   0x000000000000a8d4       0xf4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_pow.o)
- .debug_frame   0x000000000000a9c8       0x38 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_tan.o)
- .debug_frame   0x000000000000aa00       0x3c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_tanh.o)
- .debug_frame   0x000000000000aa3c       0x50 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_exp.o)
- .debug_frame   0x000000000000aa8c       0x48 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_fmod.o)
- .debug_frame   0x000000000000aad4       0x4c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_log.o)
- .debug_frame   0x000000000000ab20       0x80 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_pow.o)
- .debug_frame   0x000000000000aba0       0x4c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_sqrt.o)
- .debug_frame   0x000000000000abec       0x4c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-wf_sqrt.o)
- .debug_frame   0x000000000000ac38       0x68 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_exp.o)
- .debug_frame   0x000000000000aca0       0x3c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_fmod.o)
- .debug_frame   0x000000000000acdc       0x48 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_log.o)
- .debug_frame   0x000000000000ad24       0xa4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_pow.o)
- .debug_frame   0x000000000000adc8       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_sqrt.o)
- .debug_frame   0x000000000000ade8       0x3c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_rem_pio2.o)
- .debug_frame   0x000000000000ae24       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_sqrt.o)
- .debug_frame   0x000000000000ae44       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_cos.o)
- .debug_frame   0x000000000000ae64       0x5c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_rem_pio2.o)
- .debug_frame   0x000000000000aec0       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_sin.o)
- .debug_frame   0x000000000000aee0       0x50 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_tan.o)
- .debug_frame   0x000000000000af30       0x98 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-math_errf.o)
- .debug_frame   0x000000000000afc8       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_fabs.o)
- .debug_frame   0x000000000000afe8       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_finite.o)
- .debug_frame   0x000000000000b008       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_matherr.o)
- .debug_frame   0x000000000000b028       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_nan.o)
- .debug_frame   0x000000000000b048       0x38 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_rint.o)
- .debug_frame   0x000000000000b080       0x74 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_scalbn.o)
- .debug_frame   0x000000000000b0f4       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_expm1.o)
- .debug_frame   0x000000000000b114       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_floor.o)
- .debug_frame   0x000000000000b134       0x44 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_scalbn.o)
- .debug_frame   0x000000000000b178       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_copysign.o)
- .debug_frame   0x000000000000b198       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_copysign.o)
- .debug_frame   0x000000000000b1b8       0xac /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_arm_addsubdf3.o)
- .debug_frame   0x000000000000b264       0x2c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_aeabi_uldivmod.o)
- .debug_frame   0x000000000000b290       0x34 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_udivmoddi4.o)
- .debug_frame   0x000000000000b2c4       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-errno.o)
- .debug_frame   0x000000000000b2e4       0x2c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-init.o)
- .debug_frame   0x000000000000b310       0x38 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-itoa.o)
- .debug_frame   0x000000000000b348       0x30 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-malloc.o)
- .debug_frame   0x000000000000b378       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-memset.o)
- .debug_frame   0x000000000000b398       0x38 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-nano-freer.o)
- .debug_frame   0x000000000000b3d0       0x2c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-nano-mallocr.o)
- .debug_frame   0x000000000000b3fc       0x2c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-sbrkr.o)
- .debug_frame   0x000000000000b428       0x28 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-strcat.o)
- .debug_frame   0x000000000000b450       0x48 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-utoa.o)
- .debug_frame   0x000000000000b498       0x30 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-mlock.o)
- .debug_frame   0x000000000000b4c8       0x5c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-reent.o)
+ .debug_frame   0x0000000000005668      0x188 Src/ui.o
+ .debug_frame   0x00000000000057f0       0x5c Src/usb_host.o
+ .debug_frame   0x000000000000584c      0x14c Src/usbh_MIDI.o
+ .debug_frame   0x0000000000005998      0x254 Src/usbh_conf.o
+ .debug_frame   0x0000000000005bec       0x28 Src/usbh_platform.o
+ .debug_frame   0x0000000000005c14       0xb8 leaf/LEAF/Externals/d_fft_mayer.o
+ .debug_frame   0x0000000000005ccc      0x654 leaf/LEAF/Src/leaf-analysis.o
+ .debug_frame   0x0000000000006320      0x6f0 leaf/LEAF/Src/leaf-delay.o
+ .debug_frame   0x0000000000006a10      0x364 leaf/LEAF/Src/leaf-distortion.o
+ .debug_frame   0x0000000000006d74      0x1d8 leaf/LEAF/Src/leaf-dynamics.o
+ .debug_frame   0x0000000000006f4c      0x89c leaf/LEAF/Src/leaf-effects.o
+ .debug_frame   0x00000000000077e8      0x3c8 leaf/LEAF/Src/leaf-envelopes.o
+ .debug_frame   0x0000000000007bb0      0xb9c leaf/LEAF/Src/leaf-filters.o
+ .debug_frame   0x000000000000874c      0x438 leaf/LEAF/Src/leaf-math.o
+ .debug_frame   0x0000000000008b84      0x1d4 leaf/LEAF/Src/leaf-mempool.o
+ .debug_frame   0x0000000000008d58      0x338 leaf/LEAF/Src/leaf-midi.o
+ .debug_frame   0x0000000000009090      0x4c8 leaf/LEAF/Src/leaf-oscillators.o
+ .debug_frame   0x0000000000009558      0x878 leaf/LEAF/Src/leaf-physical.o
+ .debug_frame   0x0000000000009dd0      0x4ec leaf/LEAF/Src/leaf-reverb.o
+ .debug_frame   0x000000000000a2bc      0x434 leaf/LEAF/Src/leaf-sampling.o
+ .debug_frame   0x000000000000a6f0       0x5c leaf/LEAF/Src/leaf.o
+ .debug_frame   0x000000000000a74c       0x2c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_atan.o)
+ .debug_frame   0x000000000000a778       0x34 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_cos.o)
+ .debug_frame   0x000000000000a7ac       0x30 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_exp.o)
+ .debug_frame   0x000000000000a7dc       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_fabs.o)
+ .debug_frame   0x000000000000a7fc       0x50 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_log.o)
+ .debug_frame   0x000000000000a84c       0x74 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_log2.o)
+ .debug_frame   0x000000000000a8c0       0xf4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_pow.o)
+ .debug_frame   0x000000000000a9b4       0x38 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_tan.o)
+ .debug_frame   0x000000000000a9ec       0x3c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_tanh.o)
+ .debug_frame   0x000000000000aa28       0x50 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_exp.o)
+ .debug_frame   0x000000000000aa78       0x48 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_fmod.o)
+ .debug_frame   0x000000000000aac0       0x4c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_log.o)
+ .debug_frame   0x000000000000ab0c       0x80 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_pow.o)
+ .debug_frame   0x000000000000ab8c       0x4c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_sqrt.o)
+ .debug_frame   0x000000000000abd8       0x4c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-wf_sqrt.o)
+ .debug_frame   0x000000000000ac24       0x68 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_exp.o)
+ .debug_frame   0x000000000000ac8c       0x3c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_fmod.o)
+ .debug_frame   0x000000000000acc8       0x48 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_log.o)
+ .debug_frame   0x000000000000ad10       0xa4 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_pow.o)
+ .debug_frame   0x000000000000adb4       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_sqrt.o)
+ .debug_frame   0x000000000000add4       0x3c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_rem_pio2.o)
+ .debug_frame   0x000000000000ae10       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_sqrt.o)
+ .debug_frame   0x000000000000ae30       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_cos.o)
+ .debug_frame   0x000000000000ae50       0x5c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_rem_pio2.o)
+ .debug_frame   0x000000000000aeac       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_sin.o)
+ .debug_frame   0x000000000000aecc       0x50 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_tan.o)
+ .debug_frame   0x000000000000af1c       0x98 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-math_errf.o)
+ .debug_frame   0x000000000000afb4       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_fabs.o)
+ .debug_frame   0x000000000000afd4       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_finite.o)
+ .debug_frame   0x000000000000aff4       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_matherr.o)
+ .debug_frame   0x000000000000b014       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_nan.o)
+ .debug_frame   0x000000000000b034       0x38 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_rint.o)
+ .debug_frame   0x000000000000b06c       0x74 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_scalbn.o)
+ .debug_frame   0x000000000000b0e0       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_expm1.o)
+ .debug_frame   0x000000000000b100       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_floor.o)
+ .debug_frame   0x000000000000b120       0x44 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_scalbn.o)
+ .debug_frame   0x000000000000b164       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_copysign.o)
+ .debug_frame   0x000000000000b184       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_copysign.o)
+ .debug_frame   0x000000000000b1a4       0xac /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_arm_addsubdf3.o)
+ .debug_frame   0x000000000000b250       0x2c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_aeabi_uldivmod.o)
+ .debug_frame   0x000000000000b27c       0x34 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_udivmoddi4.o)
+ .debug_frame   0x000000000000b2b0       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-errno.o)
+ .debug_frame   0x000000000000b2d0       0x2c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-init.o)
+ .debug_frame   0x000000000000b2fc       0x38 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-itoa.o)
+ .debug_frame   0x000000000000b334       0x30 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-malloc.o)
+ .debug_frame   0x000000000000b364       0x20 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-memset.o)
+ .debug_frame   0x000000000000b384       0x38 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-nano-freer.o)
+ .debug_frame   0x000000000000b3bc       0x2c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-nano-mallocr.o)
+ .debug_frame   0x000000000000b3e8       0x2c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-sbrkr.o)
+ .debug_frame   0x000000000000b414       0x28 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-strcat.o)
+ .debug_frame   0x000000000000b43c       0x48 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-utoa.o)
+ .debug_frame   0x000000000000b484       0x30 /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-mlock.o)
+ .debug_frame   0x000000000000b4b4       0x5c /Users/Matthew/.p2/pool/plugins/fr.ac6.mcu.externaltools.arm-none.macos64_1.17.0.201812190825/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-reent.o)
