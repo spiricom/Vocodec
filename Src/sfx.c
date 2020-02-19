@@ -86,14 +86,6 @@ float freq[NUM_VOC_VOICES];
 float oversamplerArray[OVERSAMPLER_RATIO];
 
 
-//sampler objects
-int samplePlayStart = 0;
-int samplePlayEnd = 0;
-float sampleLength = 0.0f;
-int crossfadeLength = 0;
-float samplerRate = 1.0f;
-float maxSampleSizeSeconds = 1.0f;
-
 void initGlobalSFXObjects()
 {
 	calculateNoteArray();
@@ -402,6 +394,14 @@ void SFXAutotuneFree(void)
 
 
 //7 sampler - button press
+int samplePlayStart = 0;
+int samplePlayEnd = 0;
+float sampleLength = 0.0f;
+int crossfadeLength = 0;
+float samplerRate = 1.0f;
+float maxSampleSizeSeconds = 1.0f;
+uint8_t samplePlaying = 0;
+
 void SFXSamplerBPAlloc()
 {
 	tBuffer_initToPool(&buff, leaf.sampleRate * 172.0f, &largePool);
@@ -412,11 +412,7 @@ void SFXSamplerBPAlloc()
 
 void SFXSamplerBPFrame()
 {
-	if (buttonActionsSFX[ButtonUp][ActionPress])
-	{
-		tBuffer_clear(&buff);
-		buttonActionsSFX[ButtonUp][ActionPress] = 0;
-	}
+
 }
 
 void SFXSamplerBPTick(float audioIn)
@@ -438,11 +434,26 @@ void SFXSamplerBPTick(float audioIn)
 	tSampler_setRate(&sampler, samplerRate);
 	tSampler_setCrossfadeLength(&sampler, crossfadeLength);
 
+	if (buttonActionsSFX[ButtonUp][ActionPress])
+	{
+		if (samplePlaying)
+		{
+			samplePlaying = 0;
+			tSampler_stop(&sampler);
+		}
+		else
+		{
+			samplePlaying = 1;
+			tSampler_play(&sampler);
+		}
+		buttonActionsSFX[ButtonUp][ActionPress] = 0;
+	}
 
 	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
-		if (sampler->active != 0)
+		if (samplePlaying)
 		{
+			samplePlaying = 0;
 			tSampler_stop(&sampler);
 		}
 		tBuffer_record(&buff);
@@ -452,6 +463,7 @@ void SFXSamplerBPTick(float audioIn)
 	else if (buttonActionsSFX[ButtonA][ActionRelease])
 	{
 		tBuffer_stop(&buff);
+		samplePlaying = 1;
 		tSampler_play(&sampler);
 		tSampler_setStart(&sampler, samplePlayStart);
 		tSampler_setEnd(&sampler, samplePlayEnd);

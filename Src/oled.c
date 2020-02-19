@@ -257,10 +257,10 @@ void OLED_writeEditScreen()
 {
 	GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
 	OLEDclear();
-	char* first = "KNOB: SET CVPED";
-	if (cvAddParam >= 0) first = "DOWN: CLR CVPED";
-	OLEDwriteLine(first, strlen(first), FirstLine);
-	OLEDwriteString("C: SETS KEY", 12, 0, SecondLine);
+	char* first = "KNOB:SET CV PED";
+	if (cvAddParam >= 0) first = "DOWN:CLR CV PED";
+	OLEDwriteString(first, strlen(first), 0, FirstLine);
+	OLEDwriteString("C:SET KEY CENTER", 16, 0, SecondLine);
 }
 
 void OLED_writeKnobParameter(uint8_t whichParam)

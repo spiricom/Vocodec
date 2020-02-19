@@ -60,6 +60,8 @@ void SFXAutotuneTick(float audioIn);
 void SFXAutotuneFree(void);
 
 //7 sampler - button press
+extern uint8_t samplePlaying;
+
 void SFXSamplerBPAlloc();
 void SFXSamplerBPFrame();
 void SFXSamplerBPTick(float audioIn);
