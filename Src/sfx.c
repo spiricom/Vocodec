@@ -310,13 +310,12 @@ void SFXNeartuneFrame()
 
 void SFXNeartuneTick(float audioIn)
 {
-	//JS: suggested improvements -
-	// right now the period is used for "nearest pitch matching" but that is skewed - doing it on a midi note represetation would be more perceptually reasonable
-	// but it's a little expensive to use midi to freq and then put it to freq for the shifter.
+	knobParams[0] = 0.75f + (smoothedADC[0] * 0.22f);
+	tAutotune_setFidelityThreshold(&autotuneMono, knobParams[0]);
 
-	knobParams[0] = LEAF_clip(0.0f, smoothedADC[0] * 1.1f, 1.0f); // amount of forcing to new pitch
-	knobParams[1] = smoothedADC[1]; //speed to get to desired pitch shift
-	tExpSmooth_setFactor(&neartune_smoother, (knobParams[1] * .01f));
+	knobParams[1] = LEAF_clip(0.0f, smoothedADC[1] * 1.1f, 1.0f); // amount of forcing to new pitch
+	knobParams[2] = smoothedADC[2]; //speed to get to desired pitch shift
+	tExpSmooth_setFactor(&neartune_smoother, (knobParams[2] * .01f));
 
 	float detectedPeriod = tAutotune_getInputPeriod(&autotuneMono);
 	if (detectedPeriod > 0.0f)
@@ -324,7 +323,7 @@ void SFXNeartuneTick(float audioIn)
 		float detectedNote = LEAF_frequencyToMidi(leaf.sampleRate / detectedPeriod);
 		float desiredSnap = nearestNote(detectedPeriod);
 
-		float destinationNote = (desiredSnap * knobParams[0]) + (detectedNote * (1.0f - knobParams[0]));
+		float destinationNote = (desiredSnap * knobParams[1]) + (detectedNote * (1.0f - knobParams[0]));
 		float destinationFreq = LEAF_midiToFrequency(destinationNote);
 		tExpSmooth_setDest(&neartune_smoother, destinationFreq);
 	}
@@ -344,8 +343,6 @@ void SFXNeartuneFree(void)
 	tAutotune_free(&autotuneMono);
 	tExpSmooth_free(&neartune_smoother);
 }
-
-
 
 
 
@@ -369,6 +366,8 @@ void SFXAutotuneFrame()
 
 void SFXAutotuneTick(float audioIn)
 {
+	knobParams[0] = 0.75f + (smoothedADC[0] * 0.22f);
+	tAutotune_setFidelityThreshold(&autotunePoly, knobParams[0]);
 	tPoly_tickPitch(&poly);
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); ++i)

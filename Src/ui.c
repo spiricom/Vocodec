@@ -98,9 +98,9 @@ void initModeNames(void)
 	modeNames[AutotuneMono] = "NEARTUNE";
 	shortModeNames[AutotuneMono] = "NT";
 	modeNamesDetails[AutotuneMono] = "";
-	paramNames[AutotuneMono][0] = "AMOUNT";
-	paramNames[AutotuneMono][1] = "SPEED";
-	paramNames[AutotuneMono][2] = "";
+	paramNames[AutotuneMono][0] = "FID THRESH";
+	paramNames[AutotuneMono][1] = "AMOUNT";
+	paramNames[AutotuneMono][2] = "SPEED";
 	paramNames[AutotuneMono][3] = "";
 	paramNames[AutotuneMono][4] = "";
 	paramNames[AutotuneMono][5] = "";
@@ -110,7 +110,7 @@ void initModeNames(void)
 	modeNames[AutotunePoly] = "AUTOTUNE";
 	shortModeNames[AutotunePoly] = "AT";
 	modeNamesDetails[AutotunePoly] = "";
-	paramNames[AutotunePoly][0] = "";
+	paramNames[AutotunePoly][0] = "FID THRESH";
 	paramNames[AutotunePoly][1] = "";
 	paramNames[AutotunePoly][2] = "";
 	paramNames[AutotunePoly][3] = "";
