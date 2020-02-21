@@ -430,6 +430,11 @@ void initFunctionPointers(void)
 	frameFunctions[LivingString] = SFXLivingStringFrame;
 	tickFunctions[LivingString] = SFXLivingStringTick;
 	freeFunctions[LivingString] = SFXLivingStringFree;
+
+	allocFunctions[LivingString] = SFXLivingStringSynthAlloc;
+	frameFunctions[LivingString] = SFXLivingStringSynthFrame;
+	tickFunctions[LivingString] = SFXLivingStringSynthTick;
+	freeFunctions[LivingString] = SFXLivingStringSynthFree;
 }
 
 

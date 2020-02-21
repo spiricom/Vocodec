@@ -140,7 +140,10 @@ void SFXLivingStringFrame();
 void SFXLivingStringTick(float audioIn);
 void SFXLivingStringFree(void);
 
-
+void SFXLivingStringSynthAlloc();
+void SFXLivingStringSynthFrame();
+void SFXLivingStringSynthTick(float audioIn);
+void SFXLivingStringSynthFree(void);
 
 // MIDI FUNCTIONS
 void noteOn(int key, int velocity);

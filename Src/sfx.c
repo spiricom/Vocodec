@@ -266,11 +266,13 @@ void SFXPitchShiftAlloc()
 	tRetune_init(&retune2, NUM_RETUNE, 1024, 512);
 	tRamp_init(&pitchshiftRamp, 100.0f, 1);
 	tRamp_setVal(&pitchshiftRamp, 1.0f);
-
+	tPoly_setNumVoices(&poly, 1);
 
 	tExpSmooth_init(&smoother1, 0.0f, 0.01f);
 	tExpSmooth_init(&smoother2, 0.0f, 0.01f);
 	tExpSmooth_init(&smoother3, 0.0f, 0.01f);
+
+	freq[0] = 261.626f; // set the keyboard pitch to middle C until player actually plays a note on the keyboard
 }
 
 void SFXPitchShiftFrame()
@@ -282,7 +284,16 @@ void SFXPitchShiftFrame()
 void SFXPitchShiftTick(float audioIn)
 {
 	//pitchFactor = (smoothedADC[0]*3.75f)+0.25f;
-
+	tPoly_tickPitch(&poly);
+	if (tPoly_isOn(&poly, 0))
+	{
+		calculateFreq(0);
+	}
+	else
+	{
+		freq[0] = 261.626f;
+	}
+	float pitchDifference = (freq[0] * 0.003822250082178f) - 1.0f; // divide by the frequency of the keyboard pitch by middle C (261.626)
 
 	float myPitchFactorCoarse = (smoothedADC[0]*2.0f) - 1.0f;
 	float myPitchFactorFine = ((smoothedADC[1]*2.0f) - 1.0f) * 0.1f;
@@ -290,8 +301,8 @@ void SFXPitchShiftTick(float audioIn)
 	knobParams[0] = myPitchFactorCombined;
 	knobParams[1] = myPitchFactorCombined;
 	float myPitchFactor = fastexp2f(myPitchFactorCombined);
-	tRetune_setPitchFactor(&retune, myPitchFactor, 0);
-	tRetune_setPitchFactor(&retune2, myPitchFactor, 0);
+	tRetune_setPitchFactor(&retune, myPitchFactor + pitchDifference, 0);
+	tRetune_setPitchFactor(&retune2, myPitchFactor + pitchDifference, 0);
 
 
 	knobParams[2] = LEAF_clip( 0.0f,((smoothedADC[2]) * 3.0f) - 0.2f,3.0f);
@@ -916,12 +927,10 @@ void SFXDelayAlloc()
 
 	tHighpass_init(&delayShaperHp, 20.0f);
 	tFeedbackLeveler_init(&feedbackControl, .99f, 0.01, 0.125f, 0);
-
 }
 
 void SFXDelayFrame()
 {
-
 	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
 		delayShaper = 1;
@@ -1201,6 +1210,96 @@ void SFXLivingStringFree(void)
 	}
 }
 
+///
+
+
+
+/*
+
+void SFXVocoderIPFrame()
+{
+	//glideTimeVoc = 5.0f;
+	//tPoly_setPitchGlideTime(&poly, glideTimeVoc);
+	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	{
+		tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
+		calculateFreq(i);
+		tSawtooth_setFreq(&osc[i], freq[i]);
+	}
+
+	if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
+}
+
+void SFXVocoderIPTick(float audioIn)
+{
+	tPoly_tickPitch(&poly);
+	knobParams[0] = smoothedADC[0]; //vocoder volume
+
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
+	{
+		sample += tSawtooth_tick(&osc[i]) * tRamp_tick(&polyRamp[i]);
+	}
+	sample *= tRamp_tick(&comp);
+	sample *= knobParams[0];
+	sample = tTalkbox_tick(&vocoder, sample, audioIn);
+	sample = tanhf(sample);
+	rightOut = sample;
+}
+
+void SFXVocoderIPFree(void)
+{
+	tTalkbox_free(&vocoder);
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
+	{
+		tSawtooth_freeFromPool(&osc[i], &smallPool);
+	}
+}///
+*/
+//18 Living String Synth
+void SFXLivingStringSynthAlloc()
+{
+
+	tPoly_setNumVoices(&poly, NUM_STRINGS);
+	for (int i = 0; i < NUM_STRINGS; i++)
+	{
+		tLivingString_init(&theString[i], 440.f, 0.2f, 0.f, 9000.f, 1.0f, 0.3f, 0.01f, 0.125f, 0);;
+	}
+}
+
+void SFXLivingStringSynthFrame()
+{
+	knobParams[0] = mtof((smoothedADC[0] * 135.0f)); //freq
+	knobParams[1] = smoothedADC[1]; //detune
+	knobParams[2] = ((smoothedADC[2] * 0.09999999f) + 0.9f);
+	knobParams[3] = mtof((smoothedADC[3] * 130.0f)+12.0f); //lowpass
+	knobParams[4] = (smoothedADC[4] * 0.5) + 0.02f;//pickPos
+	for (int i = 0; i < NUM_STRINGS; i++)
+	{
+		tLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * knobParams[1]))) * knobParams[0]);
+		tLivingString_setDecay(&theString[i], knobParams[2]);
+		tLivingString_setDampFreq(&theString[i], knobParams[3]);
+		tLivingString_setPickPos(&theString[i], knobParams[4]);
+	}
+}
+
+
+void SFXLivingStringSynthTick(float audioIn)
+{
+	for (int i = 0; i < NUM_STRINGS; i++)
+	{
+		sample += tLivingString_tick(&theString[i], audioIn);
+	}
+	sample *= 0.0625f;
+	rightOut = sample;
+}
+
+void SFXLivingStringSynthFree(void)
+{
+	for (int i = 0; i < NUM_STRINGS; i++)
+	{
+		tLivingString_free(&theString[i]);
+	}
+}
 
 // midi functions
 

@@ -30,6 +30,7 @@ typedef enum _VocodecPresetType
 	Reverb,
 	Reverb2,
 	LivingString,
+	LivingStringSynth,
 	PresetNil
 } VocodecPresetType;
 
