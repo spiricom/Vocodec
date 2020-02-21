@@ -64,17 +64,13 @@ void OLED_init(I2C_HandleTypeDef* hi2c)
 
 void initUIFunctionPointers(void)
 {
-	buttonActionFunctions[VocoderInternalPoly] = UIVocoderIPButtons;
-	buttonActionFunctions[VocoderInternalMono] = UIVocoderIMButtons;
-	buttonActionFunctions[VocoderExternal] = UIVocoderEButtons;
+	buttonActionFunctions[Vocoder] = UIVocoderButtons;
 	buttonActionFunctions[Pitchshift] = UIPitchShiftButtons;
 	buttonActionFunctions[AutotuneMono] = UINeartuneButtons;
 	buttonActionFunctions[AutotunePoly] = UIAutotuneButtons;
 	buttonActionFunctions[SamplerButtonPress] = UISamplerBPButtons;
-	buttonActionFunctions[SamplerAutoGrabInternal] = UISamplerAuto1Buttons;
-	buttonActionFunctions[SamplerAutoGrabExternal] = UISamplerAuto2Buttons;
-	buttonActionFunctions[DistortionTanH] = UIDistortionTanhButtons;
-	buttonActionFunctions[DistortionShaper] = UIDistortionShaperButtons;
+	buttonActionFunctions[SamplerAutoGrab] = UISamplerAutoButtons;
+	buttonActionFunctions[Distortion] = UIDistortionButtons;
 	buttonActionFunctions[Wavefolder] = UIWaveFolderButtons;
 	buttonActionFunctions[BitCrusher] = UIBitcrusherButtons;
 	buttonActionFunctions[Delay] = UIDelayButtons;
@@ -257,11 +253,22 @@ void OLED_writePreset()
 	//save new preset to flash memory
 }
 
+void OLED_writeEditScreen()
+{
+	GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
+	OLEDclear();
+	char* first = "KNOB:SET CV PED";
+	if (cvAddParam >= 0) first = "DOWN:CLR CV PED";
+	OLEDwriteString(first, strlen(first), 0, FirstLine);
+	OLEDwriteString("C:SET KEY CENTER", 16, 0, SecondLine);
+}
+
 void OLED_writeKnobParameter(uint8_t whichParam)
 {
 	// Knob params
 	if (whichParam < NUM_ADC_CHANNELS)
 	{
+		floatADCUI[whichParam] = smoothedADC[whichParam];
 		int len = strlen(paramNames[currentPreset][whichParam]);
 		if (len > 0)
 		{

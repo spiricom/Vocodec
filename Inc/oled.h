@@ -50,6 +50,8 @@ void OLED_process(void);
 
 void OLED_writePreset(void);
 
+void OLED_writeEditScreen(void);
+
 void OLED_writeKnobParameter(uint8_t whichParam);
 
 void OLED_writeButtonAction(uint8_t whichButton, uint8_t whichAction);

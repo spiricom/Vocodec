@@ -346,20 +346,10 @@ float audioTickR(float audioIn)
 
 void initFunctionPointers(void)
 {
-	allocFunctions[VocoderInternalPoly] = SFXVocoderIPAlloc;
-	frameFunctions[VocoderInternalPoly] = SFXVocoderIPFrame;
-	tickFunctions[VocoderInternalPoly] = SFXVocoderIPTick;
-	freeFunctions[VocoderInternalPoly] = SFXVocoderIPFree;
-
-	allocFunctions[VocoderInternalMono] = SFXVocoderIMAlloc;
-	frameFunctions[VocoderInternalMono] = SFXVocoderIMFrame;
-	tickFunctions[VocoderInternalMono] = SFXVocoderIMTick;
-	freeFunctions[VocoderInternalMono] = SFXVocoderIMFree;
-
-	allocFunctions[VocoderExternal] = SFXVocoderEAlloc;
-	frameFunctions[VocoderExternal] = SFXVocoderEFrame;
-	tickFunctions[VocoderExternal] = SFXVocoderETick;
-	freeFunctions[VocoderExternal] = SFXVocoderEFree;
+	allocFunctions[Vocoder] = SFXVocoderAlloc;
+	frameFunctions[Vocoder] = SFXVocoderFrame;
+	tickFunctions[Vocoder] = SFXVocoderTick;
+	freeFunctions[Vocoder] = SFXVocoderFree;
 
 	allocFunctions[Pitchshift] = SFXPitchShiftAlloc;
 	frameFunctions[Pitchshift] = SFXPitchShiftFrame;
@@ -381,25 +371,15 @@ void initFunctionPointers(void)
 	tickFunctions[SamplerButtonPress] = SFXSamplerBPTick;
 	freeFunctions[SamplerButtonPress] = SFXSamplerBPFree;
 
-	allocFunctions[SamplerAutoGrabInternal] = SFXSamplerAuto1Alloc;
-	frameFunctions[SamplerAutoGrabInternal] = SFXSamplerAuto1Frame;
-	tickFunctions[SamplerAutoGrabInternal] = SFXSamplerAuto1Tick;
-	freeFunctions[SamplerAutoGrabInternal] = SFXSamplerAuto1Free;
+	allocFunctions[SamplerAutoGrab] = SFXSamplerAutoAlloc;
+	frameFunctions[SamplerAutoGrab] = SFXSamplerAutoFrame;
+	tickFunctions[SamplerAutoGrab] = SFXSamplerAutoTick;
+	freeFunctions[SamplerAutoGrab] = SFXSamplerAutoFree;
 
-	allocFunctions[SamplerAutoGrabExternal] = SFXSamplerAuto2Alloc;
-	frameFunctions[SamplerAutoGrabExternal] = SFXSamplerAuto2Frame;
-	tickFunctions[SamplerAutoGrabExternal] = SFXSamplerAuto2Tick;
-	freeFunctions[SamplerAutoGrabExternal] = SFXSamplerAuto2Free;
-
-	allocFunctions[DistortionTanH] = SFXDistortionTanhAlloc;
-	frameFunctions[DistortionTanH] = SFXDistortionTanhFrame;
-	tickFunctions[DistortionTanH] = SFXDistortionTanhTick;
-	freeFunctions[DistortionTanH] = SFXDistortionTanhFree;
-
-	allocFunctions[DistortionShaper] = SFXDistortionShaperAlloc;
-	frameFunctions[DistortionShaper] = SFXDistortionShaperFrame;
-	tickFunctions[DistortionShaper] = SFXDistortionShaperTick;
-	freeFunctions[DistortionShaper] = SFXDistortionShaperFree;
+	allocFunctions[Distortion] = SFXDistortionAlloc;
+	frameFunctions[Distortion] = SFXDistortionFrame;
+	tickFunctions[Distortion] = SFXDistortionTick;
+	freeFunctions[Distortion] = SFXDistortionFree;
 
 	allocFunctions[Wavefolder] = SFXWaveFolderAlloc;
 	frameFunctions[Wavefolder] = SFXWaveFolderFrame;

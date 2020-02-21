@@ -13,17 +13,13 @@
 //PresetNil is used as a counter for the size of the enum
 typedef enum _VocodecPresetType
 {
-	VocoderInternalPoly = 0,
-	VocoderInternalMono,
-	VocoderExternal,
+	Vocoder = 0,
 	Pitchshift,
 	AutotuneMono,
 	AutotunePoly,
 	SamplerButtonPress,
-	SamplerAutoGrabInternal,
-	SamplerAutoGrabExternal,
-	DistortionTanH,
-	DistortionShaper,
+	SamplerAutoGrab,
+	Distortion,
 	Wavefolder,
 	BitCrusher,
 	Delay,
@@ -68,6 +64,8 @@ extern int8_t writeKnobFlag;
 extern int8_t writeButtonFlag;
 extern int8_t writeActionFlag;
 
+extern float floatADCUI[NUM_ADC_CHANNELS];
+
 extern uint8_t currentPreset;
 extern uint8_t previousPreset;
 extern uint8_t loadingPreset;
@@ -77,6 +75,7 @@ extern char* modeNamesDetails[PresetNil];
 extern char* shortModeNames[PresetNil];
 extern char* paramNames[PresetNil][NUM_ADC_CHANNELS + NUM_BUTTONS];
 extern float knobParams[NUM_ADC_CHANNELS];
+extern int8_t cvAddParam;
 extern uint8_t buttonActionsSFX[NUM_BUTTONS][ActionNil];
 extern char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
 
@@ -92,17 +91,13 @@ void changeTuning(void);
 
 void writeCurrentPresetToFlash(void);
 
-char* UIVocoderIPButtons(VocodecButton button, ButtonAction action);
-char* UIVocoderIMButtons(VocodecButton button, ButtonAction action);
-char* UIVocoderEButtons(VocodecButton button, ButtonAction action);
+char* UIVocoderButtons(VocodecButton button, ButtonAction action);
 char* UIPitchShiftButtons(VocodecButton button, ButtonAction action);
 char* UINeartuneButtons(VocodecButton button, ButtonAction action);
 char* UIAutotuneButtons(VocodecButton button, ButtonAction action);
 char* UISamplerBPButtons(VocodecButton button, ButtonAction action);
-char* UISamplerAuto1Buttons(VocodecButton button, ButtonAction action);
-char* UISamplerAuto2Buttons(VocodecButton button, ButtonAction action);
-char* UIDistortionTanhButtons(VocodecButton button, ButtonAction action);
-char* UIDistortionShaperButtons(VocodecButton button, ButtonAction action);
+char* UISamplerAutoButtons(VocodecButton button, ButtonAction action);
+char* UIDistortionButtons(VocodecButton button, ButtonAction action);
 char* UIWaveFolderButtons(VocodecButton button, ButtonAction action);
 char* UIBitcrusherButtons(VocodecButton button, ButtonAction action);
 char* UIDelayButtons(VocodecButton button, ButtonAction action);

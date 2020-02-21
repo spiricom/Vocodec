@@ -22,7 +22,6 @@
 extern tPoly poly;
 extern tRamp polyRamp[NUM_VOC_VOICES];
 extern tSawtooth osc[NUM_VOC_VOICES];
-extern int autotuneChromatic;
 
 extern PlayMode samplerMode;
 extern float sampleLength;
@@ -32,22 +31,13 @@ extern uint32_t freeze;
 void initGlobalSFXObjects();
 
 //1 vocoder internal poly
-void SFXVocoderIPAlloc();
-void SFXVocoderIPFrame();
-void SFXVocoderIPTick(float audioIn);
-void SFXVocoderIPFree(void);
+extern uint8_t numVoices;
+extern uint8_t internalExternal;
 
-//2 vocoder internal mono
-void SFXVocoderIMAlloc();
-void SFXVocoderIMFrame();
-void SFXVocoderIMTick(float audioIn);
-void SFXVocoderIMFree(void);
-
-//3 vocoder external
-void SFXVocoderEAlloc();
-void SFXVocoderEFrame();
-void SFXVocoderETick(float audioIn);
-void SFXVocoderEFree(void);
+void SFXVocoderAlloc();
+void SFXVocoderFrame();
+void SFXVocoderTick(float audioIn);
+void SFXVocoderFree(void);
 
 //4 pitch shift
 void SFXPitchShiftAlloc();
@@ -56,6 +46,8 @@ void SFXPitchShiftTick(float audioIn);
 void SFXPitchShiftFree(void);
 
 //5 neartune
+extern uint8_t autotuneChromatic;
+
 void SFXNeartuneAlloc();
 void SFXNeartuneFrame();
 void SFXNeartuneTick(float audioIn);
@@ -67,9 +59,9 @@ void SFXAutotuneFrame();
 void SFXAutotuneTick(float audioIn);
 void SFXAutotuneFree(void);
 
-
-
 //7 sampler - button press
+extern uint8_t samplePlaying;
+
 void SFXSamplerBPAlloc();
 void SFXSamplerBPFrame();
 void SFXSamplerBPTick(float audioIn);
@@ -77,29 +69,20 @@ void SFXSamplerBPFree(void);
 
 
 //8 sampler - auto ch1
-void SFXSamplerAuto1Alloc();
-void SFXSamplerAuto1Frame();
-void SFXSamplerAuto1Tick(float audioIn);
-void SFXSamplerAuto1Free(void);
+extern uint8_t triggerChannel;
 
-//9 sampler - auto ch2
-void SFXSamplerAuto2Alloc();
-void SFXSamplerAuto2Frame();
-void SFXSamplerAuto2Tick(float audioIn);
-void SFXSamplerAuto2Free(void);
-
+void SFXSamplerAutoAlloc();
+void SFXSamplerAutoFrame();
+void SFXSamplerAutoTick(float audioIn);
+void SFXSamplerAutoFree(void);
 
 //10 distortion tanh
-void SFXDistortionTanhAlloc();
-void SFXDistortionTanhFrame();
-void SFXDistortionTanhTick(float audioIn);
-void SFXDistortionTanhFree(void);
+extern uint8_t distortionMode;
 
-//11 distortion shaper function
-void SFXDistortionShaperAlloc();
-void SFXDistortionShaperFrame();
-void SFXDistortionShaperTick(float audioIn);
-void SFXDistortionShaperFree(void);
+void SFXDistortionAlloc();
+void SFXDistortionFrame();
+void SFXDistortionTick(float audioIn);
+void SFXDistortionFree(void);
 
 //12 distortion wave folder
 void SFXWaveFolderAlloc();
@@ -116,6 +99,8 @@ void SFXBitcrusherFree(void);
 
 
 //14 delay
+extern int delayShaper;
+
 void SFXDelayAlloc();
 void SFXDelayFrame();
 void SFXDelayTick(float audioIn);
@@ -154,8 +139,10 @@ void toggleBypass(void);
 void toggleSustain(void);
 
 void calculateFreq(int voice);
-void calculatePeriodArray(void);
-float nearestPeriod(float period);
+void calculateNoteArray(void);
+//void calculatePeriodArray(void);
+float nearestNote(float period);
+//float nearestPeriod(float period);
 
 void clearNotes(void);
 
