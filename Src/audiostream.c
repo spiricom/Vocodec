@@ -439,6 +439,7 @@ void initFunctionPointers(void)
 	tickFunctions[LivingString] = SFXLivingStringTick;
 	freeFunctions[LivingString] = SFXLivingStringFree;
 
+
 	allocFunctions[LivingStringSynth] = SFXLivingStringSynthAlloc;
 	frameFunctions[LivingStringSynth] = SFXLivingStringSynthFrame;
 	tickFunctions[LivingStringSynth] = SFXLivingStringSynthTick;
@@ -453,6 +454,7 @@ void initFunctionPointers(void)
 	frameFunctions[Rhodes] = SFXRhodesFrame;
 	tickFunctions[Rhodes] = SFXRhodesTick;
 	freeFunctions[Rhodes] = SFXRhodesFree;
+
 }
 
 

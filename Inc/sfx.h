@@ -126,11 +126,11 @@ void SFXLivingStringFrame();
 void SFXLivingStringTick(float audioIn);
 void SFXLivingStringFree(void);
 
-//17 living string
 void SFXLivingStringSynthAlloc();
 void SFXLivingStringSynthFrame();
 void SFXLivingStringSynthTick(float audioIn);
 void SFXLivingStringSynthFree(void);
+
 
 
 //17 living string
