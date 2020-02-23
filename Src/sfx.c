@@ -38,7 +38,7 @@ tLockhartWavefolder wavefolder1;
 tLockhartWavefolder wavefolder2;
 tLockhartWavefolder wavefolder3;
 tLockhartWavefolder wavefolder4;
-
+tHighpass wfHP;
 tCrusher crush;
 tCrusher crush2;
 
@@ -68,7 +68,7 @@ tExpSmooth smoother3;
 
 tExpSmooth neartune_smoother;
 
-#define NUM_STRINGS 8
+#define NUM_STRINGS 6
 tLivingString theString[NUM_STRINGS];
 
 float myFreq;
@@ -105,7 +105,7 @@ void initGlobalSFXObjects()
 ///1 vocoder internal poly
 
 tTalkbox vocoder;
-tSawtooth osc[NUM_VOC_VOICES];
+tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
 
 uint8_t numVoices = NUM_VOC_VOICES;
 uint8_t internalExternal = 0;
@@ -642,6 +642,7 @@ void SFXWaveFolderAlloc()
 	tLockhartWavefolder_init(&wavefolder2);
 	tLockhartWavefolder_init(&wavefolder3);
 	tLockhartWavefolder_init(&wavefolder4);
+	tHighpass_init(&wfHP, 20.0f);
 	tOversampler_init(&oversampler, 2, FALSE);
 }
 
@@ -659,7 +660,7 @@ void SFXWaveFolderTick(float audioIn)
 
 	knobParams[2] = (smoothedADC[2] * 2.0f) - 1.0f;
 
-	knobParams[3] = (smoothedADC[3] * 2.0f) - 1.0f;
+	//knobParams[3] = (smoothedADC[3] * 2.0f) - 1.0f;
 
 	float gain = knobParams[0];
 
@@ -681,7 +682,7 @@ void SFXWaveFolderTick(float audioIn)
 		oversamplerArray[i] *= .8f;
 		oversamplerArray[i] = tanhf(oversamplerArray[i]);
 	}
-	sample = tOversampler_downsample(&oversampler, oversamplerArray);
+	sample = tHighpass_tick(&wfHP, tOversampler_downsample(&oversampler, oversamplerArray));
 	rightOut = sample;
 
 	/*
@@ -748,7 +749,7 @@ void SFXBitcrusherFree(void)
 }
 
 
-//14 delay
+//delay
 int delayShaper = 0;
 
 void SFXDelayAlloc()
@@ -763,7 +764,7 @@ void SFXDelayAlloc()
 
 	tHighpass_init(&delayShaperHp, 20.0f);
 	tFeedbackLeveler_init(&feedbackControl, .99f, 0.01, 0.125f, 0);
-
+	delayShaper = 0;
 	setLED_A(delayShaper);
 }
 
@@ -797,7 +798,7 @@ void SFXDelayTick(float audioIn)
 
 	float input1, input2;
 
-	if (delayShaper == 1)
+	if (delayShaper == 0)
 	{
 		input1 = tFeedbackLeveler_tick(&feedbackControl, tanhf(audioIn + (delayFB1 * knobParams[2])));
 		input2 = tFeedbackLeveler_tick(&feedbackControl, tanhf(audioIn + (delayFB2 * knobParams[2])));
@@ -841,7 +842,7 @@ void SFXDelayFree(void)
 
 
 
-//15 reverb
+//reverb
 uint32_t freeze = 0;
 
 void SFXReverbAlloc()
@@ -900,7 +901,7 @@ void SFXReverbFree(void)
 }
 
 
-//16 reverb2
+//reverb2
 void SFXReverb2Alloc()
 {
 	tNReverb_init(&reverb2, 1.0f);
@@ -989,7 +990,7 @@ void SFXReverb2Free(void)
 }
 
 
-//17 Living String
+//Living String
 void SFXLivingStringAlloc()
 {
 	for (int i = 0; i < NUM_STRINGS; i++)
@@ -1040,6 +1041,149 @@ void SFXLivingStringFree(void)
 }
 
 
+//Living String
+void SFXLivingStringSynthAlloc()
+{
+	tPoly_setNumVoices(&poly, NUM_STRINGS);
+	for (int i = 0; i < NUM_STRINGS; i++)
+	{
+		tLivingString_init(&theString[i], 440.f, 0.2f, 0.f, 9000.f, 1.0f, 0.0f, 0.01f, 0.125f, 1);
+	}
+}
+
+void SFXLivingStringSynthFrame()
+{
+	//knobParams[0] = mtof((smoothedADC[0] * 135.0f)); //freq
+	//knobParams[1] = smoothedADC[1]; //detune
+	knobParams[2] = ((smoothedADC[2] * 0.09999999f) + 0.9f);
+	knobParams[3] = mtof((smoothedADC[3] * 130.0f)+12.0f); //lowpass
+	knobParams[4] = (smoothedADC[4] * 0.5) + 0.02f;//pickPos
+	for (int i = 0; i < NUM_STRINGS; i++)
+	{
+		//tLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * knobParams[1]))) * knobParams[0]);
+		tLivingString_setDecay(&theString[i], knobParams[2]);
+		tLivingString_setDampFreq(&theString[i], knobParams[3]);
+		tLivingString_setPickPos(&theString[i], knobParams[4]);
+	}
+
+	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	{
+		//tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
+		calculateFreq(i);
+		tLivingString_setFreq(&theString[i], freq[i]);
+		tLivingString_setTargetLev(&theString[i],(tPoly_getVelocity(&poly, i) > 0));
+	}
+
+}
+
+
+void SFXLivingStringSynthTick(float audioIn)
+{
+
+	for (int i = 0; i < NUM_STRINGS; i++)
+	{
+		sample += tLivingString_tick(&theString[i], audioIn);
+	}
+	sample *= 0.0625f;
+	rightOut = sample;
+}
+
+void SFXLivingStringSynthFree(void)
+{
+	for (int i = 0; i < NUM_STRINGS; i++)
+	{
+		tLivingString_free(&theString[i]);
+	}
+}
+
+
+//17 living string
+void SFXClassicSynthAlloc()
+{
+	tPoly_setNumVoices(&poly, numVoices);
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
+	{
+		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
+		{
+			tSawtooth_initToPool(&osc[i + (j*NUM_VOC_VOICES)], &smallPool);
+		}
+	}
+	setLED_A(numVoices == 1);
+}
+
+float detunes[3] = {-.01f, 0.0f, 0.01f};
+void SFXClassicSynthFrame()
+{
+	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
+		{
+			numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
+			tPoly_setNumVoices(&poly, numVoices);
+			buttonActionsSFX[ButtonA][ActionPress] = 0;
+			setLED_A(numVoices == 1);
+		}
+}
+
+//make detuning more independant - maybe based on midi instead of frequency
+//add filters
+//waveshaper?
+
+void SFXClassicSynthTick(float audioIn)
+{
+	tPoly_tickPitch(&poly);
+	knobParams[0] = smoothedADC[0]; //synth volume
+	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	{
+		tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
+		calculateFreq(i);
+		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
+		{
+			tSawtooth_setFreq(&osc[i + (j*NUM_VOC_VOICES)], freq[i] * (1.0f + detunes[j]));
+		}
+	}
+
+	if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
+	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	{
+		sample += tSawtooth_tick(&osc[i]) * tRamp_tick(&polyRamp[i]);
+		sample += tSawtooth_tick(&osc[i + NUM_VOC_VOICES]) * tRamp_tick(&polyRamp[i]);
+		sample += tSawtooth_tick(&osc[i] + (NUM_VOC_VOICES * 2)) * tRamp_tick(&polyRamp[i]);
+	}
+	sample *= 0.125f;
+	sample = tanhf(sample);
+}
+
+void SFXClassicSynthFree(void)
+{
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
+	{
+		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
+		{
+			tSawtooth_freeFromPool(&osc[i + (j*NUM_VOC_VOICES)], &smallPool);
+		}
+	}
+}
+
+
+//17 living string
+void SFXRhodesAlloc()
+{
+
+}
+void SFXRhodesFrame()
+{
+
+}
+void SFXRhodesTick(float audioIn)
+{
+
+}
+void SFXRhodesFree(void)
+{
+
+}
+
+
+
 // midi functions
 
 
@@ -1062,16 +1206,6 @@ void calculateNoteArray()
 	}
 }
 
-//void calculatePeriodArray()
-//{
-//	for (int i = 0; i < 128; i++)
-//	{
-//		float tempNote = i;
-//		float tempPitchClass = ((((int)tempNote) - keyCenter) % 12 );
-//		float tunedNote = tempNote + centsDeviation[(int)tempPitchClass];
-//		notePeriods[i] = 1.0f / LEAF_midiToFrequency(tunedNote) * leaf.sampleRate;
-//	}
-//}
 
 float nearestNote(float period)
 {
@@ -1108,39 +1242,6 @@ float nearestNote(float period)
 
 }
 
-//float nearestPeriod(float period)
-//{
-//	float leastDifference = fabsf(period - notePeriods[0]);
-//	float difference;
-//	int index = 0;
-//	int* chord;
-//
-//	if (autotuneChromatic > 0)
-//	{
-//		chord = chromaticArray;
-//	}
-//	else
-//	{
-//		chord = chordArray;
-//	}
-//	//if (autotuneLock > 0) chord = lockArray;
-//
-//	for(int i = 1; i < 128; i++)
-//	{
-//		if (chord[i%12] > 0)
-//		{
-//			difference = fabsf(period - notePeriods[i]);
-//			if(difference < leastDifference)
-//			{
-//				leastDifference = difference;
-//				index = i;
-//			}
-//		}
-//	}
-//
-//	return notePeriods[index];
-//
-//}
 
 void noteOn(int key, int velocity)
 {
