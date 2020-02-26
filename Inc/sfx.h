@@ -9,7 +9,8 @@
 
 #include "audiostream.h"
 
-#define NUM_VOC_VOICES 8
+#define NUM_VOC_VOICES 6
+#define NUM_OSC_PER_VOICE 3
 #define NUM_VOC_OSC 1
 #define INV_NUM_VOC_VOICES 0.125
 #define INV_NUM_VOC_OSC 1
@@ -21,7 +22,7 @@
 
 extern tPoly poly;
 extern tRamp polyRamp[NUM_VOC_VOICES];
-extern tSawtooth osc[NUM_VOC_VOICES];
+extern tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
 
 extern PlayMode samplerMode;
 extern float sampleLength;
@@ -125,6 +126,25 @@ void SFXLivingStringFrame();
 void SFXLivingStringTick(float audioIn);
 void SFXLivingStringFree(void);
 
+//17 living string
+void SFXLivingStringSynthAlloc();
+void SFXLivingStringSynthFrame();
+void SFXLivingStringSynthTick(float audioIn);
+void SFXLivingStringSynthFree(void);
+
+
+//17 living string
+void SFXClassicSynthAlloc();
+void SFXClassicSynthFrame();
+void SFXClassicSynthTick(float audioIn);
+void SFXClassicSynthFree(void);
+
+
+//17 living string
+void SFXRhodesAlloc();
+void SFXRhodesFrame();
+void SFXRhodesTick(float audioIn);
+void SFXRhodesFree(void);
 
 
 // MIDI FUNCTIONS
@@ -136,6 +156,10 @@ void toggleBypass(void);
 void toggleSustain(void);
 
 void calculateFreq(int voice);
+
+float calculateTunedMidiNote(float tempNote);
+
+
 void calculateNoteArray(void);
 //void calculatePeriodArray(void);
 float nearestNote(float period);

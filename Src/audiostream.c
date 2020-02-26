@@ -17,6 +17,7 @@
 #include "i2c.h"
 #include "gpio.h"
 #include "sfx.h"
+//#include "tim.h"
 
 //the audio buffers are put in the D2 RAM area because that is a memory location that the DMA has access to.
 int32_t audioOutBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
@@ -56,7 +57,7 @@ tRamp adc[6];
 tNoise myNoise;
 tCycle mySine[2];
 float smoothedADC[6];
-
+tEnvelopeFollower LED_envelope[4];
 
 uint32_t clipCounter[4] = {0,0,0,0};
 uint8_t clipped[4] = {0,0,0,0};
@@ -124,6 +125,11 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 	for (int i = 0; i < 6; i++)
 	{
 		tRamp_init(&adc[i],19.0f, 1); //set all ramps for knobs to be 9ms ramp time and let the init function know they will be ticked every sample
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		tEnvelopeFollower_init(&LED_envelope[i], 0.02f, .9995f);
 	}
 
 	initGlobalSFXObjects();
@@ -251,7 +257,7 @@ float audioTickL(float audioIn)
 
 
 	tickFunctions[currentPreset](audioIn);
-
+/*
 	displayBlockVal += fabsf(sample);
 	displayBlockCount++;
 	if (displayBlockCount >= DISPLAY_BLOCK_SIZE)
@@ -263,6 +269,7 @@ float audioTickL(float audioIn)
 		displayBufferIndex++;
 		if (displayBufferIndex >= 128) displayBufferIndex = 0;
 	}
+	*/
 
 	if ((audioIn >= 0.999999f) || (audioIn <= -0.999999f))
 	{
@@ -279,6 +286,15 @@ float audioTickL(float audioIn)
 		setLED_leftin_clip(0);
 		clipped[0] = 0;
 	}
+
+	float current_env = tEnvelopeFollower_tick(&LED_envelope[0], audioIn);
+	uint16_t audioLEDLevel = LEAF_clip(0, (current_env * 32.0f), 16);
+//	 __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, audioLEDLevel);
+
+
+	current_env = tEnvelopeFollower_tick(&LED_envelope[1], sample);
+	audioLEDLevel = LEAF_clip(0, (current_env * 32.0f), 15);
+//	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, audioLEDLevel);
 
 
 
@@ -341,6 +357,18 @@ float audioTickR(float audioIn)
 		setLED_rightout_clip(0);
 		clipped[3] = 0;
 	}
+
+
+	float current_env = tEnvelopeFollower_tick(&LED_envelope[2], rightIn);
+	uint16_t audioLEDLevel = LEAF_clip(0, (current_env * 32.0f), 16);
+//	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, audioLEDLevel);
+
+
+	current_env = tEnvelopeFollower_tick(&LED_envelope[3], rightOut);
+	audioLEDLevel = LEAF_clip(0, (current_env * 32.0f), 16);
+//	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, audioLEDLevel);
+
+
 	return rightOut;
 }
 
@@ -410,6 +438,21 @@ void initFunctionPointers(void)
 	frameFunctions[LivingString] = SFXLivingStringFrame;
 	tickFunctions[LivingString] = SFXLivingStringTick;
 	freeFunctions[LivingString] = SFXLivingStringFree;
+
+	allocFunctions[LivingStringSynth] = SFXLivingStringSynthAlloc;
+	frameFunctions[LivingStringSynth] = SFXLivingStringSynthFrame;
+	tickFunctions[LivingStringSynth] = SFXLivingStringSynthTick;
+	freeFunctions[LivingStringSynth] = SFXLivingStringSynthFree;
+
+	allocFunctions[ClassicSynth] = SFXClassicSynthAlloc;
+	frameFunctions[ClassicSynth] = SFXClassicSynthFrame;
+	tickFunctions[ClassicSynth] = SFXClassicSynthTick;
+	freeFunctions[ClassicSynth] = SFXClassicSynthFree;
+
+	allocFunctions[Rhodes] = SFXRhodesAlloc;
+	frameFunctions[Rhodes] = SFXRhodesFrame;
+	tickFunctions[Rhodes] = SFXRhodesTick;
+	freeFunctions[Rhodes] = SFXRhodesFree;
 }
 
 
