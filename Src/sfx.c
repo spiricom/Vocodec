@@ -707,6 +707,7 @@ void SFXWaveFolderFree(void)
 	tLockhartWavefolder_free(&wavefolder2);
 	tLockhartWavefolder_free(&wavefolder3);
 	tLockhartWavefolder_free(&wavefolder4);
+	tHighpass_free(&wfHP);
 	tOversampler_free(&oversampler);
 }
 
@@ -1105,7 +1106,7 @@ void SFXClassicSynthAlloc()
 	{
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSawtooth_initToPool(&osc[i + (j*NUM_VOC_VOICES)], &smallPool);
+			tSawtooth_initToPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 			synthDetune[i][j] = (leaf.random() * 0.2f) - 0.1f;
 		}
 	}
@@ -1166,9 +1167,10 @@ void SFXClassicSynthFree(void)
 	{
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSawtooth_freeFromPool(&osc[i + (j*NUM_VOC_VOICES)], &smallPool);
+			tSawtooth_freeFromPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 		}
 	}
+	tSVF_free(&delayLP);
 }
 
 
