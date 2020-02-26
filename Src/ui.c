@@ -11,7 +11,6 @@
 #include "ui.h"
 #include "tunings.h"
 #include "eeprom.h"
-#include "leaf.h"
 
 uint16_t ADC_values[NUM_ADC_CHANNELS] __ATTR_RAM_D2;
 float floatADC[NUM_ADC_CHANNELS];
@@ -227,42 +226,6 @@ void initModeNames(void)
 	paramNames[LivingString][5] = "";
 	paramNames[LivingString][NUM_ADC_CHANNELS + ButtonA] = "";
 	paramNames[LivingString][NUM_ADC_CHANNELS + ButtonB] = "";
-
-	modeNames[LivingStringSynth] = "STRING SYNTH";
-	shortModeNames[LivingStringSynth] = "SS";
-	modeNamesDetails[LivingStringSynth] = "LIVING STRING";
-	paramNames[LivingStringSynth][0] = "FREQ";
-	paramNames[LivingStringSynth][1] = "DETUNE";
-	paramNames[LivingStringSynth][2] = "DECAY";
-	paramNames[LivingStringSynth][3] = "DAMPING";
-	paramNames[LivingStringSynth][4] = "PICK_POS";
-	paramNames[LivingStringSynth][5] = "";
-	paramNames[LivingStringSynth][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[LivingStringSynth][NUM_ADC_CHANNELS + ButtonB] = "";
-
-	modeNames[ClassicSynth] = "CLASSIC SYNTH";
-	shortModeNames[ClassicSynth] = "CS";
-	modeNamesDetails[ClassicSynth] = "VCO+VCF";
-	paramNames[ClassicSynth][0] = "FREQ";
-	paramNames[ClassicSynth][1] = "DETUNE";
-	paramNames[ClassicSynth][2] = "DECAY";
-	paramNames[ClassicSynth][3] = "DAMPING";
-	paramNames[ClassicSynth][4] = "PICK_POS";
-	paramNames[ClassicSynth][5] = "";
-	paramNames[ClassicSynth][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[ClassicSynth][NUM_ADC_CHANNELS + ButtonB] = "";
-
-	modeNames[Rhodes] = "RHODES";
-	shortModeNames[Rhodes] = "RD";
-	modeNamesDetails[Rhodes] = "PRETTY";
-	paramNames[Rhodes][0] = "FREQ";
-	paramNames[Rhodes][1] = "DETUNE";
-	paramNames[Rhodes][2] = "DECAY";
-	paramNames[Rhodes][3] = "DAMPING";
-	paramNames[Rhodes][4] = "PICK_POS";
-	paramNames[Rhodes][5] = "";
-	paramNames[Rhodes][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[Rhodes][NUM_ADC_CHANNELS + ButtonB] = "";
 }
 
 void buttonCheck(void)
@@ -647,24 +610,6 @@ char* UIReverb2Buttons(VocodecButton button, ButtonAction action)
 }
 
 char* UILivingStringButtons(VocodecButton button, ButtonAction action)
-{
-	char* writeString = "";
-	return writeString;
-}
-
-char* UILivingStringSynthButtons(VocodecButton button, ButtonAction action)
-{
-	char* writeString = "";
-	return writeString;
-}
-
-char* UIClassicSynthButtons(VocodecButton button, ButtonAction action)
-{
-	char* writeString = "";
-	return writeString;
-}
-
-char* UIRhodesButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
 	return writeString;

@@ -26,9 +26,6 @@ typedef enum _VocodecPresetType
 	Reverb,
 	Reverb2,
 	LivingString,
-	LivingStringSynth,
-	ClassicSynth,
-	Rhodes,
 	PresetNil
 } VocodecPresetType;
 
@@ -106,11 +103,6 @@ char* UIDelayButtons(VocodecButton button, ButtonAction action);
 char* UIReverbButtons(VocodecButton button, ButtonAction action);
 char* UIReverb2Buttons(VocodecButton button, ButtonAction action);
 char* UILivingStringButtons(VocodecButton button, ButtonAction action);
-char* UILivingStringSynthButtons(VocodecButton button, ButtonAction action);
-char* UIClassicSynthButtons(VocodecButton button, ButtonAction action);
-char* UIRhodesButtons(VocodecButton button, ButtonAction action);
-
-
 
 #endif /* UI_H_ */
 

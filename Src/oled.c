@@ -77,10 +77,6 @@ void initUIFunctionPointers(void)
 	buttonActionFunctions[Reverb] = UIReverbButtons;
 	buttonActionFunctions[Reverb2] = UIReverb2Buttons;
 	buttonActionFunctions[LivingString] = UILivingStringButtons;
-	buttonActionFunctions[LivingStringSynth] = UILivingStringSynthButtons;
-	buttonActionFunctions[ClassicSynth] = UIClassicSynthButtons;
-	buttonActionFunctions[Rhodes] = UIRhodesButtons;
-
 }
 
 void setLED_Edit(uint8_t onOff)

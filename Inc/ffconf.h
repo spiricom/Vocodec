@@ -23,6 +23,7 @@
 /*-----------------------------------------------------------------------------/
 / Additional user header to be used  
 /-----------------------------------------------------------------------------*/
+
 #include "main.h"
 #include "stm32h7xx_hal.h"
 #include "bsp_driver_sd.h"
@@ -241,7 +242,7 @@
 
 #define _FS_REENTRANT    0  /* 0:Disable or 1:Enable */
 #define _FS_TIMEOUT      1000 /* Timeout period in unit of time ticks */
-#define _SYNC_t          NULL
+#define _SYNC_t          osSemaphoreId 
 /* The option _FS_REENTRANT switches the re-entrancy (thread safe) of the FatFs
 /  module itself. Note that regardless of this option, file access to different
 /  volume is always re-entrant and volume control functions, f_mount(), f_mkfs()
