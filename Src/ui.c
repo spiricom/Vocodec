@@ -162,7 +162,7 @@ void initModeNames(void)
 	paramNames[Wavefolder][0] = "GAIN";
 	paramNames[Wavefolder][1] = "OFFSET1";
 	paramNames[Wavefolder][2] = "OFFSET2";
-	paramNames[Wavefolder][3] = "OFFSET3";
+	paramNames[Wavefolder][3] = "";
 	paramNames[Wavefolder][4] = "";
 	paramNames[Wavefolder][5] = "";
 	paramNames[Wavefolder][NUM_ADC_CHANNELS + ButtonA] = "";
@@ -206,7 +206,7 @@ void initModeNames(void)
 
 	modeNames[Reverb2] = "REVERB2";
 	shortModeNames[Reverb2] = "RV";
-	modeNamesDetails[Reverb2] = "DATTORRO ALG";
+	modeNamesDetails[Reverb2] = "NREVERB ALG";
 	paramNames[Reverb2][0] = "SIZE";
 	paramNames[Reverb2][1] = "LOWPASS";
 	paramNames[Reverb2][2] = "HIGHPASS";
@@ -231,8 +231,8 @@ void initModeNames(void)
 	modeNames[LivingStringSynth] = "STRING SYNTH";
 	shortModeNames[LivingStringSynth] = "SS";
 	modeNamesDetails[LivingStringSynth] = "LIVING STRING";
-	paramNames[LivingStringSynth][0] = "FREQ";
-	paramNames[LivingStringSynth][1] = "DETUNE";
+	paramNames[LivingStringSynth][0] = "";
+	paramNames[LivingStringSynth][1] = "";
 	paramNames[LivingStringSynth][2] = "DECAY";
 	paramNames[LivingStringSynth][3] = "DAMPING";
 	paramNames[LivingStringSynth][4] = "PICK_POS";
@@ -243,23 +243,23 @@ void initModeNames(void)
 	modeNames[ClassicSynth] = "CLASSIC SYNTH";
 	shortModeNames[ClassicSynth] = "CS";
 	modeNamesDetails[ClassicSynth] = "VCO+VCF";
-	paramNames[ClassicSynth][0] = "FREQ";
-	paramNames[ClassicSynth][1] = "DETUNE";
-	paramNames[ClassicSynth][2] = "DECAY";
-	paramNames[ClassicSynth][3] = "DAMPING";
-	paramNames[ClassicSynth][4] = "PICK_POS";
+	paramNames[ClassicSynth][0] = "VOLUME";
+	paramNames[ClassicSynth][1] = "LOWPASS";
+	paramNames[ClassicSynth][2] = "";
+	paramNames[ClassicSynth][3] = "";
+	paramNames[ClassicSynth][4] = "";
 	paramNames[ClassicSynth][5] = "";
-	paramNames[ClassicSynth][NUM_ADC_CHANNELS + ButtonA] = "";
+	paramNames[ClassicSynth][NUM_ADC_CHANNELS + ButtonA] = "POLY MONO";
 	paramNames[ClassicSynth][NUM_ADC_CHANNELS + ButtonB] = "";
 
 	modeNames[Rhodes] = "RHODES";
 	shortModeNames[Rhodes] = "RD";
 	modeNamesDetails[Rhodes] = "PRETTY";
-	paramNames[Rhodes][0] = "FREQ";
-	paramNames[Rhodes][1] = "DETUNE";
-	paramNames[Rhodes][2] = "DECAY";
-	paramNames[Rhodes][3] = "DAMPING";
-	paramNames[Rhodes][4] = "PICK_POS";
+	paramNames[Rhodes][0] = "";
+	paramNames[Rhodes][1] = "";
+	paramNames[Rhodes][2] = "";
+	paramNames[Rhodes][3] = "";
+	paramNames[Rhodes][4] = "";
 	paramNames[Rhodes][5] = "";
 	paramNames[Rhodes][NUM_ADC_CHANNELS + ButtonA] = "";
 	paramNames[Rhodes][NUM_ADC_CHANNELS + ButtonB] = "";
@@ -451,15 +451,18 @@ void adcCheck()
 			}
 			lastFloatADC[i] = floatADC[i];
 			writeKnobFlag = i;
+			knobActive[i] = 1;
 		}
-		if (floatADCUI[i] > 0.0f) // only do the following check after the knob has already passed the above check once
+		// only do the following check after the knob has already passed the above
+		// check once and floatADCUI has been set in OLED_writeKnobParameter
+		if (floatADCUI[i] >= 0.0f)
 		{
 			if (fastabsf(smoothedADC[i] - floatADCUI[i]) > adcHysteresisThreshold)
 			{
 				writeKnobFlag = i;
 			}
 		}
-		tRamp_setDest(&adc[i], floatADC[i]);
+		if (knobActive[i]) tRamp_setDest(&adc[i], floatADC[i]);
 	}
 }
 
@@ -661,6 +664,11 @@ char* UILivingStringSynthButtons(VocodecButton button, ButtonAction action)
 char* UIClassicSynthButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
+	if (buttonActionsUI[ButtonA][ActionPress] == 1)
+	{
+		writeString = (numVoices > 1) ? "POLY" : "MONO";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
 	return writeString;
 }
 

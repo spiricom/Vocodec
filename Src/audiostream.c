@@ -134,7 +134,10 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 
 	initGlobalSFXObjects();
 
-	allocFunctions[currentPreset]();
+//	allocFunctions[currentPreset]();
+
+	loadingPreset = 1;
+	previousPreset = PresetNil;
 
 	HAL_Delay(10);
 
@@ -217,12 +220,29 @@ void audioFrame(uint16_t buffer_offset)
 			{
 				if (previousPreset != PresetNil)
 				{
+					for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+					{
+						presetKnobValues[previousPreset][i] = smoothedADC[i];
+					}
 					freeFunctions[previousPreset]();
+				}
+				else
+				{
+					leaf.clearOnAllocation = 1;
 				}
 				setLED_A(0);
 				setLED_B(0);
 				setLED_1(0);
 				allocFunctions[currentPreset]();
+				for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+				{
+					knobActive[i] = 0;
+					floatADCUI[i] = -1.0f;
+					tRamp_setVal(&adc[i], presetKnobValues[currentPreset][i]);
+					tRamp_setDest(&adc[i], presetKnobValues[currentPreset][i]);
+					smoothedADC[i] = presetKnobValues[currentPreset][i];
+				}
+				leaf.clearOnAllocation = 0;
 				loadingPreset = 0;
 			}
 		}
@@ -241,20 +261,14 @@ float audioTickL(float audioIn)
 {
 	sample = 0.0f;
 
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 	{
 		smoothedADC[i] = tRamp_tick(&adc[i]);
 	}
 
 	if (loadingPreset) return sample;
 
-	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
-	{
-		knobParams[i] = smoothedADC[i];
-	}
-
 	bufferCleared = FALSE;
-
 
 	tickFunctions[currentPreset](audioIn);
 /*

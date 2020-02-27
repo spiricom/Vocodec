@@ -8,6 +8,7 @@
 #define SFX_H_
 
 #include "audiostream.h"
+#include "ui.h"
 
 #define NUM_VOC_VOICES 6
 #define NUM_OSC_PER_VOICE 3
@@ -19,6 +20,8 @@
 #define OVERSAMPLER_RATIO 8
 #define OVERSAMPLER_HQ FALSE
 
+extern float presetKnobValues[PresetNil][NUM_ADC_CHANNELS];
+extern uint8_t knobActive[NUM_ADC_CHANNELS];
 
 extern tPoly poly;
 extern tRamp polyRamp[NUM_VOC_VOICES];

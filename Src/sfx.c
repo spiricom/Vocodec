@@ -7,10 +7,12 @@
 
 #include "main.h"
 #include "sfx.h"
-#include "ui.h"
 #include "oled.h"
 #include "tunings.h"
 
+
+float presetKnobValues[PresetNil][NUM_ADC_CHANNELS];
+uint8_t knobActive[NUM_ADC_CHANNELS];
 
 //audio objects
 tFormantShifter fs;
@@ -50,15 +52,6 @@ tSVF delayLP2;
 tSVF delayHP2;
 tHighpass delayShaperHp;
 tFeedbackLeveler feedbackControl;
-
-tDattorroReverb reverb;
-tNReverb reverb2;
-tSVF lowpass;
-tSVF highpass;
-tSVF bandpass;
-tSVF lowpass2;
-tSVF highpass2;
-tSVF bandpass2;
 
 tCycle testSine;
 
@@ -100,6 +93,121 @@ void initGlobalSFXObjects()
 	tRamp_init(&nearWetRamp, 10.0f, 1);
 	tRamp_init(&nearDryRamp, 10.0f, 1);
 	tRamp_init(&comp, 10.0f, 1);
+
+	// Note that these are the actual knob values
+	// not the parameter value
+	// (i.e. 0.5 for fine pitch is actually 0.0 fine pitch)
+	presetKnobValues[Vocoder][0] = 1.0f; // volume
+	presetKnobValues[Vocoder][1] = 0.0f;
+	presetKnobValues[Vocoder][2] = 0.0f;
+	presetKnobValues[Vocoder][3] = 0.0f;
+	presetKnobValues[Vocoder][4] = 0.0f;
+	presetKnobValues[Vocoder][5] = 0.0f;
+
+	presetKnobValues[Pitchshift][0] = 1.0f; // pitch
+	presetKnobValues[Pitchshift][1] = 0.5f; // fine pitch
+	presetKnobValues[Pitchshift][2] = 0.0f; // f amount
+	presetKnobValues[Pitchshift][3] = 0.5f; // formant
+	presetKnobValues[Pitchshift][4] = 0.0f;
+	presetKnobValues[Pitchshift][5] = 0.0f;
+
+	presetKnobValues[AutotuneMono][0] = 1.0f; // fidelity thresh
+	presetKnobValues[AutotuneMono][1] = 1.0f; // amount
+	presetKnobValues[AutotuneMono][2] = 1.0f; // speed
+	presetKnobValues[AutotuneMono][3] = 0.0f;
+	presetKnobValues[AutotuneMono][4] = 0.0f;
+	presetKnobValues[AutotuneMono][5] = 0.0f;
+
+	presetKnobValues[AutotunePoly][0] = 1.0f; // fidelity thresh
+	presetKnobValues[AutotunePoly][1] = 0.0f;
+	presetKnobValues[AutotunePoly][2] = 0.0f;
+	presetKnobValues[AutotunePoly][3] = 0.0f;
+	presetKnobValues[AutotunePoly][4] = 0.0f;
+	presetKnobValues[AutotunePoly][5] = 0.0f;
+
+	presetKnobValues[SamplerButtonPress][0] = 0.0f; // start
+	presetKnobValues[SamplerButtonPress][1] = 1.0f; // end
+	presetKnobValues[SamplerButtonPress][2] = 0.75f; // speed
+	presetKnobValues[SamplerButtonPress][3] = 0.25f; // crossfade
+	presetKnobValues[SamplerButtonPress][4] = 0.0f;
+	presetKnobValues[SamplerButtonPress][5] = 0.0f;
+
+	presetKnobValues[SamplerAutoGrab][0] = 0.95f; // thresh
+	presetKnobValues[SamplerAutoGrab][1] = 0.5f; // window
+	presetKnobValues[SamplerAutoGrab][2] = 0.0f; // rel thresh
+	presetKnobValues[SamplerAutoGrab][3] = 0.25f; // crossfade
+	presetKnobValues[SamplerAutoGrab][4] = 0.0f;
+	presetKnobValues[SamplerAutoGrab][5] = 0.0f;
+
+	presetKnobValues[Distortion][0] = 0.25f; // gain
+	presetKnobValues[Distortion][1] = 0.0f;
+	presetKnobValues[Distortion][2] = 0.0f;
+	presetKnobValues[Distortion][3] = 0.0f;
+	presetKnobValues[Distortion][4] = 0.0f;
+	presetKnobValues[Distortion][5] = 0.0f;
+
+	presetKnobValues[Wavefolder][0] = 0.25f; // gain
+	presetKnobValues[Wavefolder][1] = 0.5f; // offset1
+	presetKnobValues[Wavefolder][2] = 0.5f; // offset2
+	presetKnobValues[Wavefolder][3] = 0.5f; // offset3
+	presetKnobValues[Wavefolder][4] = 0.0f;
+	presetKnobValues[Wavefolder][5] = 0.0f;
+
+	presetKnobValues[BitCrusher][0] = 0.1f; // quality
+	presetKnobValues[BitCrusher][1] = 0.5f; // samp ratio
+	presetKnobValues[BitCrusher][2] = 0.0f; // rounding
+	presetKnobValues[BitCrusher][3] = 0.0f; // operation
+	presetKnobValues[BitCrusher][4] = 0.5f; // gain
+	presetKnobValues[BitCrusher][5] = 0.0f;
+
+	presetKnobValues[Delay][0] = 0.25f; // delayL
+	presetKnobValues[Delay][1] = 0.25f; // delayR
+	presetKnobValues[Delay][2] = 0.5f; // feedback
+	presetKnobValues[Delay][3] = 1.0f; // lowpass
+	presetKnobValues[Delay][4] = 0.0f; // highpass
+	presetKnobValues[Delay][5] = 0.0f;
+
+	presetKnobValues[Reverb][0] = 0.5f; // size
+	presetKnobValues[Reverb][1] = 0.5f; // in lowpass
+	presetKnobValues[Reverb][2] = 0.5f; // in highpass
+	presetKnobValues[Reverb][3] = 0.5f; // fb lowpass
+	presetKnobValues[Reverb][4] = 0.5f; // fb gain
+	presetKnobValues[Reverb][5] = 0.0f;
+
+	presetKnobValues[Reverb2][0] = 0.2f; // size
+	presetKnobValues[Reverb2][1] = 0.5f; // lowpass
+	presetKnobValues[Reverb2][2] = 0.5f; // highpass
+	presetKnobValues[Reverb2][3] = 0.5f; // peak freq
+	presetKnobValues[Reverb2][4] = 0.5f; // peak gain
+	presetKnobValues[Reverb2][5] = 0.0f;
+
+	presetKnobValues[LivingString][0] = 0.5f; // freq
+	presetKnobValues[LivingString][1] = 0.5f; // detune
+	presetKnobValues[LivingString][2] = 0.5f; // decay
+	presetKnobValues[LivingString][3] = 0.8f; // damping
+	presetKnobValues[LivingString][4] = 0.5f; // pick pos
+	presetKnobValues[LivingString][5] = 0.0f;
+
+	presetKnobValues[LivingStringSynth][0] = 0.0f;
+	presetKnobValues[LivingStringSynth][1] = 0.0f;
+	presetKnobValues[LivingStringSynth][2] = 0.5f; // decay
+	presetKnobValues[LivingStringSynth][3] = 0.8f; // damping
+	presetKnobValues[LivingStringSynth][4] = 0.5f; // pick pos
+	presetKnobValues[LivingStringSynth][5] = 0.0f;
+
+	presetKnobValues[ClassicSynth][0] = 1.0f; // volume
+	presetKnobValues[ClassicSynth][1] = 1.0f; // lowpass
+	presetKnobValues[ClassicSynth][2] = 0.0f;
+	presetKnobValues[ClassicSynth][3] = 0.0f;
+	presetKnobValues[ClassicSynth][4] = 0.0f;
+	presetKnobValues[ClassicSynth][5] = 0.0f;
+
+	presetKnobValues[Rhodes][0] = 0.0f;
+	presetKnobValues[Rhodes][1] = 0.0f;
+	presetKnobValues[Rhodes][2] = 0.0f;
+	presetKnobValues[Rhodes][3] = 0.0f;
+	presetKnobValues[Rhodes][4] = 0.0f;
+	presetKnobValues[Rhodes][5] = 0.0f;
 }
 
 ///1 vocoder internal poly
@@ -493,6 +601,7 @@ uint32_t sample_countdown = 0;
 PlayMode samplerMode = PlayLoop;
 uint32_t powerCounter = 0;
 uint8_t triggerChannel = 0;
+uint8_t firstTrigger = 0;
 
 void SFXSamplerAutoAlloc()
 {
@@ -501,9 +610,9 @@ void SFXSamplerAutoAlloc()
 	tSampler_init(&sampler, &buff2);
 	tSampler_setMode(&sampler, PlayLoop);
 	tEnvelopeFollower_init(&envfollow, 0.05f, 0.9999f);
-	tSampler_play(&sampler);
 	setLED_A(samplerMode == PlayBackAndForth);
 	setLED_B(triggerChannel);
+	firstTrigger = 1;
 }
 
 void SFXSamplerAutoFrame()
@@ -528,8 +637,13 @@ void SFXSamplerAutoTick(float audioIn)
 	if ((currentPower > (samp_thresh)) && (currentPower > previousPower + 0.001f) && (samp_triggered == 0) && (sample_countdown == 0))
 	{
 		samp_triggered = 1;
-		setLED_A(1);
+		setLED_1(1);
 		tBuffer_record(&buff2);
+		if (firstTrigger)
+		{
+			tSampler_play(&sampler);
+			firstTrigger = 0;
+		}
 		buff2->recordedLength = buff2->bufferLength;
 		sample_countdown = window_size + 24;//arbitrary extra time to avoid resampling while playing previous sample - better solution would be alternating buffers and crossfading
 		powerCounter = 1000;
@@ -552,7 +666,7 @@ void SFXSamplerAutoTick(float audioIn)
 		}
 		else if (samp_triggered == 1)
 		{
-			setLED_A(0);
+			setLED_1(0);
 			samp_triggered = 0;
 		}
 	}
@@ -562,14 +676,14 @@ void SFXSamplerAutoTick(float audioIn)
 		{
 			tSampler_setMode(&sampler, PlayBackAndForth);
 			samplerMode = PlayBackAndForth;
-			setLED_1(1);
+			setLED_A(1);
 			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 		else if (samplerMode == PlayBackAndForth)
 		{
 			tSampler_setMode(&sampler, PlayLoop);
 			samplerMode = PlayLoop;
-			setLED_1(0);
+			setLED_A(0);
 			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 	}
@@ -596,8 +710,10 @@ uint8_t distortionMode = 0;
 
 void SFXDistortionAlloc()
 {
+	leaf.clearOnAllocation = 1;
 	tOversampler_init(&oversampler, OVERSAMPLER_RATIO, OVERSAMPLER_HQ);
 	setLED_A(distortionMode);
+	leaf.clearOnAllocation = 0;
 }
 
 void SFXDistortionFrame()
@@ -613,21 +729,21 @@ void SFXDistortionFrame()
 void SFXDistortionTick(float audioIn)
 {
 	//knob 0 = gain
-		sample = audioIn;
-		knobParams[0] = ((smoothedADC[0] * 40.0f) + 1.0f); // 15.0f
-		sample = sample * knobParams[0];
+	sample = audioIn;
+	knobParams[0] = ((smoothedADC[0] * 20.0f) + 1.0f); // 15.0f
+	sample = sample * knobParams[0];
 
-		tOversampler_upsample(&oversampler, sample, oversamplerArray);
-		for (int i = 0; i < OVERSAMPLER_RATIO; i++)
-		{
-			if (distortionMode > 0) oversamplerArray[i] = LEAF_shaper(oversamplerArray[i], 1.0f);
-			else oversamplerArray[i] = tanhf(oversamplerArray[i]);
-		}
-		sample = tOversampler_downsample(&oversampler, oversamplerArray);
-		sample *= .65f; // .75f
-		rightOut = sample;
+	tOversampler_upsample(&oversampler, sample, oversamplerArray);
+	for (int i = 0; i < OVERSAMPLER_RATIO; i++)
+	{
+		if (distortionMode > 0) oversamplerArray[i] = LEAF_shaper(oversamplerArray[i], 1.0f);
+		else oversamplerArray[i] = tanhf(oversamplerArray[i]);
+	}
+	sample = tOversampler_downsample(&oversampler, oversamplerArray);
+	sample *= .65f; // .75f
+	rightOut = sample;
 
-		//sample = tOversampler_tick(&oversampler, sample, &tanhf);
+	//sample = tOversampler_tick(&oversampler, sample, &tanhf);
 }
 
 void SFXDistortionFree(void)
@@ -638,12 +754,14 @@ void SFXDistortionFree(void)
 //12 distortion wave folder
 void SFXWaveFolderAlloc()
 {
+	leaf.clearOnAllocation = 1;
 	tLockhartWavefolder_init(&wavefolder1);
 	tLockhartWavefolder_init(&wavefolder2);
 	tLockhartWavefolder_init(&wavefolder3);
 	tLockhartWavefolder_init(&wavefolder4);
 	tHighpass_init(&wfHP, 20.0f);
 	tOversampler_init(&oversampler, 2, FALSE);
+	leaf.clearOnAllocation = 0;
 }
 
 void SFXWaveFolderFrame()
@@ -755,6 +873,7 @@ int delayShaper = 0;
 
 void SFXDelayAlloc()
 {
+	leaf.clearOnAllocation = 1;
 	tTapeDelay_init(&delay, 2000, 30000);
 	tTapeDelay_init(&delay2, 2000, 30000);
 	tSVF_init(&delayLP, SVFTypeLowpass, 16000.f, .7f);
@@ -767,6 +886,7 @@ void SFXDelayAlloc()
 	tFeedbackLeveler_init(&feedbackControl, .99f, 0.01, 0.125f, 0);
 	delayShaper = 0;
 	setLED_A(delayShaper);
+	leaf.clearOnAllocation = 0;
 }
 
 void SFXDelayFrame()
@@ -846,11 +966,15 @@ void SFXDelayFree(void)
 //reverb
 uint32_t freeze = 0;
 
+tDattorroReverb reverb;
+
 void SFXReverbAlloc()
 {
+	leaf.clearOnAllocation = 1;
 	tDattorroReverb_init(&reverb);
 	tDattorroReverb_setMix(&reverb, 1.0f);
 	freeze = 0;
+	leaf.clearOnAllocation = 0;
 }
 
 void SFXReverbFrame()
@@ -903,8 +1027,18 @@ void SFXReverbFree(void)
 
 
 //reverb2
+
+tNReverb reverb2;
+tSVF lowpass;
+tSVF highpass;
+tSVF bandpass;
+tSVF lowpass2;
+tSVF highpass2;
+tSVF bandpass2;
+
 void SFXReverb2Alloc()
 {
+	leaf.clearOnAllocation = 1;
 	tNReverb_init(&reverb2, 1.0f);
 	tNReverb_setMix(&reverb2, 1.0f);
 	tSVF_init(&lowpass, SVFTypeLowpass, 18000.0f, 0.75f);
@@ -914,6 +1048,7 @@ void SFXReverb2Alloc()
 	tSVF_init(&highpass2, SVFTypeHighpass, 40.0f, 0.75f);
 	tSVF_init(&bandpass2, SVFTypeBandpass, 2000.0f, 1.0f);
 	freeze = 0;
+	leaf.clearOnAllocation = 0;
 }
 
 void SFXReverb2Frame()
@@ -926,6 +1061,7 @@ void SFXReverb2Frame()
 void SFXReverb2Tick(float audioIn)
 {
 	float stereoOuts[2];
+
 	knobParams[0] = smoothedADC[0] * 4.0f;
 	if (!freeze)
 	{
