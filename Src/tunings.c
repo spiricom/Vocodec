@@ -31,7 +31,6 @@ char tuningNames[NUM_TUNINGS][6]= {
 		{"ARIEL3"},
 		{"AUGTET"},
 		{"AWRAAM"},
-		{"BADING"},
 		{"BAGPI1"},
 		{"BAGPI2"},
 		{"BAGPI3"},
@@ -77,7 +76,7 @@ char tuningNames[NUM_TUNINGS][6]= {
 		{"DUDON2"},
 		{"COUNTB"},
 		{"COUNTR"},
-		{"DUDON3"}
+		{"DUDON3"},
 };
 
 		//0 12_TET
@@ -100,7 +99,7 @@ char tuningNames[NUM_TUNINGS][6]= {
 		//17 ariel3.scl                     12  Ariel's 12-tone JI scale
 		//18 augtetj.scl                     6  9/8 C.I. comprised of 11:10:9:8 subharmonic series on 1 and 8:9:10:11 on 16/11
 		//19 awraamoff.scl                  12  Awraamoff Septimal Just (1920)
-		//20 badings1.scl                    9  Henk Badings, harmonic scale, Lydomixolydisch
+
 		//21 bagpipe1.scl                   12  Bulgarian bagpipe tuning
 		//22 bagpipe2.scl                    9  Highland Bagpipe, from Acustica4: 231 (1954) J.M.A Lenihan and S. McNeill
 		//23 bagpipe3.scl                    9  Highland Bagpipe, Allan Chatto, 1991. From Australian Pipe Band College
@@ -172,8 +171,8 @@ float tuningPresets[NUM_TUNINGS][12] = {
 		{0.000000f, 0.110000f, -0.180000f, -0.060000f, -0.360000f, -0.020000f, -0.320000f, 0.010000f, 0.130000f, -0.160000f, -0.040000f, -0.340000f},
 		{0.000000f, -1.000000f, -0.350000f, -1.350000f, -0.530000f, -1.530000f, -0.490000f, -1.490000f, -1.520000f, -2.520000f, -1.480000f, -2.480000f},
 		{0.000000f, 1.030000f, 0.310000f, 0.150000f, -0.140000f, -0.300000f, -1.020000f, 0.010000f, 0.130000f, 0.330000f, -0.320000f, -0.120000f},
-		{0.000000f, 13.030000f, 13.860000f, 12.860000f, 11.860000f, 10.860000f, 9.860000f, 8.860000f, 7.860000f, 6.860000f, 5.860000f, 4.860000f},
-		{0.000000f, -0.340000f, 0.020000f, 0.160000f, -0.010000f, 0.090000f, 0.400000f, 0.060000f, 0.030000f, 0.100000f, 0.110000f, -0.080000f},
+
+
 		{0.000000f, -3.030000f, -2.000000f, -3.000000f, -1.970000f, -1.140000f, -2.140000f, -1.810000f, -0.990000f, -1.990000f, -1.160000f, -0.830000f},
 		{0.000000f, -2.820000f, -2.000000f, -3.000000f, -1.970000f, -1.140000f, -2.140000f, -2.020000f, -0.990000f, -1.990000f, -1.160000f, -0.830000f},
 		{0.000000f, -3.310000f, -2.000000f, -3.000000f, -1.970000f, -1.140000f, -2.140000f, -2.020000f, -0.990000f, -1.990000f, -1.160000f, -1.320000f},

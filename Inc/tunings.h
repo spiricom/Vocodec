@@ -8,7 +8,7 @@
 #ifndef TUNINGS_H_
 #define TUNINGS_H_
 
-#define NUM_TUNINGS 67
+#define NUM_TUNINGS 66
 
 extern float centsDeviation[12];
 extern float tuningPresets[NUM_TUNINGS][12];
