@@ -25,7 +25,7 @@ uint8_t MIDI_RX_Buffer[RX_BUFF_SIZE]__ATTR_RAM_D2; // MIDI reception buffer
 
 uint8_t key, velocity, ctrl, data, sustainInverted;
 
-uint8_t paramvalue[256], firstkey, h;
+uint8_t CCs[128];
 /* Private define ------------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
@@ -97,6 +97,7 @@ void ProcessReceivedMidiDatas(uint32_t myLength)
 				case (0xB0):
 					ctrl = pack.evnt1;
 					data = pack.evnt2;
+					CCs[ctrl] = data;
 					switch(ctrl)
 					{
 						case (0x01):
@@ -175,83 +176,7 @@ void ProcessReceivedMidiDatas(uint32_t myLength)
 	}
 }
 
-void LocalMidiHandler(uint8_t param, uint8_t data)
-{
-	switch(param)
-	{
-		case (0): // pitch wheel
-			break;
-		case (1): // modulation wheel
-			break;
-		case (2): // Tuning
 
-			break;
-		case (3): // Wave Select
-
-			break;
-		case (4): // OSC Mix
-
-			break;
-		case (5): // De-Tune
-
-			break;
-		case (6): // Scale
-
-			break;
-		case (7): // Resonance
-
-			break;
-		case (8): // Pulse Width Value
-
-			break;
-		case (9): // PWM Level
-
-			break;
-		case (10): // VCF Attack
-
-			break;
-		case (11): // VCF Decay
-
-			break;
-		case (12): // VCF Sustain
-
-			break;
-		case (13): // VCF Release
-
-			break;
-		case (14): // VCA Attack
-
-			break;
-		case (15): // VCA Decay
-
-			break;
-		case (16): // VCA Sustain
-
-			break;
-		case (17): // VCA Release
-
-			break;
-		case (18): // VCF Follow Level
-
-			break;
-		case (19): // ENV Follow Level
-
-			break;
-		case (20): // Velocity Select
-
-			break;
-		case (21): // VCF Envelope Level
-
-			break;
-		case (22): // Mod LFO rate
-
-			break;
-		case (23): // Pwm LFO rate
-
-			break;
-	}
-	paramvalue[param] = data;
-}
 
 /*-----------------------------------------------------------------------------*/
 /**
