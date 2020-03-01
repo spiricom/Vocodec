@@ -28,10 +28,10 @@
 #include "rng.h"
 #include "sai.h"
 #include "sdmmc.h"
+#include "tim.h"
 #include "usb_host.h"
 #include "gpio.h"
 #include "fmc.h"
-
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -87,23 +87,24 @@ void SDRAM_Initialization_sequence(void);
   * @brief  The application entry point.
   * @retval int
   */
-int main(void) {
+int main(void)
+{
   /* USER CODE BEGIN 1 */
   MPU_Conf();
   /* USER CODE END 1 */
   
 
-
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
   /* Enable I-Cache---------------------------------------------------------*/
   SCB_EnableICache();
 
   /* Enable D-Cache---------------------------------------------------------*/
   SCB_EnableDCache();
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
   /* USER CODE BEGIN Init */
 
   //disabling I and D cache because they cause issues with the USB initialization when -o3 optimization is on
@@ -126,18 +127,17 @@ int main(void) {
   MX_GPIO_Init();
   MX_BDMA_Init();
   MX_DMA_Init();
-
   MX_FMC_Init();
   MX_ADC1_Init();
   MX_I2C2_Init();
-  //MX_SDMMC1_SD_Init();
-  //MX_FATFS_Init();
+  MX_SDMMC1_SD_Init();
+  MX_FATFS_Init();
   MX_SAI1_Init();
   MX_RNG_Init();
   MX_I2C4_Init();
   MX_USB_HOST_Init();
-
-
+  MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   /// it seems we need to enable caching after setting up the USB Host Controller -
   // otherwise turning on -o3 optimization causes unreliable behavior where it's not set up correctly and never reaches the USB interrupt for connection
@@ -205,6 +205,8 @@ int main(void) {
   OLED_writePreset();
 
   /* USER CODE END 2 */
+ 
+ 
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */

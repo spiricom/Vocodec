@@ -1314,21 +1314,24 @@ void SFXClassicSynthFree(void)
 	tSVF_free(&delayLP);
 }
 
-tCycle FM_sines[6];
-float FM_freqRatios[6] = {1.0f, 1.001f, 0.5f, 3.0f, 4.0f, 5.0f};
-float FM_indices[6] = {200.0f, 100.0f, 80.0f, 300.0f, 400.0f, 900.0f};
-float FM_decays[6] = {1000.0f, 100.0f, 800.0f, 3000.0f, 400.0f, 400.0f};
-tRamp FM_envs[6];
+tCycle FM_sines[NUM_VOC_VOICES][6];
+float FM_freqRatios[6] = {1.0f, 3.0f, 0.5f, 3.0f, 4.0f, 5.0f};
+float FM_indices[6] = {1000.0f, 100.0f, 300.0f, 300.0f, 800.0f, 900.0f};
+float FM_decays[6] = {2000.0f, 400.0f, 800.0f, 3000.0f, 340.0f, 400.0f};
+tADSR FM_envs[NUM_VOC_VOICES][6];
 float feedback_output = 0.0f;
 //FM Rhodes
 void SFXRhodesAlloc()
 {
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
-		tCycle_init(&FM_sines[i]);
-		tRamp_init(&FM_envs[i], FM_decays[i], 1);
+		for (int j = 0; j < 6; j++)
+		{
+			tCycle_init(&FM_sines[i][j]);
+			tADSR_init(&FM_envs[i][j], 7.0f, FM_decays[j], 0.3f, 100.0f);
+		}
 	}
-	tPoly_setNumVoices(&poly, 1);
+	tPoly_setNumVoices(&poly, NUM_VOC_VOICES);
 	setLED_A(numVoices == 1);
 
 }
@@ -1342,44 +1345,51 @@ void SFXRhodesFrame()
 			setLED_A(numVoices == 1);
 		}
 }
+float lastsamp = 0.0f;
+volatile uint8_t checkMe = 0;
 void SFXRhodesTick(float audioIn)
 {
+
+
 	tPoly_tickPitch(&poly);
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
-		tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
-		float myMidiNote = calculateTunedMidiNote(tPoly_getPitch(&poly, i));
-		float myFrequency = LEAF_midiToFrequency(myMidiNote);
-		tCycle_setFreq(&FM_sines[5], myFrequency  * FM_freqRatios[5] + (FM_indices[5] * feedback_output));
-		feedback_output = tCycle_tick(&FM_sines[5]);
-		tCycle_setFreq(&FM_sines[4], myFrequency  * FM_freqRatios[4] + (FM_indices[4] * feedback_output * tRamp_tick(&FM_envs[5])));
-		tCycle_setFreq(&FM_sines[3], myFrequency  * FM_freqRatios[3] + (FM_indices[3] * tCycle_tick(&FM_sines[4]) * tRamp_tick(&FM_envs[4])));
-		tCycle_setFreq(&FM_sines[2], myFrequency  * FM_freqRatios[2] + (FM_indices[2] * tCycle_tick(&FM_sines[3]) * tRamp_tick(&FM_envs[3])));
-		tCycle_setFreq(&FM_sines[1], myFrequency  * FM_freqRatios[1]);
-		tCycle_setFreq(&FM_sines[0], myFrequency  * FM_freqRatios[0] + (FM_indices[0] * tCycle_tick(&FM_sines[1]) * tRamp_tick(&FM_envs[1])));
+		//tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
+		//float myMidiNote = calculateTunedMidiNote(tPoly_getPitch(&poly, i));
+		float myFrequency = freq[i];
+		tCycle_setFreq(&FM_sines[i][5], (myFrequency  * FM_freqRatios[5]) + (FM_indices[5] * feedback_output));
+		feedback_output = tCycle_tick(&FM_sines[i][5]);
+		tCycle_setFreq(&FM_sines[i][4], (myFrequency  * FM_freqRatios[4]) + (FM_indices[4] * feedback_output * tADSR_tick(&FM_envs[i][5])));
+		tCycle_setFreq(&FM_sines[i][3], (myFrequency  * FM_freqRatios[3]) + (FM_indices[3] * tCycle_tick(&FM_sines[i][4]) * tADSR_tick(&FM_envs[i][4])));
+		tCycle_setFreq(&FM_sines[i][2], (myFrequency  * FM_freqRatios[2]) + (FM_indices[2] * tCycle_tick(&FM_sines[i][3]) * tADSR_tick(&FM_envs[i][3])));
+		tCycle_setFreq(&FM_sines[i][1], myFrequency  * FM_freqRatios[1]);
+		tCycle_setFreq(&FM_sines[i][0],( myFrequency  * FM_freqRatios[0]) + (FM_indices[0] * tCycle_tick(&FM_sines[i][1]) * tADSR_tick(&FM_envs[i][1])));
 
 	}
 
-	if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
+	//if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
-		float amplitudeTemp = tRamp_tick(&polyRamp[i]);
+		//float amplitudeTemp = tRamp_tick(&polyRamp[i]);
+		//amplitudeTemp = 1.0f;
 
-
-		sample = tCycle_tick(&FM_sines[2]) * amplitudeTemp * tRamp_tick(&FM_envs[2]);
-		sample += tCycle_tick(&FM_sines[0]) * amplitudeTemp * tRamp_tick(&FM_envs[0]);
+		sample += tCycle_tick(&FM_sines[i][2]) * tADSR_tick(&FM_envs[i][2]);
+		sample += tCycle_tick(&FM_sines[i][0]) * tADSR_tick(&FM_envs[i][0]);
 
 	}
 	sample *= 0.125f;
-
 }
+
 void SFXRhodesFree(void)
 {
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
-		tCycle_free(&FM_sines[i]);
-		tRamp_free(&FM_envs[i]);
+		for (int j = 0; j < 6; j++)
+		{
+			tCycle_free(&FM_sines[i][j]);
+			tADSR_free(&FM_envs[i][j]);
+		}
 	}
 }
 
@@ -1457,7 +1467,17 @@ void noteOn(int key, int velocity)
 		if (chordArray[key%12] > 0) chordArray[key%12]--;
 
 		int voice = tPoly_noteOff(&poly, key);
-		if (voice >= 0) tRamp_setDest(&polyRamp[voice], 0.0f);
+		if (voice >= 0)
+		{
+			tRamp_setDest(&polyRamp[voice], 0.0f);
+			if (currentPreset == Rhodes)
+			{
+				for (int j = 0; j < 6; j++)
+				{
+					tADSR_off(&FM_envs[voice][j]);
+				}
+			}
+		}
 
 		for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 		{
@@ -1465,8 +1485,14 @@ void noteOn(int key, int velocity)
 			{
 				tRamp_setDest(&polyRamp[i], 1.0f);
 				calculateFreq(i);
+
+
 			}
+
+
+
 		}
+
 		setLED_USB(0);
 	}
 	else
@@ -1475,8 +1501,17 @@ void noteOn(int key, int velocity)
 
 
 
-		tPoly_noteOn(&poly, key, velocity);
-
+		int whichVoice = tPoly_noteOn(&poly, key, velocity);
+		if (whichVoice >= 0)
+		{
+			if (currentPreset == Rhodes)
+			{
+				for (int j = 0; j < 6; j++)
+				{
+					tADSR_on(&FM_envs[whichVoice][j], velocity * 0.0078125f);
+				}
+			}
+		}
 		for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 		{
 			if (tPoly_isOn(&poly, i) == 1)
@@ -1486,14 +1521,7 @@ void noteOn(int key, int velocity)
 			}
 		}
 
-		if (currentPreset == Rhodes)
-		{
-			for (int j = 0; j < 6; j++)
-			{
-				tRamp_setVal(&FM_envs[j], 1.0f);
-				tRamp_setDest(&FM_envs[j], 0.0f);
-			}
-		}
+
 		setLED_2(1);
 	}
 }
@@ -1503,7 +1531,18 @@ void noteOff(int key, int velocity)
 	if (chordArray[key%12] > 0) chordArray[key%12]--;
 
 	int voice = tPoly_noteOff(&poly, key);
-	if (voice >= 0) tRamp_setDest(&polyRamp[voice], 0.0f);
+	if (voice >= 0)
+	{
+		tRamp_setDest(&polyRamp[voice], 0.0f);
+		if (currentPreset == Rhodes)
+		{
+			for (int j = 0; j < 6; j++)
+			{
+				tADSR_off(&FM_envs[voice][j]);
+			}
+		}
+	}
+
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
@@ -1511,8 +1550,12 @@ void noteOff(int key, int velocity)
 		{
 			tRamp_setDest(&polyRamp[i], 1.0f);
 			calculateFreq(i);
+
+
 		}
+
 	}
+
 	setLED_2(0);
 }
 

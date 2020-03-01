@@ -43,23 +43,9 @@ void MX_FMC_Init(void)
   hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_2;
   hsdram1.Init.WriteProtection = FMC_SDRAM_WRITE_PROTECTION_DISABLE;
   hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_3;
-  //hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_2;
   hsdram1.Init.ReadBurst = FMC_SDRAM_RBURST_ENABLE;
   hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_0;
   /* SdramTiming */
-  /*
-   * seems like these timings should be right based on data sheet but they are not
-   */
-  /*
-  SdramTiming.LoadToActiveDelay = 2;
-  SdramTiming.ExitSelfRefreshDelay = 9;
-  SdramTiming.SelfRefreshTime = 8;
-  SdramTiming.RowCycleDelay = 8;
-  SdramTiming.WriteRecoveryTime = 5;
-  SdramTiming.RPDelay = 3;
-  SdramTiming.RCDDelay = 3;
-*/
-  // these are from https://www.eevblog.com/forum/microcontrollers/stm32h7-sdram/, which is for a different part number, but they work
   SdramTiming.LoadToActiveDelay = 2;
   SdramTiming.ExitSelfRefreshDelay = 6;
   SdramTiming.SelfRefreshTime = 4;
@@ -67,6 +53,7 @@ void MX_FMC_Init(void)
   SdramTiming.WriteRecoveryTime = 2;
   SdramTiming.RPDelay = 2;
   SdramTiming.RCDDelay = 2;
+
   if (HAL_SDRAM_Init(&hsdram1, &SdramTiming) != HAL_OK)
   {
     Error_Handler( );
