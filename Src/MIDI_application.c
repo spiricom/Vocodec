@@ -16,6 +16,8 @@
 #include "usbh_core.h"
 #include "usbh_MIDI.h"
 #include "usb_host.h"
+#include "sfx.h"
+
 MIDI_ApplicationTypeDef MIDI_Appli_state = MIDI_APPLICATION_READY;
 extern ApplicationTypeDef Appli_state;
 extern USBH_HandleTypeDef hUsbHostFS;
@@ -164,7 +166,7 @@ void ProcessReceivedMidiDatas(uint32_t myLength)
 				case (0xD0): // Mono Aftertouch
 					break;
 				case (0xE0): // Pitch Bend
-					data = pack.evnt2;
+					pitchBend((pack.evnt1) + (pack.evnt2 << 7));
 					break;
 				case (0xF0):
 					break;

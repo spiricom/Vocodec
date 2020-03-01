@@ -17,7 +17,7 @@
 #include "i2c.h"
 #include "gpio.h"
 #include "sfx.h"
-//#include "tim.h"
+#include "tim.h"
 
 //the audio buffers are put in the D2 RAM area because that is a memory location that the DMA has access to.
 int32_t audioOutBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
@@ -304,12 +304,12 @@ float audioTickL(float audioIn)
 
 	float current_env = tEnvelopeFollower_tick(&LED_envelope[0], audioIn);
 	uint16_t audioLEDLevel = LEAF_clip(0, (current_env * 32.0f), 16);
-//	 __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, audioLEDLevel);
+	 __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, audioLEDLevel);
 
 
 	current_env = tEnvelopeFollower_tick(&LED_envelope[1], sample);
 	audioLEDLevel = LEAF_clip(0, (current_env * 32.0f), 15);
-//	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, audioLEDLevel);
+	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, audioLEDLevel);
 
 
 
@@ -376,12 +376,12 @@ float audioTickR(float audioIn)
 
 	float current_env = tEnvelopeFollower_tick(&LED_envelope[2], rightIn);
 	uint16_t audioLEDLevel = LEAF_clip(0, (current_env * 32.0f), 16);
-//	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, audioLEDLevel);
+	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, audioLEDLevel);
 
 
 	current_env = tEnvelopeFollower_tick(&LED_envelope[3], rightOut);
 	audioLEDLevel = LEAF_clip(0, (current_env * 32.0f), 16);
-//	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, audioLEDLevel);
+	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, audioLEDLevel);
 
 
 	return rightOut;

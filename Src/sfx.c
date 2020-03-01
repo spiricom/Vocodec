@@ -85,6 +85,8 @@ void initGlobalSFXObjects()
 
 	tPoly_init(&poly, NUM_VOC_VOICES);
 	tPoly_setPitchGlideActive(&poly, FALSE);
+	tPoly_setBendSamplesPerTick(&poly, 128);
+	tPoly_setBendGlideTime(&poly, 1.0f);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		tRamp_init(&polyRamp[i], 10.0f, 1);
@@ -1344,14 +1346,19 @@ void SFXRhodesFrame()
 			buttonActionsSFX[ButtonA][ActionPress] = 0;
 			setLED_A(numVoices == 1);
 		}
+	tPoly_tickPitch(&poly);
+	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	{
+
+		calculateFreq(i);
+
+	}
+
 }
 float lastsamp = 0.0f;
 volatile uint8_t checkMe = 0;
 void SFXRhodesTick(float audioIn)
 {
-
-
-	tPoly_tickPitch(&poly);
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
@@ -1558,6 +1565,13 @@ void noteOff(int key, int velocity)
 
 	setLED_2(0);
 }
+
+
+void pitchBend(int data)
+{
+	tPoly_setPitchBend(&poly, (data - 8192) * 0.000244140625f);
+}
+
 
 void sustainOff()
 {

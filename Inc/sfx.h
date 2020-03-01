@@ -10,7 +10,7 @@
 #include "audiostream.h"
 #include "ui.h"
 
-#define NUM_VOC_VOICES 6
+#define NUM_VOC_VOICES 8
 #define NUM_OSC_PER_VOICE 3
 #define NUM_VOC_OSC 1
 #define INV_NUM_VOC_VOICES 0.125
@@ -153,6 +153,7 @@ void SFXRhodesFree(void);
 // MIDI FUNCTIONS
 void noteOn(int key, int velocity);
 void noteOff(int key, int velocity);
+void pitchBend(int data);
 void sustainOn(void);
 void sustainOff(void);
 void toggleBypass(void);
