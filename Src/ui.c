@@ -254,10 +254,10 @@ void initModeNames(void)
 
 	modeNames[Rhodes] = "RHODES";
 	shortModeNames[Rhodes] = "RD";
-	modeNamesDetails[Rhodes] = "PRETTY";
-	paramNames[Rhodes][0] = "";
-	paramNames[Rhodes][1] = "";
-	paramNames[Rhodes][2] = "";
+	modeNamesDetails[Rhodes] = "DARK";
+	paramNames[Rhodes][0] = "BRIGHTNESS";
+	paramNames[Rhodes][1] = "TREM AMOUNT";
+	paramNames[Rhodes][2] = "TREM SPEED";
 	paramNames[Rhodes][3] = "";
 	paramNames[Rhodes][4] = "";
 	paramNames[Rhodes][5] = "";

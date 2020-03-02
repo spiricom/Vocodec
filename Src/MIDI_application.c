@@ -56,13 +56,13 @@ void MIDI_Application(void)
 		USBH_MIDI_Stop(&hUsbHostFS);
 	}
 }
-
+volatile midi_package_t pack;
 /*-----------------------------------------------------------------------------*/
 void ProcessReceivedMidiDatas(uint32_t myLength)
 {
 	uint16_t numberOfPackets;
 	uint8_t *ptr = MIDI_RX_Buffer;
-	midi_package_t pack;
+
 
 	numberOfPackets = myLength >> 2; //each USB midi package is 4 bytes long
 

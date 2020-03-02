@@ -1317,28 +1317,38 @@ void SFXClassicSynthFree(void)
 }
 
 tCycle FM_sines[NUM_VOC_VOICES][6];
-float FM_freqRatios[6] = {1.0f, 3.0001f, 0.4999f, 3.0f, 4.0f, 5.0f};
-float FM_indices[6] = {1000.0f, 100.0f, 300.0f, 300.0f, 800.0f, 900.0f};
-float FM_decays[6] = {2000.0f, 300.0f, 800.0f, 3000.0f, 340.0f, 50.0f};
-tEnvelope leakers[NUM_VOC_VOICES][2];
+
+
+float FM_freqRatios[4][6] = {{1.0f, 1.0001f, 1.0f, 3.0f, 1.0f, 1.0f}, {2.0f, 2.0001f, .99999f, 3.0f, 5.0f, 8.0f}, {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}, {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}};
+float FM_indices[4][6] = {{1016.0f, 0.0f, 120.0f, 32.0f, 208.0f, 168.0f}, {100.0f, 100.0f, 300.0f, 300.0f, 10.0f, 5.0f}, {50.0f, 128.0f, 1016.0f, 528.0f, 16.0f, 0.0f}, {500.0f, 50.0f, 500.0f, 10.0f,0.0f, 0.0f}};
+float FM_decays[4][6] = {{64.0f, 2000.0f, 3000.0f, 3400.0f, 3200.0f, 3100.0f}, {2000.0f, 300.0f, 800.0f, 3000.0f, 340.0f, 50.0f}, {584.0f, 1016.0f, 1016.0f, 1000.0f, 600.0f, 500.0f}, {20.0f, 50.0f, 50.0f, 10.0f, 30.0f, 20.0f}};
+float FM_sustains[4][6] = {{0.9f, 0.9f, 0.9f, 0.9f, 0.7f, 0.7f}, {0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f},{0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f}, {0.3f, 0.3f, 0.3f, 0.3f, 0.0f, 0.0f}};
+float FM_attacks[4][6] = {{7.0f, 7.0f, 7.0f, 7.0f, 7.0f, 7.0f}, {7.0f, 7.0f, 7.0f, 7.0f, 7.0f,7.0f},{1000.0f, 680.0f, 250.0f, 1300.0f, 750.0f, 820.0f}, {10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f}};
 tADSR FM_envs[NUM_VOC_VOICES][6];
 float feedback_output = 0.0f;
 
 tCycle tremolo;
 
+int Rsound = 0;
+
+char* soundNames[4];
+
 //FM Rhodes
 void SFXRhodesAlloc()
 {
+	soundNames[0] = "DARK  ";
+	soundNames[1] = "LIGHT ";
+	soundNames[2] = "BELL  ";
+	soundNames[3] = "BASS  ";
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		for (int j = 0; j < 6; j++)
 		{
 			tCycle_init(&FM_sines[i][j]);
-			tADSR_init(&FM_envs[i][j], 7.0f, FM_decays[j], 0.3f, 100.0f);
-
+			tADSR_init(&FM_envs[i][j], FM_attacks[Rsound][j], FM_decays[Rsound][j], FM_sustains[Rsound][j], 100.0f);
+			tADSR_setLeakFactor(&FM_envs[i][j], 0.999985f);
 		}
-		tEnvelope_init(&leakers[i][0], 7.0f, 4000.0f, 0);
-		tEnvelope_init(&leakers[i][1], 7.0f, 4000.0f, 0);
+
 	}
 	tCycle_init(&tremolo);
 	tCycle_setFreq(&tremolo, 3.0f);
@@ -1349,18 +1359,74 @@ void SFXRhodesAlloc()
 void SFXRhodesFrame()
 {
 	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
+	{
+		numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
+		tPoly_setNumVoices(&poly, numVoices);
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
+		setLED_A(numVoices == 1);
+	}
+
+	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
+	{
+		Rsound = (Rsound + 1 ) % 4; // switch to another rhodes preset sound
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
+		OLEDclearLine(SecondLine);
+		OLEDwriteString(soundNames[Rsound], 6, 0, SecondLine);
+		for (int i = 0; i < NUM_VOC_VOICES; i++)
 		{
-			numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
-			tPoly_setNumVoices(&poly, numVoices);
-			buttonActionsSFX[ButtonA][ActionPress] = 0;
-			setLED_A(numVoices == 1);
+			for (int j = 0; j < 6; j++)
+			{
+				tADSR_setAttack(&FM_envs[i][j], FM_attacks[Rsound][j]);
+				tADSR_setDecay(&FM_envs[i][j], FM_sustains[Rsound][j]);
+				tADSR_setSustain(&FM_envs[i][j], FM_decays[Rsound][j]);
+			}
 		}
+
+	}
+
 	tPoly_tickPitch(&poly);
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
-
 		calculateFreq(i);
+	}
 
+	if (CCs[24] > 0)
+	{
+		for (int i = 0; i < NUM_VOC_VOICES; i++)
+		{
+			for (int j = 0; j < 6; j++)
+			{
+				FM_decays[Rsound][j] = (CCs[j+1] * 8.0f);
+				tADSR_setDecay(&FM_envs[i][j], FM_decays[Rsound][j]);
+			}
+		}
+	}
+	else if (CCs[25] > 0)
+	{
+		for (int i = 0; i < 6; i++)
+		{
+			FM_freqRatios[Rsound][i] = (float) ((uint8_t) (CCs[i+1] * 0.094488188976378f) + 1);
+		}
+	}
+
+	else if (CCs[26] > 0)
+	{
+		for (int i = 0; i < 6; i++)
+		{
+			FM_indices[Rsound][i] = (CCs[i+1] * 8.0f);
+		}
+	}
+
+	else if (CCs[27] > 0)
+	{
+		for (int i = 0; i < NUM_VOC_VOICES; i++)
+		{
+			for (int j = 0; j < 6; j++)
+			{
+				FM_sustains[Rsound][j] = (CCs[j+1] * 0.007874015748031f );
+				tADSR_setSustain(&FM_envs[i][j], FM_sustains[Rsound][j]);
+			}
+		}
 	}
 
 }
@@ -1371,22 +1437,21 @@ void SFXRhodesTick(float audioIn)
 	knobParams[0] = smoothedADC[0] * 2.0f; //brightness
 
 	knobParams[1] = smoothedADC[1];  //tremolo amount
-	knobParams[2] = smoothedADC[2] * 12.0f;  //tremolo speed
+	knobParams[2] = smoothedADC[2] * 8.0f;  //tremolo speed
 
 	tCycle_setFreq(&tremolo, knobParams[2]);
 
+
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
-		//tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
-		//float myMidiNote = calculateTunedMidiNote(tPoly_getPitch(&poly, i));
 		float myFrequency = freq[i];
-		tCycle_setFreq(&FM_sines[i][5], (myFrequency  * FM_freqRatios[5]) + (FM_indices[5] * feedback_output * knobParams[0]));
+		tCycle_setFreq(&FM_sines[i][5], (myFrequency  * FM_freqRatios[Rsound][5]) + (FM_indices[Rsound][5] * feedback_output * knobParams[0]));
 		feedback_output = tCycle_tick(&FM_sines[i][5]);
-		tCycle_setFreq(&FM_sines[i][4], (myFrequency  * FM_freqRatios[4]) + (FM_indices[4] * feedback_output * knobParams[0] * tADSR_tick(&FM_envs[i][5])));
-		tCycle_setFreq(&FM_sines[i][3], (myFrequency  * FM_freqRatios[3]) + (FM_indices[3] * knobParams[0] * tCycle_tick(&FM_sines[i][4]) * tADSR_tick(&FM_envs[i][4])));
-		tCycle_setFreq(&FM_sines[i][2], (myFrequency  * FM_freqRatios[2]) + (FM_indices[2] * knobParams[0] * tCycle_tick(&FM_sines[i][3]) * tADSR_tick(&FM_envs[i][3])));
-		tCycle_setFreq(&FM_sines[i][1], myFrequency  * FM_freqRatios[1]);
-		tCycle_setFreq(&FM_sines[i][0],( myFrequency  * FM_freqRatios[0]) + (FM_indices[0] * knobParams[0] * tCycle_tick(&FM_sines[i][1]) * tADSR_tick(&FM_envs[i][1])));
+		tCycle_setFreq(&FM_sines[i][4], (myFrequency  * FM_freqRatios[Rsound][4]) + (FM_indices[Rsound][4] * feedback_output * knobParams[0] * tADSR_tick(&FM_envs[i][5])));
+		tCycle_setFreq(&FM_sines[i][3], (myFrequency  * FM_freqRatios[Rsound][3]) + (FM_indices[Rsound][3] * knobParams[0] * tCycle_tick(&FM_sines[i][4]) * tADSR_tick(&FM_envs[i][4])));
+		tCycle_setFreq(&FM_sines[i][2], (myFrequency  * FM_freqRatios[Rsound][2]) + (FM_indices[Rsound][2] * knobParams[0] * tCycle_tick(&FM_sines[i][3]) * tADSR_tick(&FM_envs[i][3])));
+		tCycle_setFreq(&FM_sines[i][1], myFrequency  * FM_freqRatios[Rsound][1]);
+		tCycle_setFreq(&FM_sines[i][0],( myFrequency  * FM_freqRatios[Rsound][0]) + (FM_indices[Rsound][0] * knobParams[0] * tCycle_tick(&FM_sines[i][1]) * tADSR_tick(&FM_envs[i][1])));
 
 	}
 
@@ -1396,14 +1461,15 @@ void SFXRhodesTick(float audioIn)
 		//float amplitudeTemp = tRamp_tick(&polyRamp[i]);
 		//amplitudeTemp = 1.0f;
 
-		sample += tCycle_tick(&FM_sines[i][2]) * tADSR_tick(&FM_envs[i][2]) * tEnvelope_tick(&leakers[i][0]);
-		sample += tCycle_tick(&FM_sines[i][0]) * tADSR_tick(&FM_envs[i][0]) * tEnvelope_tick(&leakers[i][1]);
+		sample += tCycle_tick(&FM_sines[i][2]) * tADSR_tick(&FM_envs[i][2]);
+		sample += tCycle_tick(&FM_sines[i][0]) * tADSR_tick(&FM_envs[i][0]);
 
 	}
 	float tremoloSignal = ((tCycle_tick(&tremolo) * 0.5f) + 0.5f) * knobParams[1];
 	sample = sample * (tremoloSignal + (1.0f - knobParams[1]));
 
 	sample *= 0.125f;
+	rightOut = sample;
 	//sample = LEAF_shaper(sample, 1.0f);
 	//sample *= 0.8f;
 }
@@ -1418,8 +1484,6 @@ void SFXRhodesFree(void)
 			tADSR_free(&FM_envs[i][j]);
 		}
 
-		tEnvelope_free(&leakers[i][0]);
-		tEnvelope_free(&leakers[i][1]);
 	}
 	tCycle_free(&tremolo);
 
@@ -1544,8 +1608,6 @@ void noteOn(int key, int velocity)
 					tADSR_on(&FM_envs[whichVoice][j], velocity * 0.0078125f);
 
 				}
-				tEnvelope_on(&leakers[whichVoice][0], 1.0f);
-				tEnvelope_on(&leakers[whichVoice][1], 1.0f);
 			}
 		}
 		for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
