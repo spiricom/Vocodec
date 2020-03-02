@@ -221,10 +221,10 @@ void audioFrame(uint16_t buffer_offset)
 				if (previousPreset != PresetNil)
 				{
 					// do this if you want to save knob values when changing off a preset
-//					for (int i = 0; i < NUM_ADC_CHANNELS; i++)
-//					{
-//						presetKnobValues[previousPreset][i] = smoothedADC[i];
-//					}
+					for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+					{
+						presetKnobValues[previousPreset][i] = smoothedADC[i];
+					}
 					freeFunctions[previousPreset]();
 				}
 				else

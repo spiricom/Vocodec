@@ -266,7 +266,6 @@ void SFXVocoderTick(float audioIn)
 	else
 	{
 		tPoly_tickPitch(&poly);
-		knobParams[0] = smoothedADC[0]; //vocoder volume
 
 		for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 		{
@@ -274,6 +273,7 @@ void SFXVocoderTick(float audioIn)
 		}
 		sample *= tRamp_tick(&comp);
 	}
+	knobParams[0] = smoothedADC[0]; //vocoder volume
 	sample *= knobParams[0];
 	sample = tTalkbox_tick(&vocoder, sample, audioIn);
 	sample = tanhf(sample);
@@ -471,12 +471,17 @@ void SFXAutotuneFrame()
 	{
 		calculateFreq(i);
 	}
+	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	{
+		tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
+	}
+
 	if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
 }
 
 void SFXAutotuneTick(float audioIn)
 {
-	knobParams[0] = 0.75f + (smoothedADC[0] * 0.22f);
+	knobParams[0] = 0.5f + (smoothedADC[0] * 0.47f);
 	tAutotune_setFidelityThreshold(&autotunePoly, knobParams[0]);
 	tPoly_tickPitch(&poly);
 
@@ -1299,7 +1304,6 @@ void SFXClassicSynthFrame()
 	{
 
 	}
-	tPoly_tickPitch(&poly);
 
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
@@ -1331,7 +1335,7 @@ void SFXClassicSynthFrame()
 void SFXClassicSynthTick(float audioIn)
 {
 
-
+	tPoly_tickPitch(&poly);
 	//if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
@@ -1435,7 +1439,6 @@ void SFXRhodesFrame()
 
 	}
 
-	tPoly_tickPitch(&poly);
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
 		calculateFreq(i);
@@ -1484,6 +1487,7 @@ void SFXRhodesFrame()
 
 void SFXRhodesTick(float audioIn)
 {
+	tPoly_tickPitch(&poly);
 	knobParams[0] = smoothedADC[0] * 2.0f; //brightness
 
 	knobParams[1] = smoothedADC[1];  //tremolo amount
