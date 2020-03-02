@@ -1236,7 +1236,14 @@ void SFXLivingStringSynthFree(void)
 }
 
 
-//17 living string
+// CLASSIC SUBTRACTIVE SYNTH
+
+float synthMidiNotes[NUM_VOC_VOICES];
+tEfficientSVF synthLP[NUM_VOC_VOICES];
+uint16_t filtFreqs[NUM_VOC_VOICES];
+
+uint8_t synthKnobMode = 0;
+
 void SFXClassicSynthAlloc()
 {
 	tPoly_setNumVoices(&poly, numVoices);
@@ -1245,62 +1252,102 @@ void SFXClassicSynthAlloc()
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
 			tSawtooth_initToPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
-			synthDetune[i][j] = (leaf.random() * 0.2f) - 0.1f;
+			synthDetune[i][j] = ((leaf.random() * 0.5f) - 0.25f);
 		}
+
+		tEfficientSVF_initToPool(&synthLP[i], SVFTypeLowpass, 6000.0f, 0.8f, &smallPool);
 	}
 
-	tSVF_init(&delayLP, SVFTypeLowpass, 6000.0f, 1.0f);
+
 	setLED_A(numVoices == 1);
 }
 
 void SFXClassicSynthFrame()
 {
 	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
-		{
-			numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
-			tPoly_setNumVoices(&poly, numVoices);
-			buttonActionsSFX[ButtonA][ActionPress] = 0;
-			setLED_A(numVoices == 1);
-		}
+	{
+		numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
+		tPoly_setNumVoices(&poly, numVoices);
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
+		setLED_A(numVoices == 1);
+	}
+	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
+	{
+		synthKnobMode = (synthKnobMode + 1) % 3;
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
+		setLED_B(synthKnobMode == 1);
+		setLED_C(synthKnobMode == 2);
+	}
 
-}
+	if (synthKnobMode == 0)
+	{
+		knobParams[0] = smoothedADC[0]; //synth volume
+		knobParams[1] = smoothedADC[1] * 4096.0f; //lowpass cutoff
+		knobParams[2] = smoothedADC[2]; //keyfollow filter cutoff
+		knobParams[3] = smoothedADC[3]; //detune
+		knobParams[4] = (smoothedADC[4] * 2.0f) + 0.4f; //filter Q
+	}
+	else if (synthKnobMode == 1)
+	{
+		knobParams[0] = smoothedADC[0]; //synth volume
+		knobParams[1] = smoothedADC[1] * 4096.0f; //lowpass cutoff
+		knobParams[2] = smoothedADC[2]; //keyfollow filter cutoff
+		knobParams[3] = smoothedADC[3]; //detune
+		knobParams[4] = (smoothedADC[4] * 2.0f) + 0.4f; //filter Q
+	}
+	else if (synthKnobMode == 2)
+	{
 
-//make detuning more independant - maybe based on midi instead of frequency
-//add filters
-//waveshaper?
-
-void SFXClassicSynthTick(float audioIn)
-{
+	}
 	tPoly_tickPitch(&poly);
-	knobParams[0] = smoothedADC[0]; //synth volume
-	knobParams[1] = faster_mtof(smoothedADC[1] * 128.0f); //lowpass cutoff
 
-	knobParams[2] = smoothedADC[2]; //detune
+
+	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	{
+		float myMidiNote = calculateTunedMidiNote(tPoly_getPitch(&poly, i));
+
+		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
+		{
+			tSawtooth_setFreq(&osc[i + (j*NUM_VOC_VOICES)], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * knobParams[3])));
+		}
+		float keyFollowFilt = myMidiNote * knobParams[2] * 64.0f;
+		float tempFreq = knobParams[1] +  keyFollowFilt;
+		tempFreq = LEAF_clip(0.0f, tempFreq, 4095.0f);
+
+		filtFreqs[i] = (uint16_t) tempFreq;
+		tEfficientSVF_setQ(&synthLP[i],knobParams[4]);
+
+	}
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
 		tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
-		float myMidiNote = calculateTunedMidiNote(tPoly_getPitch(&poly, i));
-		float myFrequency = LEAF_midiToFrequency(myMidiNote);
-		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
-		{
-			//tSawtooth_setFreq(&osc[i + (j*NUM_VOC_VOICES)], LEAF_midiToFrequency(myMidiNote + synthDetune[i][j]));
-			tSawtooth_setFreq(&osc[i + (j*NUM_VOC_VOICES)], myFrequency * (1.0f + (synthDetune[i][j] * knobParams[2] * 0.1f)));
-		}
 	}
 
-	if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
+}
+
+//waveshaper?
+
+void SFXClassicSynthTick(float audioIn)
+{
+
+
+	//if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
 		float amplitudeTemp = tRamp_tick(&polyRamp[i]);
-		sample += tSawtooth_tick(&osc[i]) * amplitudeTemp;
-		sample += tSawtooth_tick(&osc[i + NUM_VOC_VOICES]) * amplitudeTemp;
-		sample += tSawtooth_tick(&osc[i] + (NUM_VOC_VOICES * 2)) * amplitudeTemp;
+		float tempSample = 0.0f;
+
+		tempSample += tSawtooth_tick(&osc[i]) * amplitudeTemp;
+		tempSample += tSawtooth_tick(&osc[i + NUM_VOC_VOICES]) * amplitudeTemp;
+		tempSample += tSawtooth_tick(&osc[i] + (NUM_VOC_VOICES * 2)) * amplitudeTemp;
+		tEfficientSVF_setFreq(&synthLP[i], filtFreqs[i]);
+		sample += tEfficientSVF_tick(&synthLP[i], tempSample);
 	}
 	sample *= 0.125f * knobParams[0];
-	tSVF_setFreq(&delayLP, knobParams[1]);
-	sample = tSVF_tick(&delayLP, sample);
+
+
 	sample = tanhf(sample);
 }
 
@@ -1312,18 +1359,21 @@ void SFXClassicSynthFree(void)
 		{
 			tSawtooth_freeFromPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 		}
+		tEfficientSVF_freeFromPool(&synthLP[i], &smallPool);
 	}
-	tSVF_free(&delayLP);
+
 }
 
+
+
+///FM RHODES ELECTRIC PIANO SYNTH
+
 tCycle FM_sines[NUM_VOC_VOICES][6];
-
-
-float FM_freqRatios[4][6] = {{1.0f, 1.0001f, 1.0f, 3.0f, 1.0f, 1.0f}, {2.0f, 2.0001f, .99999f, 3.0f, 5.0f, 8.0f}, {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}, {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}};
-float FM_indices[4][6] = {{1016.0f, 0.0f, 120.0f, 32.0f, 208.0f, 168.0f}, {100.0f, 100.0f, 300.0f, 300.0f, 10.0f, 5.0f}, {50.0f, 128.0f, 1016.0f, 528.0f, 16.0f, 0.0f}, {500.0f, 50.0f, 500.0f, 10.0f,0.0f, 0.0f}};
-float FM_decays[4][6] = {{64.0f, 2000.0f, 3000.0f, 3400.0f, 3200.0f, 3100.0f}, {2000.0f, 300.0f, 800.0f, 3000.0f, 340.0f, 50.0f}, {584.0f, 1016.0f, 1016.0f, 1000.0f, 600.0f, 500.0f}, {20.0f, 50.0f, 50.0f, 10.0f, 30.0f, 20.0f}};
-float FM_sustains[4][6] = {{0.9f, 0.9f, 0.9f, 0.9f, 0.7f, 0.7f}, {0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f},{0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f}, {0.3f, 0.3f, 0.3f, 0.3f, 0.0f, 0.0f}};
-float FM_attacks[4][6] = {{7.0f, 7.0f, 7.0f, 7.0f, 7.0f, 7.0f}, {7.0f, 7.0f, 7.0f, 7.0f, 7.0f,7.0f},{1000.0f, 680.0f, 250.0f, 1300.0f, 750.0f, 820.0f}, {10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f}};
+float FM_freqRatios[4][6] = {{1.0f, 1.0001f, 1.0f, 3.0f, 1.0f, 1.0f}, {2.0f, 2.0001f, .99999f, 3.0f, 5.0f, 8.0f},  {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}, {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}};
+float FM_indices[4][6] = {{1016.0f, 0.0f, 120.0f, 32.0f, 208.0f, 168.0f}, {100.0f, 100.0f, 300.0f, 300.0f, 10.0f, 5.0f}, {500.0f, 50.0f, 500.0f, 10.0f,0.0f, 0.0f}, {50.0f, 128.0f, 1016.0f, 528.0f, 4.0f, 0.0f}};
+float FM_decays[4][6] = {{64.0f, 2000.0f, 3000.0f, 3400.0f, 3200.0f, 3100.0f}, {2000.0f, 300.0f, 800.0f, 3000.0f, 340.0f, 50.0f}, {20.0f, 50.0f, 50.0f, 10.0f, 30.0f, 20.0f}, {584.0f, 1016.0f, 1016.0f, 1000.0f, 600.0f, 500.0f}};
+float FM_sustains[4][6] = {{0.9f, 0.9f, 0.9f, 0.9f, 0.7f, 0.7f}, {0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f}, {0.3f, 0.3f, 0.3f, 0.3f, 0.0f, 0.0f},{0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f}};
+float FM_attacks[4][6] = {{7.0f, 7.0f, 7.0f, 7.0f, 7.0f, 7.0f}, {7.0f, 7.0f, 7.0f, 7.0f, 7.0f,7.0f}, {10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f},{1000.0f, 680.0f, 250.0f, 1300.0f, 750.0f, 820.0f}};
 tADSR FM_envs[NUM_VOC_VOICES][6];
 float feedback_output = 0.0f;
 
@@ -1338,22 +1388,23 @@ void SFXRhodesAlloc()
 {
 	soundNames[0] = "DARK  ";
 	soundNames[1] = "LIGHT ";
-	soundNames[2] = "BELL  ";
-	soundNames[3] = "BASS  ";
+	soundNames[2] = "BASS  ";
+	soundNames[3] = "PAD   ";
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		for (int j = 0; j < 6; j++)
 		{
-			tCycle_init(&FM_sines[i][j]);
-			tADSR_init(&FM_envs[i][j], FM_attacks[Rsound][j], FM_decays[Rsound][j], FM_sustains[Rsound][j], 100.0f);
-			tADSR_setLeakFactor(&FM_envs[i][j], 0.999985f);
+			tCycle_initToPool(&FM_sines[i][j], &smallPool);
+			tADSR_initToPool(&FM_envs[i][j], FM_attacks[Rsound][j], FM_decays[Rsound][j], FM_sustains[Rsound][j], 100.0f, &smallPool);
+			tADSR_setLeakFactor(&FM_envs[i][j], 0.999987f);
 		}
-
 	}
-	tCycle_init(&tremolo);
+	tCycle_initToPool(&tremolo, &smallPool);
 	tCycle_setFreq(&tremolo, 3.0f);
 	tPoly_setNumVoices(&poly, NUM_VOC_VOICES);
 	setLED_A(numVoices == 1);
+	OLEDclearLine(SecondLine);
+	OLEDwriteString(soundNames[Rsound], 6, 0, SecondLine);
 
 }
 void SFXRhodesFrame()
@@ -1430,8 +1481,7 @@ void SFXRhodesFrame()
 	}
 
 }
-float lastsamp = 0.0f;
-volatile uint8_t checkMe = 0;
+
 void SFXRhodesTick(float audioIn)
 {
 	knobParams[0] = smoothedADC[0] * 2.0f; //brightness
@@ -1480,12 +1530,12 @@ void SFXRhodesFree(void)
 	{
 		for (int j = 0; j < 6; j++)
 		{
-			tCycle_free(&FM_sines[i][j]);
-			tADSR_free(&FM_envs[i][j]);
+			tCycle_freeFromPool(&FM_sines[i][j],&smallPool);
+			tADSR_freeFromPool(&FM_envs[i][j],&smallPool);
 		}
 
 	}
-	tCycle_free(&tremolo);
+	tCycle_freeFromPool(&tremolo,&smallPool);
 
 }
 
@@ -1560,38 +1610,9 @@ void noteOn(int key, int velocity)
 {
 	if (!velocity)
 	{
-		if (chordArray[key%12] > 0) chordArray[key%12]--;
-
-		int voice = tPoly_noteOff(&poly, key);
-		if (voice >= 0)
-		{
-			tRamp_setDest(&polyRamp[voice], 0.0f);
-			if (currentPreset == Rhodes)
-			{
-				for (int j = 0; j < 6; j++)
-				{
-					tADSR_off(&FM_envs[voice][j]);
-				}
-
-			}
-		}
-
-		for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
-		{
-			if (tPoly_isOn(&poly, i) == 1)
-			{
-				tRamp_setDest(&polyRamp[i], 1.0f);
-				calculateFreq(i);
-
-
-			}
-
-
-
-		}
-
-		setLED_USB(0);
+		noteOff(key, velocity);
 	}
+
 	else
 	{
 		chordArray[key%12]++;
@@ -1610,6 +1631,8 @@ void noteOn(int key, int velocity)
 				}
 			}
 		}
+
+		/*
 		for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 		{
 			if (tPoly_isOn(&poly, i) == 1)
@@ -1619,7 +1642,7 @@ void noteOn(int key, int velocity)
 			}
 		}
 
-
+*/
 		setLED_2(1);
 	}
 }
@@ -1631,7 +1654,7 @@ void noteOff(int key, int velocity)
 	int voice = tPoly_noteOff(&poly, key);
 	if (voice >= 0)
 	{
-		tRamp_setDest(&polyRamp[voice], 0.0f);
+		//tRamp_setDest(&polyRamp[voice], 0.0f);
 		if (currentPreset == Rhodes)
 		{
 			for (int j = 0; j < 6; j++)
@@ -1641,7 +1664,7 @@ void noteOff(int key, int velocity)
 		}
 	}
 
-
+/*
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
 		if (tPoly_isOn(&poly, i) == 1)
@@ -1653,8 +1676,11 @@ void noteOff(int key, int velocity)
 		}
 
 	}
-
-	setLED_2(0);
+	*/
+	if (tPoly_getNumActiveVoices(&poly) < 1)
+	{
+		setLED_2(0);
+	}
 }
 
 

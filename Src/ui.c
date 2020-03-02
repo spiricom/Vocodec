@@ -245,8 +245,8 @@ void initModeNames(void)
 	modeNamesDetails[ClassicSynth] = "VCO+VCF";
 	paramNames[ClassicSynth][0] = "VOLUME";
 	paramNames[ClassicSynth][1] = "LOWPASS";
-	paramNames[ClassicSynth][2] = "";
-	paramNames[ClassicSynth][3] = "";
+	paramNames[ClassicSynth][2] = "KEYFOLLOW";
+	paramNames[ClassicSynth][3] = "DETUNE";
 	paramNames[ClassicSynth][4] = "";
 	paramNames[ClassicSynth][5] = "";
 	paramNames[ClassicSynth][NUM_ADC_CHANNELS + ButtonA] = "POLY MONO";
@@ -658,6 +658,11 @@ char* UILivingStringButtons(VocodecButton button, ButtonAction action)
 char* UILivingStringSynthButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
+	if (buttonActionsUI[ButtonA][ActionPress] == 1)
+	{
+		writeString = (numVoices > 1) ? "POLY" : "MONO";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
 	return writeString;
 }
 
@@ -675,5 +680,10 @@ char* UIClassicSynthButtons(VocodecButton button, ButtonAction action)
 char* UIRhodesButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
+	if (buttonActionsUI[ButtonA][ActionPress] == 1)
+	{
+		writeString = (numVoices > 1) ? "POLY" : "MONO";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
 	return writeString;
 }
