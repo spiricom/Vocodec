@@ -96,7 +96,7 @@ float glideTimeAuto = 5.0f;
 
 
 
-BOOL frameCompleted = TRUE;
+volatile BOOL frameCompleted = TRUE;
 
 BOOL bufferCleared = TRUE;
 
