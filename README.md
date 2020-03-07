@@ -1,2 +1,4 @@
-# Genera_H7_rev3
-Genera repository for the rev3 boards (summer 2019) STM32H743
+# Vocodec repository
+Repository of code for the Snyderphonics Vocodec vocal processor unit.
+requires LEAF as a submodule.
+
