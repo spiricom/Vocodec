@@ -247,7 +247,7 @@ void initModeNames(void)
 	paramNames[ClassicSynth][1] = "LOWPASS";
 	paramNames[ClassicSynth][2] = "KEYFOLLOW";
 	paramNames[ClassicSynth][3] = "DETUNE";
-	paramNames[ClassicSynth][4] = "";
+	paramNames[ClassicSynth][4] = "FILTER Q";
 	paramNames[ClassicSynth][5] = "";
 	paramNames[ClassicSynth][NUM_ADC_CHANNELS + ButtonA] = "POLY MONO";
 	paramNames[ClassicSynth][NUM_ADC_CHANNELS + ButtonB] = "";
@@ -256,8 +256,8 @@ void initModeNames(void)
 	shortModeNames[Rhodes] = "RD";
 	modeNamesDetails[Rhodes] = "DARK";
 	paramNames[Rhodes][0] = "BRIGHTNESS";
-	paramNames[Rhodes][1] = "TREM AMOUNT";
-	paramNames[Rhodes][2] = "TREM SPEED";
+	paramNames[Rhodes][1] = "TREM DEPTH";
+	paramNames[Rhodes][2] = "TREM RATE";
 	paramNames[Rhodes][3] = "";
 	paramNames[Rhodes][4] = "";
 	paramNames[Rhodes][5] = "";

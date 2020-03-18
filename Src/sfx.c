@@ -1312,7 +1312,7 @@ void SFXClassicSynthFrame()
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSawtooth_setFreq(&osc[i + (j*NUM_VOC_VOICES)], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * knobParams[3])));
+			tSawtooth_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * knobParams[3])));
 		}
 		float keyFollowFilt = myMidiNote * knobParams[2] * 64.0f;
 		float tempFreq = knobParams[1] +  keyFollowFilt;
@@ -1342,14 +1342,17 @@ void SFXClassicSynthTick(float audioIn)
 	{
 		float amplitudeTemp = tRamp_tick(&polyRamp[i]);
 		float tempSample = 0.0f;
-
-		tempSample += tSawtooth_tick(&osc[i]) * amplitudeTemp;
-		tempSample += tSawtooth_tick(&osc[i + NUM_VOC_VOICES]) * amplitudeTemp;
-		tempSample += tSawtooth_tick(&osc[i] + (NUM_VOC_VOICES * 2)) * amplitudeTemp;
+		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
+		{
+			tempSample += tSawtooth_tick(&osc[(i * NUM_OSC_PER_VOICE) + j]) * amplitudeTemp;
+		}
+//		tempSample += tSawtooth_tick(&osc[i]) * amplitudeTemp;
+//		tempSample += tSawtooth_tick(&osc[i + NUM_VOC_VOICES]) * amplitudeTemp;
+//		tempSample += tSawtooth_tick(&osc[i] + (NUM_VOC_VOICES * 2)) * amplitudeTemp;
 		tEfficientSVF_setFreq(&synthLP[i], filtFreqs[i]);
 		sample += tEfficientSVF_tick(&synthLP[i], tempSample);
 	}
-	sample *= 0.125f * knobParams[0];
+	sample *= INV_NUM_OSC_PER_VOICE * knobParams[0];
 
 
 	sample = tanhf(sample);

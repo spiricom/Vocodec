@@ -11,10 +11,14 @@
 #include "ui.h"
 
 #define NUM_VOC_VOICES 8
-#define NUM_OSC_PER_VOICE 3
-#define NUM_VOC_OSC 1
 #define INV_NUM_VOC_VOICES 0.125
+
+#define NUM_VOC_OSC 1
 #define INV_NUM_VOC_OSC 1
+
+#define NUM_OSC_PER_VOICE 8
+#define INV_NUM_OSC_PER_VOICE 0.125
+
 #define NUM_AUTOTUNE 4
 #define NUM_RETUNE 1
 #define OVERSAMPLER_RATIO 8
