@@ -18,6 +18,7 @@ typedef enum _VocodecPresetType
 	AutotuneMono,
 	AutotunePoly,
 	SamplerButtonPress,
+	SamplerKeyboard,
 	SamplerAutoGrab,
 	Distortion,
 	Wavefolder,
@@ -98,6 +99,7 @@ char* UIPitchShiftButtons(VocodecButton button, ButtonAction action);
 char* UINeartuneButtons(VocodecButton button, ButtonAction action);
 char* UIAutotuneButtons(VocodecButton button, ButtonAction action);
 char* UISamplerBPButtons(VocodecButton button, ButtonAction action);
+char* UISamplerKButtons(VocodecButton button, ButtonAction action);
 char* UISamplerAutoButtons(VocodecButton button, ButtonAction action);
 char* UIDistortionButtons(VocodecButton button, ButtonAction action);
 char* UIWaveFolderButtons(VocodecButton button, ButtonAction action);

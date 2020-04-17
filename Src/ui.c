@@ -132,6 +132,18 @@ void initModeNames(void)
 	paramNames[SamplerButtonPress][NUM_ADC_CHANNELS + ButtonA] = "";
 	paramNames[SamplerButtonPress][NUM_ADC_CHANNELS + ButtonB] = "";
 
+	modeNames[SamplerKeyboard] = "KEYSAMPLER";
+	shortModeNames[SamplerKeyboard] = "KS";
+	modeNamesDetails[SamplerKeyboard] = "A:REC B:EDIT";
+	paramNames[SamplerKeyboard][0] = "START";
+	paramNames[SamplerKeyboard][1] = "END";
+	paramNames[SamplerKeyboard][2] = "SPEED";
+	paramNames[SamplerKeyboard][3] = "CROSSFADE";
+	paramNames[SamplerKeyboard][4] = "";
+	paramNames[SamplerKeyboard][5] = "";
+	paramNames[SamplerKeyboard][NUM_ADC_CHANNELS + ButtonA] = "";
+	paramNames[SamplerKeyboard][NUM_ADC_CHANNELS + ButtonB] = "";
+
 	modeNames[SamplerAutoGrab] = "AUTOSAMPLE";
 	shortModeNames[SamplerAutoGrab] = "AS";
 	modeNamesDetails[SamplerAutoGrab] = "";
@@ -561,8 +573,8 @@ char* UISamplerBPButtons(VocodecButton button, ButtonAction action)
 	if (buttonActionsUI[ButtonA][ActionHoldContinuous])
 	{
 		OLEDclearLine(SecondLine);
-		OLEDwriteFloat(sampleLength, 0, SecondLine);
-		OLEDwriteString("RECORDING", 9, 48, SecondLine);
+		OLEDwriteString("RECORDING", 9, 0, SecondLine);
+		OLEDwriteFloat(sampleLength, 84, SecondLine);
 		buttonActionsUI[ButtonA][ActionHoldContinuous] = 0;
 	}
 	if (buttonActionsUI[ButtonA][ActionRelease])
@@ -571,6 +583,35 @@ char* UISamplerBPButtons(VocodecButton button, ButtonAction action)
 		OLEDwriteFloat(sampleLength, 0, SecondLine);
 		OLEDwriteString(samplePlaying ? "PLAYING" : "STOPPED", 7, 48, SecondLine);
 		buttonActionsUI[ButtonA][ActionRelease] = 0;
+	}
+	return writeString;
+}
+
+char* UISamplerKButtons(VocodecButton button, ButtonAction action)
+{
+	char* writeString = "";
+
+	if (buttonActionsUI[ButtonA][ActionHoldContinuous])
+	{
+		OLEDclearLine(SecondLine);
+		OLEDwriteString("REC:", 4, 0, SecondLine);
+		OLEDwritePitch(recordingSamplerKey + LOWEST_SAMPLER_KEY, OLEDgetCursor(), SecondLine, false);
+		OLEDwriteFloat(recSampleLength, 72, SecondLine);
+		buttonActionsUI[ButtonA][ActionHoldContinuous] = 0;
+	}
+	if (((buttonActionsUI[ButtonA][ActionRelease] || buttonActionsUI[ButtonB][ActionPress]) ||
+		 (buttonActionsUI[ButtonDown][ActionPress] || buttonActionsUI[ButtonUp][ActionPress])) ||
+		(button == ButtonUp && action == ActionPress))
+	{
+		OLEDclearLine(SecondLine);
+		OLEDwriteString("SEL:", 4, 0, SecondLine);
+		OLEDwritePitch(currentSamplerKey + LOWEST_SAMPLER_KEY, OLEDgetCursor(), SecondLine, false);
+		OLEDwriteString("EDIT:", 5, 60, SecondLine);
+		OLEDwritePitch(editingSamplerKey + LOWEST_SAMPLER_KEY, OLEDgetCursor(), SecondLine, false);
+		buttonActionsUI[ButtonA][ActionRelease] = 0;
+		buttonActionsUI[ButtonB][ActionPress] = 0;
+		buttonActionsUI[ButtonDown][ActionPress] = 0;
+		buttonActionsUI[ButtonUp][ActionPress] = 0;
 	}
 	return writeString;
 }

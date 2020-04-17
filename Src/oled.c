@@ -69,6 +69,7 @@ void initUIFunctionPointers(void)
 	buttonActionFunctions[AutotuneMono] = UINeartuneButtons;
 	buttonActionFunctions[AutotunePoly] = UIAutotuneButtons;
 	buttonActionFunctions[SamplerButtonPress] = UISamplerBPButtons;
+	buttonActionFunctions[SamplerKeyboard] = UISamplerKButtons;
 	buttonActionFunctions[SamplerAutoGrab] = UISamplerAutoButtons;
 	buttonActionFunctions[Distortion] = UIDistortionButtons;
 	buttonActionFunctions[Wavefolder] = UIWaveFolderButtons;
@@ -397,9 +398,9 @@ void OLEDwriteIntLine(uint32_t myNumber, uint8_t numDigits, OLEDLine line)
 	OLEDwriteLine(oled_buffer, len, line);
 }
 
-void OLEDwritePitch(float midi, uint8_t startCursor, OLEDLine line)
+void OLEDwritePitch(float midi, uint8_t startCursor, OLEDLine line, uint8_t showCents)
 {
-	int len = OLEDparsePitch(oled_buffer, midi);
+	int len = OLEDparsePitch(oled_buffer, midi, showCents);
 
 	OLEDwriteString(oled_buffer, len, startCursor, line);
 }
@@ -411,9 +412,9 @@ void OLEDwritePitchClass(float midi, uint8_t startCursor, OLEDLine line)
 	OLEDwriteString(oled_buffer, len, startCursor, line);
 }
 
-void OLEDwritePitchLine(float midi, OLEDLine line)
+void OLEDwritePitchLine(float midi, OLEDLine line, uint8_t showCents)
 {
-	int len = OLEDparsePitch(oled_buffer, midi);
+	int len = OLEDparsePitch(oled_buffer, midi, showCents);
 
 	OLEDwriteLine(oled_buffer, len, line);
 }
@@ -502,4 +503,9 @@ void OLEDdrawFloatArray(float* input, float min, float max, uint8_t size, uint8_
 		GFXwritePixel(&theGFX, startCursor + size - 1 - ((i + offset) % size), baseline + h, 1);
 //		GFXwriteFastVLine(&theGFX, startCursor + size - ((i + offset) % size), center - (h/2), 1, 1);
 	}
+}
+
+int16_t OLEDgetCursor()
+{
+	return GFXgetCursorX(&theGFX);
 }

@@ -111,7 +111,7 @@ void   GFXwrite(GFX* myGfx, uint8_t);
 
 int OLEDparseInt(char* buffer, uint32_t myNumber, uint8_t numDigits);
 
-int OLEDparsePitch(char* buffer, float midi);
+int OLEDparsePitch(char* buffer, float midi, uint8_t showCents);
 
 int OLEDparsePitchClass(char* buffer, float midi);
 

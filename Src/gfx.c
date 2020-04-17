@@ -858,7 +858,7 @@ int OLEDparseInt(char* buffer, uint32_t myNumber, uint8_t numDigits)
 	return numDigits;
 }
 
-int OLEDparsePitch(char* buffer, float midi)
+int OLEDparsePitch(char* buffer, float midi, uint8_t showCents)
 {
 	int pclass, octave, note, neg = 0; float offset;
 
@@ -882,16 +882,20 @@ int OLEDparsePitch(char* buffer, float midi)
 
 	OLEDparseInt(&buffer[idx++], octave, 1);
 
-	buffer[idx++] = ' ';
+	if (showCents)
+	{
+		buffer[idx++] = ' ';
 
-	if (neg == 1)
-		buffer[idx++] = '-';
-	else
-		buffer[idx++] = '+';
+		if (neg == 1)
+			buffer[idx++] = '-';
+		else
+			buffer[idx++] = '+';
 
-	OLEDparseInt(&buffer[idx], (uint32_t) (offset * 100.0f), 2);
+		OLEDparseInt(&buffer[idx], (uint32_t) (offset * 100.0f), 2);
+		idx += 2;
+	}
 
-	return idx+2;
+	return idx;
 }
 
 int OLEDparsePitchClass(char* buffer, float midi)

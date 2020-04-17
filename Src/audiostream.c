@@ -414,6 +414,11 @@ void initFunctionPointers(void)
 	tickFunctions[SamplerButtonPress] = SFXSamplerBPTick;
 	freeFunctions[SamplerButtonPress] = SFXSamplerBPFree;
 
+	allocFunctions[SamplerKeyboard] = SFXSamplerKAlloc;
+	frameFunctions[SamplerKeyboard] = SFXSamplerKFrame;
+	tickFunctions[SamplerKeyboard] = SFXSamplerKTick;
+	freeFunctions[SamplerKeyboard] = SFXSamplerKFree;
+
 	allocFunctions[SamplerAutoGrab] = SFXSamplerAutoAlloc;
 	frameFunctions[SamplerAutoGrab] = SFXSamplerAutoFrame;
 	tickFunctions[SamplerAutoGrab] = SFXSamplerAutoTick;

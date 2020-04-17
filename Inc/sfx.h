@@ -24,6 +24,9 @@
 #define OVERSAMPLER_RATIO 8
 #define OVERSAMPLER_HQ FALSE
 
+#define NUM_SAMPLER_KEYS 76
+#define LOWEST_SAMPLER_KEY 28
+
 extern float presetKnobValues[PresetNil][NUM_ADC_CHANNELS];
 extern uint8_t knobActive[NUM_ADC_CHANNELS];
 
@@ -38,7 +41,7 @@ extern uint32_t freeze;
 
 void initGlobalSFXObjects();
 
-//1 vocoder internal poly
+// vocoder
 extern uint8_t numVoices;
 extern uint8_t internalExternal;
 
@@ -47,13 +50,13 @@ void SFXVocoderFrame();
 void SFXVocoderTick(float audioIn);
 void SFXVocoderFree(void);
 
-//4 pitch shift
+// pitch shift
 void SFXPitchShiftAlloc();
 void SFXPitchShiftFrame();
 void SFXPitchShiftTick(float audioIn);
 void SFXPitchShiftFree(void);
 
-//5 neartune
+// neartune
 extern uint8_t autotuneChromatic;
 
 void SFXNeartuneAlloc();
@@ -61,13 +64,13 @@ void SFXNeartuneFrame();
 void SFXNeartuneTick(float audioIn);
 void SFXNeartuneFree(void);
 
-//6 autotune
+// autotune
 void SFXAutotuneAlloc();
 void SFXAutotuneFrame();
 void SFXAutotuneTick(float audioIn);
 void SFXAutotuneFree(void);
 
-//7 sampler - button press
+// sampler - button press
 extern uint8_t samplePlaying;
 
 void SFXSamplerBPAlloc();
@@ -75,8 +78,19 @@ void SFXSamplerBPFrame();
 void SFXSamplerBPTick(float audioIn);
 void SFXSamplerBPFree(void);
 
+// sampler - keyboard
+extern int currentSamplerKey;
+extern int recordingSamplerKey;
+extern int editingSamplerKey;
+extern float recSampleLength;
+extern float editSampleLength;
 
-//8 sampler - auto ch1
+void SFXSamplerKAlloc();
+void SFXSamplerKFrame();
+void SFXSamplerKTick(float audioIn);
+void SFXSamplerKFree(void);
+
+// sampler - auto ch1
 extern uint8_t triggerChannel;
 
 void SFXSamplerAutoAlloc();
@@ -84,7 +98,7 @@ void SFXSamplerAutoFrame();
 void SFXSamplerAutoTick(float audioIn);
 void SFXSamplerAutoFree(void);
 
-//10 distortion tanh
+// distortion tanh
 extern uint8_t distortionMode;
 
 void SFXDistortionAlloc();
@@ -92,21 +106,21 @@ void SFXDistortionFrame();
 void SFXDistortionTick(float audioIn);
 void SFXDistortionFree(void);
 
-//12 distortion wave folder
+// distortion wave folder
 void SFXWaveFolderAlloc();
 void SFXWaveFolderFrame();
 void SFXWaveFolderTick(float audioIn);
 void SFXWaveFolderFree(void);
 
 
-//13 bitcrusher
+// bitcrusher
 void SFXBitcrusherAlloc();
 void SFXBitcrusherFrame();
 void SFXBitcrusherTick(float audioIn);
 void SFXBitcrusherFree(void);
 
 
-//14 delay
+// delay
 extern int delayShaper;
 
 void SFXDelayAlloc();
@@ -115,39 +129,39 @@ void SFXDelayTick(float audioIn);
 void SFXDelayFree(void);
 
 
-//15 reverb
+// reverb
 void SFXReverbAlloc();
 void SFXReverbFrame();
 void SFXReverbTick(float audioIn);
 void SFXReverbFree(void);
 
-//16 reverb2
+// reverb2
 void SFXReverb2Alloc();
 void SFXReverb2Frame();
 void SFXReverb2Tick(float audioIn);
 void SFXReverb2Free(void);
 
-//17 living string
+// living string
 void SFXLivingStringAlloc();
 void SFXLivingStringFrame();
 void SFXLivingStringTick(float audioIn);
 void SFXLivingStringFree(void);
 
-//17 living string
+// living string synth
 void SFXLivingStringSynthAlloc();
 void SFXLivingStringSynthFrame();
 void SFXLivingStringSynthTick(float audioIn);
 void SFXLivingStringSynthFree(void);
 
 
-//17 living string
+// classic synth
 void SFXClassicSynthAlloc();
 void SFXClassicSynthFrame();
 void SFXClassicSynthTick(float audioIn);
 void SFXClassicSynthFree(void);
 
 
-//17 living string
+// rhodes
 void SFXRhodesAlloc();
 void SFXRhodesFrame();
 void SFXRhodesTick(float audioIn);

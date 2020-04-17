@@ -72,11 +72,11 @@ void OLEDwriteInt(uint32_t myNumber, uint8_t numDigits, uint8_t startCursor, OLE
 
 void OLEDwriteIntLine(uint32_t myNumber, uint8_t numDigits, OLEDLine line);
 
-void OLEDwritePitch(float midi, uint8_t startCursor, OLEDLine line);
+void OLEDwritePitch(float midi, uint8_t startCursor, OLEDLine line, uint8_t showCents);
 
 void OLEDwritePitchClass(float midi, uint8_t startCursor, OLEDLine line);
 
-void OLEDwritePitchLine(float midi, OLEDLine line);
+void OLEDwritePitchLine(float midi, OLEDLine line, uint8_t showCents);
 
 void OLEDwriteFixedFloat(float input, uint8_t numDigits, uint8_t numDecimal, uint8_t startCursor, OLEDLine line);
 
@@ -86,5 +86,6 @@ void OLEDwriteFloat(float input, uint8_t startCursor, OLEDLine line);
 
 void OLEDdrawFloatArray(float* input, float min, float max, uint8_t size, uint8_t offset, uint8_t startCursor, OLEDLine line);
 
+int16_t OLEDgetCursor(void);
 #endif /* OLED_H_ */
 
