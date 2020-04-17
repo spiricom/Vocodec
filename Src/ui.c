@@ -591,23 +591,19 @@ char* UISamplerKButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
 
-	if (buttonActionsUI[ButtonA][ActionHoldContinuous])
-	{
-		OLEDclearLine(SecondLine);
-		OLEDwriteString("REC:", 4, 0, SecondLine);
-		OLEDwritePitch(recordingSamplerKey + LOWEST_SAMPLER_KEY, OLEDgetCursor(), SecondLine, false);
-		OLEDwriteFloat(recSampleLength, 72, SecondLine);
-		buttonActionsUI[ButtonA][ActionHoldContinuous] = 0;
-	}
-	if (((buttonActionsUI[ButtonA][ActionRelease] || buttonActionsUI[ButtonB][ActionPress]) ||
+	// should try to clean this up somehow...
+	if ( buttonActionsUI[ButtonC][ActionRelease] ||
+		(((buttonActionsUI[ButtonA][ActionRelease] || buttonActionsUI[ButtonB][ActionPress]) ||
 		 (buttonActionsUI[ButtonDown][ActionPress] || buttonActionsUI[ButtonUp][ActionPress])) ||
-		(button == ButtonUp && action == ActionPress))
+		((button == ButtonUp && action == ActionPress) || buttonActionsUI[ButtonA][ActionHoldContinuous])))
+		// ^ these are some dummy values that get sent in sfx.c noteOn and noteOff so we can trigger this
 	{
 		OLEDclearLine(SecondLine);
-		OLEDwriteString("SEL:", 4, 0, SecondLine);
-		OLEDwritePitch(currentSamplerKey + LOWEST_SAMPLER_KEY, OLEDgetCursor(), SecondLine, false);
-		OLEDwriteString("EDIT:", 5, 60, SecondLine);
+		OLEDwritePitch(recordingSamplerKey + LOWEST_SAMPLER_KEY, 0, SecondLine, false);
+		OLEDwriteFloat(recSampleLength, OLEDgetCursor(), SecondLine);
+		OLEDwriteString("EDT:", 5, 72, SecondLine);
 		OLEDwritePitch(editingSamplerKey + LOWEST_SAMPLER_KEY, OLEDgetCursor(), SecondLine, false);
+		buttonActionsUI[ButtonC][ActionRelease] = 0;
 		buttonActionsUI[ButtonA][ActionRelease] = 0;
 		buttonActionsUI[ButtonB][ActionPress] = 0;
 		buttonActionsUI[ButtonDown][ActionPress] = 0;
