@@ -303,12 +303,12 @@ float audioTickL(float audioIn)
 	}
 
 	float current_env = tEnvelopeFollower_tick(&LED_envelope[0], audioIn);
-	uint16_t audioLEDLevel = LEAF_clip(0, (current_env * 32.0f), 16);
+	uint16_t audioLEDLevel = LEAF_clip(0, (current_env * 4096.0f), 1024);
 	 __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, audioLEDLevel);
 
 
 	current_env = tEnvelopeFollower_tick(&LED_envelope[1], sample);
-	audioLEDLevel = LEAF_clip(0, (current_env * 32.0f), 15);
+	audioLEDLevel = LEAF_clip(0, (current_env *  4096.0f), 1024);
 	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, audioLEDLevel);
 
 
@@ -375,12 +375,12 @@ float audioTickR(float audioIn)
 
 
 	float current_env = tEnvelopeFollower_tick(&LED_envelope[2], rightIn);
-	uint16_t audioLEDLevel = LEAF_clip(0, (current_env * 32.0f), 16);
+	uint16_t audioLEDLevel = LEAF_clip(0, (current_env * 4096.0f), 1024);
 	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, audioLEDLevel);
 
 
 	current_env = tEnvelopeFollower_tick(&LED_envelope[3], rightOut);
-	audioLEDLevel = LEAF_clip(0, (current_env * 32.0f), 16);
+	audioLEDLevel = LEAF_clip(0, (current_env  * 4096.0f), 1024);
 	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, audioLEDLevel);
 
 
