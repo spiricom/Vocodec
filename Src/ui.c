@@ -159,11 +159,11 @@ void initModeNames(void)
 	modeNames[Distortion] = "DISTORTION";
 	shortModeNames[Distortion] = "DT";
 	modeNamesDetails[Distortion] = "";
-	paramNames[Distortion][0] = "GAIN";
-	paramNames[Distortion][1] = "";
-	paramNames[Distortion][2] = "";
-	paramNames[Distortion][3] = "";
-	paramNames[Distortion][4] = "";
+	paramNames[Distortion][0] = "PRE GAIN";
+	paramNames[Distortion][1] = "TILT";
+	paramNames[Distortion][2] = "MID GAIN";
+	paramNames[Distortion][3] = "MID FREQ";
+	paramNames[Distortion][4] = "POST GAIN";
 	paramNames[Distortion][5] = "";
 	paramNames[Distortion][NUM_ADC_CHANNELS + ButtonA] = "MODE";
 	paramNames[Distortion][NUM_ADC_CHANNELS + ButtonB] = "";

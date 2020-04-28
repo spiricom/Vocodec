@@ -82,7 +82,7 @@ int chromaticArray[12] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
 int lockArray[12];
 float freq[NUM_VOC_VOICES];
-float oversamplerArray[OVERSAMPLER_RATIO];
+float oversamplerArray[MAX_OVERSAMPLER_RATIO];
 
 
 void initGlobalSFXObjects()
@@ -154,11 +154,11 @@ void initGlobalSFXObjects()
 	presetKnobValues[SamplerAutoGrab][4] = 0.0f;
 	presetKnobValues[SamplerAutoGrab][5] = 0.0f;
 
-	presetKnobValues[Distortion][0] = 0.25f; // gain
-	presetKnobValues[Distortion][1] = 0.0f;
-	presetKnobValues[Distortion][2] = 0.0f;
-	presetKnobValues[Distortion][3] = 0.0f;
-	presetKnobValues[Distortion][4] = 0.0f;
+	presetKnobValues[Distortion][0] = .25f; // pre gain
+	presetKnobValues[Distortion][1] = 0.5f; // tilt (low and high shelfs, opposing gains
+	presetKnobValues[Distortion][2] = 0.5f; // mid gain
+	presetKnobValues[Distortion][3] = 0.5f; // mid freq
+	presetKnobValues[Distortion][4] = 0.25f; //post gain
 	presetKnobValues[Distortion][5] = 0.0f;
 
 	presetKnobValues[Wavefolder][0] = 0.25f; // gain
@@ -831,12 +831,23 @@ void SFXSamplerAutoFree(void)
 
 //10 distortion tanh
 uint8_t distortionMode = 0;
-
+tDiodeFilter dFilt;
+tVZFilter shelf1;
+tVZFilter shelf2;
+tVZFilter bell1;
+int distOS_ratio = 2;
 void SFXDistortionAlloc()
 {
 	leaf.clearOnAllocation = 1;
-	tOversampler_init(&oversampler, OVERSAMPLER_RATIO, OVERSAMPLER_HQ);
+	tOversampler_init(&oversampler, distOS_ratio, OVERSAMPLER_HQ);
+	tVZFilter_initToPool(&shelf1, Lowshelf, 80.0f, 6.0f, &smallPool);
+	tVZFilter_initToPool(&shelf2, Highshelf, 12000.0f, 6.0f, &smallPool);
+	tVZFilter_initToPool(&bell1, Bell, 1000.0f, 1.9f, &smallPool);
+	tVZFilter_setSampleRate(&shelf1, leaf.sampleRate * distOS_ratio);
+	tVZFilter_setSampleRate(&shelf2, leaf.sampleRate * distOS_ratio);
+	tVZFilter_setSampleRate(&bell1, leaf.sampleRate * distOS_ratio);
 	setLED_A(distortionMode);
+
 	leaf.clearOnAllocation = 0;
 }
 
@@ -848,6 +859,15 @@ void SFXDistortionFrame()
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(distortionMode);
 	}
+	knobParams[1] = (smoothedADC[1] * 30.0f) - 15.0f;
+	knobParams[2] = (smoothedADC[2] * 34.0f) - 17.0f;
+	knobParams[3] = faster_mtof(smoothedADC[3] * 77.0f + 42.0f);
+
+	tVZFilter_setGain(&shelf1, fastdbtoa(-1.0f * knobParams[1]));
+	tVZFilter_setGain(&shelf2, fastdbtoa(knobParams[1]));
+	tVZFilter_setFreq(&bell1, knobParams[3]);
+	tVZFilter_setGain(&bell1, fastdbtoa(knobParams[2]));
+
 }
 
 void SFXDistortionTick(float audioIn)
@@ -855,16 +875,20 @@ void SFXDistortionTick(float audioIn)
 	//knob 0 = gain
 	sample = audioIn;
 	knobParams[0] = ((smoothedADC[0] * 20.0f) + 1.0f); // 15.0f
+	knobParams[4] = smoothedADC[4]; // 15.0f
 	sample = sample * knobParams[0];
 
 	tOversampler_upsample(&oversampler, sample, oversamplerArray);
-	for (int i = 0; i < OVERSAMPLER_RATIO; i++)
+	for (int i = 0; i < distOS_ratio; i++)
 	{
 		if (distortionMode > 0) oversamplerArray[i] = LEAF_shaper(oversamplerArray[i], 1.0f);
 		else oversamplerArray[i] = tanhf(oversamplerArray[i]);
+		oversamplerArray[i] = tVZFilter_tick(&shelf1, oversamplerArray[i]); //put it through the low shelf
+		oversamplerArray[i] = tVZFilter_tick(&shelf2, oversamplerArray[i]); // now put that result through the high shelf
+		oversamplerArray[i] = tVZFilter_tick(&bell1, oversamplerArray[i]); // now add a bell (or peaking eq) filter
+		oversamplerArray[i] = tanhf(oversamplerArray[i] * smoothedADC[4]);
 	}
 	sample = tOversampler_downsample(&oversampler, oversamplerArray);
-	sample *= .65f; // .75f
 	rightOut = sample;
 
 	//sample = tOversampler_tick(&oversampler, sample, &tanhf);
@@ -873,83 +897,114 @@ void SFXDistortionTick(float audioIn)
 void SFXDistortionFree(void)
 {
 	tOversampler_free(&oversampler);
+	tVZFilter_freeFromPool(&shelf1, &smallPool);
+	tVZFilter_freeFromPool(&shelf2, &smallPool);
+	tVZFilter_freeFromPool(&bell1, &smallPool);
 }
 
 //12 distortion wave folder
+
+
+int foldMode = 0;
+
+
 void SFXWaveFolderAlloc()
 {
 	leaf.clearOnAllocation = 1;
-	tLockhartWavefolder_init(&wavefolder1);
-	tLockhartWavefolder_init(&wavefolder2);
-	tLockhartWavefolder_init(&wavefolder3);
-	tLockhartWavefolder_init(&wavefolder4);
-	tHighpass_init(&wfHP, 20.0f);
+	tLockhartWavefolder_initToPool(&wavefolder1, &smallPool);
+	tLockhartWavefolder_initToPool(&wavefolder2, &smallPool);
+	tHighpass_initToPool(&wfHP, 10.0f, &smallPool);
 	tOversampler_init(&oversampler, 2, FALSE);
+	setLED_A(foldMode);
 	leaf.clearOnAllocation = 0;
 }
 
 void SFXWaveFolderFrame()
 {
+	if (buttonActionsSFX[ButtonA][ActionPress])
+	{
+		foldMode = !foldMode;
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
+		setLED_A(foldMode);
+	}
+
+	//knobParams[3] = (smoothedADC[3] * 2.0f) - 1.0f;
 }
 
 void SFXWaveFolderTick(float audioIn)
 {
 	//knob 0 = gain
 	sample = audioIn;
-	knobParams[0] = (smoothedADC[0] * 20.0f) + 1.0f;
+
+	knobParams[0] = (smoothedADC[0] * 2.0f);
 
 	knobParams[1] = (smoothedADC[1] * 2.0f) - 1.0f;
 
 	knobParams[2] = (smoothedADC[2] * 2.0f) - 1.0f;
-
-	//knobParams[3] = (smoothedADC[3] * 2.0f) - 1.0f;
-
 	float gain = knobParams[0];
 
 
-	sample = sample * gain * 0.33f;
-	sample = sample + knobParams[1];
+	//sample = sample * gain * 0.33f;
 
-	tOversampler_upsample(&oversampler, sample, oversamplerArray);
-	for (int i = 0; i < 2; i++)
+	sample = sample * gain;
+	//sample = sample + knobParams[1];
+	if (foldMode == 0)
 	{
-		oversamplerArray[i] = tLockhartWavefolder_tick(&wavefolder1, oversamplerArray[i]);
-		//sample = sample * gain;
-		oversamplerArray[i] = sample + knobParams[2];
-		oversamplerArray[i] = tLockhartWavefolder_tick(&wavefolder2, oversamplerArray[i]);
-		//oversamplerArray[i] = sample + knobParams[3];
-		//sample *= .6f;
-		//oversamplerArray[i] = tLockhartWavefolder_tick(&wavefolder3, oversamplerArray[i]);
-		//sample = tLockhartWavefolder_tick(&wavefolder4, sample);
-		oversamplerArray[i] *= .8f;
-		oversamplerArray[i] = tanhf(oversamplerArray[i]);
+		tOversampler_upsample(&oversampler, sample, oversamplerArray);
+		for (int i = 0; i < 2; i++)
+		{
+			oversamplerArray[i] = sample + knobParams[1];
+			oversamplerArray[i] *= knobParams[0] * 2.0f;
+			oversamplerArray[i] = LEAF_tanh(oversamplerArray[i]);
+			//oversamplerArray[i] *= knobParams[0] * 1.5f;
+
+			oversamplerArray[i] = tLockhartWavefolder_tick(&wavefolder1, oversamplerArray[i]);
+			//oversamplerArray[i] = tLockhartWavefolder_tick(&wavefolder2, oversamplerArray[i]);
+			//sample = sample * gain;
+
+			//oversamplerArray[i] = tLockhartWavefolder_tick(&wavefolder2, oversamplerArray[i]);
+			//oversamplerArray[i] = sample + knobParams[3];
+			//sample *= .6f;
+			//oversamplerArray[i] = tLockhartWavefolder_tick(&wavefolder3, oversamplerArray[i]);
+			//sample = tLockhartWavefolder_tick(&wavefolder4, sample);
+			//oversamplerArray[i] *= .8f;
+			oversamplerArray[i] = LEAF_tanh(oversamplerArray[i]);
+		}
+		sample = tHighpass_tick(&wfHP, tOversampler_downsample(&oversampler, oversamplerArray));
+		rightOut = sample;
 	}
-	sample = tHighpass_tick(&wfHP, tOversampler_downsample(&oversampler, oversamplerArray));
-	rightOut = sample;
+	else
+	{
 
-	/*
-	sample = tLockhartWavefolder_tick(&wavefolder1, sample);
-	//sample = sample * gain;
-	sample = sample + knobParams[2];
-	sample = tLockhartWavefolder_tick(&wavefolder2, sample);
-	sample = sample + knobParams[3];
-	//sample *= .6f;
-	sample = tLockhartWavefolder_tick(&wavefolder3, sample);
-	//sample = tLockhartWavefolder_tick(&wavefolder4, sample);
-	sample *= .8f;
-	sample = tanhf(sample);
-	rightOut = sample;
+		sample = sample + knobParams[1];
+		sample *= knobParams[0] * 2.0f;
+		sample = LEAF_tanh(sample);
+		//oversamplerArray[i] *= knobParams[0] * 1.5f;
 
-	*/
+		sample = tLockhartWavefolder_tick(&wavefolder1, sample);
+
+
+
+		sample = sample + knobParams[2];
+		sample *= knobParams[0] * 2.0f;
+		sample = LEAF_tanh(sample);
+		//oversamplerArray[i] *= knobParams[0] * 1.5f;
+
+		sample = tLockhartWavefolder_tick(&wavefolder2, sample);
+
+		sample = tOversampler_tick(&oversampler, sample, &LEAF_tanh);
+		tHighpass_tick(&wfHP, sample);
+		//sample *= 0.99f;
+		rightOut = sample;
+	}
+
 }
 
 void SFXWaveFolderFree(void)
 {
-	tLockhartWavefolder_free(&wavefolder1);
-	tLockhartWavefolder_free(&wavefolder2);
-	tLockhartWavefolder_free(&wavefolder3);
-	tLockhartWavefolder_free(&wavefolder4);
-	tHighpass_free(&wfHP);
+	tLockhartWavefolder_freeFromPool(&wavefolder1, &smallPool);
+	tLockhartWavefolder_freeFromPool(&wavefolder2, &smallPool);
+	tHighpass_freeFromPool(&wfHP, &smallPool);
 	tOversampler_free(&oversampler);
 }
 
@@ -980,8 +1035,8 @@ void SFXBitcrusherTick(float audioIn)
 	tCrusher_setOperation (&crush, smoothedADC[3]);
 	tCrusher_setOperation (&crush2, smoothedADC[3]);
 	knobParams[4] = smoothedADC[4] + 1.0f;
-	sample = tCrusher_tick(&crush, tanhf(audioIn * (smoothedADC[4] + 1.0f))) * .9f;
-	rightOut = tCrusher_tick(&crush2, tanhf(rightIn * (smoothedADC[4] + 1.0f))) * .9f;
+	sample = tCrusher_tick(&crush, tanhf(audioIn * (smoothedADC[4]))) * .98f;
+	rightOut = tCrusher_tick(&crush2, tanhf(rightIn * (smoothedADC[4]))) * .98f;
 
 }
 
