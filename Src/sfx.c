@@ -701,14 +701,18 @@ void SFXSamplerKTick(float audioIn)
 	tSampler_setRate(&keySampler[currentSamplerKey], samplerRate);
 	tSampler_setCrossfadeLength(&keySampler[currentSamplerKey], crossfadeLength);
 
+
 	tPoly_tickPitch(&poly);
 	for (int i = 0; i < tPoly_getNumVoices(&poly); ++i)
 	{
-		int key = (int)tPoly_getPitch(&poly, i) - LOWEST_SAMPLER_KEY;
-		if (0 <= key && key < NUM_SAMPLER_KEYS)
+		if (tPoly_isOn(&poly, i) > 0)
 		{
-			tBuffer_tick(&keyBuff[key], audioIn);
-			sample += tSampler_tick(&keySampler[key]);
+			int key = (int)tPoly_getPitch(&poly, i) - LOWEST_SAMPLER_KEY;
+			if (0 <= key && key < NUM_SAMPLER_KEYS)
+			{
+				tBuffer_tick(&keyBuff[key], audioIn);
+				sample += tSampler_tick(&keySampler[key]);
+			}
 		}
 	}
 
