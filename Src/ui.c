@@ -134,7 +134,7 @@ void initModeNames(void)
 
 	modeNames[SamplerKeyboard] = "KEYSAMPLER";
 	shortModeNames[SamplerKeyboard] = "KS";
-	modeNamesDetails[SamplerKeyboard] = "A:REC B:EDIT";
+	modeNamesDetails[SamplerKeyboard] = "A OR KEY TO REC";
 	paramNames[SamplerKeyboard][0] = "START";
 	paramNames[SamplerKeyboard][1] = "END";
 	paramNames[SamplerKeyboard][2] = "SPEED";
@@ -521,6 +521,30 @@ void writeCurrentPresetToFlash(void)
 	}
 }
 
+void resetKnobValues(void)
+{
+	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+	{
+		knobActive[i] = 0;
+		floatADCUI[i] = -1.0f;
+		tRamp_setVal(&adc[i], presetKnobValues[currentPreset][i]);
+		tRamp_setDest(&adc[i], presetKnobValues[currentPreset][i]);
+		smoothedADC[i] = presetKnobValues[currentPreset][i];
+	}
+}
+
+void setKnobValues(float* values)
+{
+	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+	{
+		knobActive[i] = 0;
+		floatADCUI[i] = -1.0f;
+		tRamp_setVal(&adc[i], values[i]);
+		tRamp_setDest(&adc[i], values[i]);
+		smoothedADC[i] = values[i];
+	}
+}
+
 char* UIVocoderButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
@@ -592,22 +616,20 @@ char* UISamplerKButtons(VocodecButton button, ButtonAction action)
 	char* writeString = "";
 
 	// should try to clean this up somehow...
-	if ( buttonActionsUI[ButtonC][ActionRelease] ||
-		(((buttonActionsUI[ButtonA][ActionRelease] || buttonActionsUI[ButtonB][ActionPress]) ||
+	if (((buttonActionsUI[ButtonA][ActionRelease] || buttonActionsUI[ButtonB][ActionPress]) ||
 		 (buttonActionsUI[ButtonDown][ActionPress] || buttonActionsUI[ButtonUp][ActionPress])) ||
-		((button == ButtonUp && action == ActionPress) || buttonActionsUI[ButtonA][ActionHoldContinuous])))
-		// ^ these are some dummy values that get sent in sfx.c noteOn and noteOff so we can trigger this
+		 (buttonActionsUI[ButtonC][ActionHoldContinuous] || buttonActionsUI[ButtonA][ActionHoldContinuous]))
+		// ^ these are some dummy values that get set in sfx.c frame so we can trigger this based on midi
 	{
 		OLEDclearLine(SecondLine);
-		OLEDwritePitch(recordingSamplerKey + LOWEST_SAMPLER_KEY, 0, SecondLine, false);
-		OLEDwriteFloat(recSampleLength, OLEDgetCursor(), SecondLine);
-		OLEDwriteString("EDT:", 5, 72, SecondLine);
-		OLEDwritePitch(editingSamplerKey + LOWEST_SAMPLER_KEY, OLEDgetCursor(), SecondLine, false);
-		buttonActionsUI[ButtonC][ActionRelease] = 0;
+		OLEDwritePitch(currentSamplerKey + LOWEST_SAMPLER_KEY, 0, SecondLine, false);
+		OLEDwriteFloat(sampleLength, OLEDgetCursor(), SecondLine);
 		buttonActionsUI[ButtonA][ActionRelease] = 0;
+		buttonActionsUI[ButtonA][ActionHoldContinuous] = 0;
 		buttonActionsUI[ButtonB][ActionPress] = 0;
 		buttonActionsUI[ButtonDown][ActionPress] = 0;
 		buttonActionsUI[ButtonUp][ActionPress] = 0;
+		buttonActionsUI[ButtonC][ActionHoldContinuous] = 0;
 	}
 	return writeString;
 }

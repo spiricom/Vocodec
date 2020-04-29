@@ -24,6 +24,7 @@
 #define MAX_OVERSAMPLER_RATIO 8
 #define OVERSAMPLER_HQ FALSE
 
+#define NUM_SAMPLER_VOICES 6 // need to limit this because too many samplers going can take too long
 #define NUM_SAMPLER_KEYS 76
 #define LOWEST_SAMPLER_KEY 28
 

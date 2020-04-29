@@ -605,15 +605,12 @@ void SFXSamplerBPFree(void)
 // keyboard sampler
 int currentSamplerKey = 60 - LOWEST_SAMPLER_KEY;
 int recordingSamplerKey = 60 - LOWEST_SAMPLER_KEY;
-int editingSamplerKey = 60 - LOWEST_SAMPLER_KEY;
-float recSampleLength = 0.0f;
-float editSampleLength = 0.0f;
+uint8_t samplerKeyHeld[NUM_SAMPLER_KEYS];
+float keyKnobValues[NUM_SAMPLER_KEYS][NUM_ADC_CHANNELS];
 
 void SFXSamplerKAlloc()
 {
 	currentSamplerKey = 60 - LOWEST_SAMPLER_KEY;
-	recordingSamplerKey = 60 - LOWEST_SAMPLER_KEY;
-	editingSamplerKey = 60 - LOWEST_SAMPLER_KEY;
 	for (int i = 0; i < NUM_SAMPLER_KEYS; i++)
 	{
 		//leaf.sampleRate * 172.0f
@@ -621,40 +618,48 @@ void SFXSamplerKAlloc()
 		tBuffer_setRecordMode(&keyBuff[i], RecordOneShot);
 		tSampler_init(&keySampler[i], &keyBuff[i]);
 		tSampler_setMode(&keySampler[i], PlayLoop);
+		for (int j = 0; j < NUM_ADC_CHANNELS; j++)
+		{
+			keyKnobValues[i][j] = presetKnobValues[currentPreset][j];
+		}
+		samplerKeyHeld[i] = 0;
 	}
+	tPoly_setNumVoices(&poly, NUM_SAMPLER_VOICES);
 }
 
 void SFXSamplerKFrame()
 {
-
+	if (samplerKeyHeld[currentSamplerKey])
+	{
+		buttonActionsUI[ButtonC][ActionHoldContinuous] = 1;
+		writeButtonFlag = ButtonC;
+		writeActionFlag = ActionHoldContinuous;
+	}
 }
 
 void SFXSamplerKTick(float audioIn)
 {
-	if (buttonActionsSFX[ButtonB][ActionPress])
-	{
-		editingSamplerKey = currentSamplerKey;
-		buttonActionsSFX[ButtonB][ActionPress] = 0;
-	}
 	if (buttonActionsSFX[ButtonDown][ActionPress])
 	{
 		if (currentSamplerKey > 0) currentSamplerKey--;
 		else currentSamplerKey = NUM_SAMPLER_KEYS - 1;
+		setKnobValues(keyKnobValues[currentSamplerKey]);
 		buttonActionsSFX[ButtonDown][ActionPress] = 0;
 	}
 	if (buttonActionsSFX[ButtonUp][ActionPress])
 	{
 		currentSamplerKey++;
 		if (currentSamplerKey >= NUM_SAMPLER_KEYS) currentSamplerKey = 0;
+		setKnobValues(keyKnobValues[currentSamplerKey]);
 		buttonActionsSFX[ButtonUp][ActionPress] = 0;
 	}
-	if (buttonActionsSFX[ButtonC][ActionPress])
+	if (buttonActionsSFX[ButtonB][ActionPress])
 	{
 		// this just resets the record position; should probably add a setRecordPosition to Buffer
 		tBuffer_record(&keyBuff[currentSamplerKey]);
 		tBuffer_stop(&keyBuff[currentSamplerKey]);
 
-		buttonActionsSFX[ButtonC][ActionPress] = 0;
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
 	}
 	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
@@ -673,31 +678,38 @@ void SFXSamplerKTick(float audioIn)
 		setLED_A(0);
 	}
 
-	int recordPosition = tBuffer_getRecordPosition(&keyBuff[recordingSamplerKey]);
-	recSampleLength = recordPosition * leaf.invSampleRate;
+	int recordPosition = tBuffer_getRecordPosition(&keyBuff[currentSamplerKey]);
+	sampleLength = recordPosition * leaf.invSampleRate;
 
-	int editPosition = tBuffer_getRecordPosition(&keyBuff[editingSamplerKey]);
-	editSampleLength = editPosition * leaf.invSampleRate;
+	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+	{
+		keyKnobValues[currentSamplerKey][i] = smoothedADC[i];
+	}
 
-	knobParams[0] = smoothedADC[0] * editSampleLength;
-	knobParams[1] = smoothedADC[1] * editSampleLength;
+	knobParams[0] = smoothedADC[0] * sampleLength;
+	knobParams[1] = smoothedADC[1] * sampleLength;
 	knobParams[2] = (smoothedADC[2] - 0.5f) * 4.0f;
 	knobParams[3] = smoothedADC[3] * 4000.0f;
 
-	samplePlayStart = smoothedADC[0] * editPosition;
-	samplePlayEnd = smoothedADC[1] * editPosition;
+	samplePlayStart = smoothedADC[0] * recordPosition;
+	samplePlayEnd = smoothedADC[1] * recordPosition;
 	samplerRate = knobParams[2];
 	crossfadeLength = knobParams[3];
 
-	tSampler_setStart(&keySampler[editingSamplerKey], samplePlayStart);
-	tSampler_setEnd(&keySampler[editingSamplerKey], samplePlayEnd);
-	tSampler_setRate(&keySampler[editingSamplerKey], samplerRate);
-	tSampler_setCrossfadeLength(&keySampler[editingSamplerKey], crossfadeLength);
+	tSampler_setStart(&keySampler[currentSamplerKey], samplePlayStart);
+	tSampler_setEnd(&keySampler[currentSamplerKey], samplePlayEnd);
+	tSampler_setRate(&keySampler[currentSamplerKey], samplerRate);
+	tSampler_setCrossfadeLength(&keySampler[currentSamplerKey], crossfadeLength);
 
-	for (int i = 0; i < NUM_SAMPLER_KEYS; i++)
+	tPoly_tickPitch(&poly);
+	for (int i = 0; i < tPoly_getNumVoices(&poly); ++i)
 	{
-		tBuffer_tick(&keyBuff[i], audioIn);
-		sample += tSampler_tick(&keySampler[i]);
+		int key = (int)tPoly_getPitch(&poly, i) - LOWEST_SAMPLER_KEY;
+		if (0 <= key && key < NUM_SAMPLER_KEYS)
+		{
+			tBuffer_tick(&keyBuff[key], audioIn);
+			sample += tSampler_tick(&keySampler[key]);
+		}
 	}
 
 	sample = tanhf(sample);
@@ -1800,14 +1812,13 @@ void noteOn(int key, int velocity)
 			if (key >= LOWEST_SAMPLER_KEY && key < LOWEST_SAMPLER_KEY + NUM_SAMPLER_KEYS)
 			{
 				currentSamplerKey = key - LOWEST_SAMPLER_KEY;
+				setKnobValues(keyKnobValues[currentSamplerKey]);
 				if (tBuffer_getRecordedLength(&keyBuff[currentSamplerKey]) == 0)
 				{
-					recordingSamplerKey = currentSamplerKey;
-					recSampleLength = tBuffer_getRecordPosition(&keyBuff[recordingSamplerKey]) * leaf.invSampleRate;
-					tBuffer_record(&keyBuff[recordingSamplerKey]);
+					tBuffer_record(&keyBuff[currentSamplerKey]);
 				}
 				else tSampler_play(&keySampler[currentSamplerKey]);
-				UISamplerKButtons(ButtonUp, ActionPress);
+				samplerKeyHeld[currentSamplerKey] = 1;
 			}
 		}
 
@@ -1854,6 +1865,8 @@ void noteOff(int key, int velocity)
 				UISamplerKButtons(ButtonUp, ActionPress);
 			}
 			else tSampler_stop(&keySampler[key-LOWEST_SAMPLER_KEY]);
+			samplerKeyHeld[key-LOWEST_SAMPLER_KEY] = 0;
+			UISamplerKButtons(ButtonC, ActionHoldContinuous);
 		}
 	}
 

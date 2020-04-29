@@ -235,14 +235,7 @@ void audioFrame(uint16_t buffer_offset)
 				setLED_B(0);
 				setLED_1(0);
 				allocFunctions[currentPreset]();
-				for (int i = 0; i < NUM_ADC_CHANNELS; i++)
-				{
-					knobActive[i] = 0;
-					floatADCUI[i] = -1.0f;
-					tRamp_setVal(&adc[i], presetKnobValues[currentPreset][i]);
-					tRamp_setDest(&adc[i], presetKnobValues[currentPreset][i]);
-					smoothedADC[i] = presetKnobValues[currentPreset][i];
-				}
+				resetKnobValues();
 				leaf.clearOnAllocation = 0;
 				loadingPreset = 0;
 			}

@@ -79,6 +79,7 @@ extern char* shortModeNames[PresetNil];
 extern char* paramNames[PresetNil][NUM_ADC_CHANNELS + NUM_BUTTONS];
 extern float knobParams[NUM_ADC_CHANNELS];
 extern int8_t cvAddParam;
+extern uint8_t buttonActionsUI[NUM_BUTTONS][ActionNil];
 extern uint8_t buttonActionsSFX[NUM_BUTTONS][ActionNil];
 extern char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
 
@@ -93,6 +94,10 @@ void clearButtonActions(void);
 void changeTuning(void);
 
 void writeCurrentPresetToFlash(void);
+
+void resetKnobValues(void);
+
+void setKnobValues(float* values);
 
 char* UIVocoderButtons(VocodecButton button, ButtonAction action);
 char* UIPitchShiftButtons(VocodecButton button, ButtonAction action);
