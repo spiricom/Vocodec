@@ -733,6 +733,29 @@ char* UIClassicSynthButtons(VocodecButton button, ButtonAction action)
 		writeString = (numVoices > 1) ? "POLY" : "MONO";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
+	if (buttonActionsUI[ButtonB][ActionPress])
+	{
+		// Maybe not how we want to do this
+		if (csKnobPage == 0)
+		{
+			writeString = "SETTINGS";
+			paramNames[ClassicSynth][0] = "VOLUME";
+			paramNames[ClassicSynth][1] = "LOWPASS";
+			paramNames[ClassicSynth][2] = "KEYFOLLOW";
+			paramNames[ClassicSynth][3] = "DETUNE";
+			paramNames[ClassicSynth][4] = "FILTER Q";
+		}
+		else
+		{
+			writeString = "ADSR";
+			paramNames[ClassicSynth][0] = "ATTACK";
+			paramNames[ClassicSynth][1] = "DECAY";
+			paramNames[ClassicSynth][2] = "SUSTAIN";
+			paramNames[ClassicSynth][3] = "RELEASE";
+			paramNames[ClassicSynth][4] = "LEAK";
+		}
+		buttonActionsUI[ButtonB][ActionPress] = 0;
+	}
 	return writeString;
 }
 

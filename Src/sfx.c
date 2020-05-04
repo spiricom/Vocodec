@@ -210,8 +210,8 @@ void initGlobalSFXObjects()
 	presetKnobValues[LivingStringSynth][4] = 0.5f; // pick pos
 	presetKnobValues[LivingStringSynth][5] = 0.0f;
 
-	presetKnobValues[ClassicSynth][0] = 1.0f; // volume
-	presetKnobValues[ClassicSynth][1] = 1.0f; // lowpass
+	presetKnobValues[ClassicSynth][0] = 0.5f; // volume
+	presetKnobValues[ClassicSynth][1] = 0.5f; // lowpass
 	presetKnobValues[ClassicSynth][2] = 0.2f; // detune
 	presetKnobValues[ClassicSynth][3] = 0.0f;
 	presetKnobValues[ClassicSynth][4] = 0.0f;
@@ -1435,7 +1435,10 @@ float synthMidiNotes[NUM_VOC_VOICES];
 tEfficientSVF synthLP[NUM_VOC_VOICES];
 uint16_t filtFreqs[NUM_VOC_VOICES];
 
-uint8_t synthKnobMode = 0;
+uint8_t csKnobPage = 0;
+float csKnobValues[2][NUM_ADC_CHANNELS];
+float csValues[2][NUM_ADC_CHANNELS];
+tADSR csEnvs[NUM_VOC_VOICES];
 
 void SFXClassicSynthAlloc()
 {
@@ -1449,8 +1452,21 @@ void SFXClassicSynthAlloc()
 		}
 
 		tEfficientSVF_initToPool(&synthLP[i], SVFTypeLowpass, 6000.0f, 0.8f, &smallPool);
+		tADSR_initToPool(&csEnvs[i], 7.0f, 64.0f, 0.9f, 100.0f, &smallPool);
+		tADSR_setLeakFactor(&csEnvs[i], 0.999987f);
 	}
 
+	csKnobPage = 0;
+	// take this out if you want settings to persist across changing presets
+	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+	{
+		csKnobValues[0][i] = presetKnobValues[currentPreset][i];
+	}
+	csKnobValues[1][0] = 0.0f;
+	csKnobValues[1][1] = 0.06f;
+	csKnobValues[1][2] = 0.9f;
+	csKnobValues[1][3] = 0.1f;
+	csKnobValues[1][4] = 0.7f;
 
 	setLED_A(numVoices == 1);
 }
@@ -1466,33 +1482,34 @@ void SFXClassicSynthFrame()
 	}
 	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
 	{
-		synthKnobMode = (synthKnobMode + 1) % 3;
+		csKnobPage = (csKnobPage + 1) % 2;
+		setKnobValues(csKnobValues[csKnobPage]);
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
-		setLED_B(synthKnobMode == 1);
-		setLED_C(synthKnobMode == 2);
+		setLED_B(csKnobPage == 1);
 	}
 
-	if (synthKnobMode == 0)
+	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 	{
-		knobParams[0] = smoothedADC[0]; //synth volume
-		knobParams[1] = smoothedADC[1] * 4096.0f; //lowpass cutoff
-		knobParams[2] = smoothedADC[2]; //keyfollow filter cutoff
-		knobParams[3] = smoothedADC[3]; //detune
-		knobParams[4] = (smoothedADC[4] * 2.0f) + 0.4f; //filter Q
-	}
-	else if (synthKnobMode == 1)
-	{
-		knobParams[0] = smoothedADC[0]; //synth volume
-		knobParams[1] = smoothedADC[1] * 4096.0f; //lowpass cutoff
-		knobParams[2] = smoothedADC[2]; //keyfollow filter cutoff
-		knobParams[3] = smoothedADC[3]; //detune
-		knobParams[4] = (smoothedADC[4] * 2.0f) + 0.4f; //filter Q
-	}
-	else if (synthKnobMode == 2)
-	{
-
+		csKnobValues[csKnobPage][i] = smoothedADC[i];
 	}
 
+	csValues[0][0] = csKnobValues[0][0]; //synth volume
+	csValues[0][1] = csKnobValues[0][1] * 4096.0f; //lowpass cutoff
+	csValues[0][2] = csKnobValues[0][2]; //keyfollow filter cutoff
+	csValues[0][3] = csKnobValues[0][3]; //detune
+	csValues[0][4] = (csKnobValues[0][4] * 2.0f) + 0.4f; //filter Q
+
+	csValues[1][0] = (csKnobValues[1][0] * 993.0f) + 7.0f; //att
+    csValues[1][1] = (csKnobValues[1][1] * 993.0f) + 7.0f; //dec
+	csValues[1][2] = csKnobValues[1][2]; //sus
+	csValues[1][3] = (csKnobValues[1][3] * 993.0f) + 7.0f; //rel
+	csValues[1][4] = (csKnobValues[1][4] > 0.98) ? 1 : ((csKnobValues[1][4] * 0.0001f) + 0.9999f); //leak
+
+	knobParams[0] = csValues[csKnobPage][0];
+	knobParams[1] = csValues[csKnobPage][1];
+	knobParams[2] = csValues[csKnobPage][2];
+	knobParams[3] = csValues[csKnobPage][3];
+	knobParams[4] = csValues[csKnobPage][4];
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
@@ -1500,15 +1517,20 @@ void SFXClassicSynthFrame()
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSawtooth_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * knobParams[3])));
+			tSawtooth_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * csValues[0][3])));
 		}
-		float keyFollowFilt = myMidiNote * knobParams[2] * 64.0f;
-		float tempFreq = knobParams[1] +  keyFollowFilt;
+		float keyFollowFilt = myMidiNote * csValues[0][2] * 64.0f;
+		float tempFreq = csValues[0][1] +  keyFollowFilt;
 		tempFreq = LEAF_clip(0.0f, tempFreq, 4095.0f);
 
 		filtFreqs[i] = (uint16_t) tempFreq;
-		tEfficientSVF_setQ(&synthLP[i],knobParams[4]);
+		tEfficientSVF_setQ(&synthLP[i],csValues[0][4]);
 
+		tADSR_setAttack(&csEnvs[i], csValues[1][0]);
+		tADSR_setDecay(&csEnvs[i], csValues[1][1]);
+		tADSR_setSustain(&csEnvs[i], csValues[1][2]);
+		tADSR_setRelease(&csEnvs[i], csValues[1][3]);
+		tADSR_setLeakFactor(&csEnvs[i], csValues[1][4]);
 	}
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
@@ -1532,15 +1554,15 @@ void SFXClassicSynthTick(float audioIn)
 		float tempSample = 0.0f;
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tempSample += tSawtooth_tick(&osc[(i * NUM_OSC_PER_VOICE) + j]) * amplitudeTemp;
+			tempSample += tSawtooth_tick(&osc[(i * NUM_OSC_PER_VOICE) + j]);// * amplitudeTemp;
 		}
 //		tempSample += tSawtooth_tick(&osc[i]) * amplitudeTemp;
 //		tempSample += tSawtooth_tick(&osc[i + NUM_VOC_VOICES]) * amplitudeTemp;
 //		tempSample += tSawtooth_tick(&osc[i] + (NUM_VOC_VOICES * 2)) * amplitudeTemp;
 		tEfficientSVF_setFreq(&synthLP[i], filtFreqs[i]);
-		sample += tEfficientSVF_tick(&synthLP[i], tempSample);
+		sample += tEfficientSVF_tick(&synthLP[i], tempSample) * tADSR_tick(&csEnvs[i]);
 	}
-	sample *= INV_NUM_OSC_PER_VOICE * knobParams[0];
+	sample *= INV_NUM_OSC_PER_VOICE * csValues[0][0];
 
 
 	sample = tanhf(sample);
@@ -1555,6 +1577,7 @@ void SFXClassicSynthFree(void)
 			tSawtooth_freeFromPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 		}
 		tEfficientSVF_freeFromPool(&synthLP[i], &smallPool);
+		tADSR_freeFromPool(&csEnvs[i], &smallPool);
 	}
 
 }
@@ -1838,6 +1861,10 @@ void noteOn(int key, int velocity)
 
 				}
 			}
+			else if (currentPreset == ClassicSynth)
+			{
+				tADSR_on(&csEnvs[whichVoice], velocity * 0.0078125f);
+			}
 		}
 
 		/*
@@ -1884,6 +1911,10 @@ void noteOff(int key, int velocity)
 			{
 				tADSR_off(&FM_envs[voice][j]);
 			}
+		}
+		else if (currentPreset == ClassicSynth)
+		{
+			tADSR_off(&csEnvs[voice]);
 		}
 	}
 

@@ -114,6 +114,8 @@ char* UIReverbButtons(VocodecButton button, ButtonAction action);
 char* UIReverb2Buttons(VocodecButton button, ButtonAction action);
 char* UILivingStringButtons(VocodecButton button, ButtonAction action);
 char* UILivingStringSynthButtons(VocodecButton button, ButtonAction action);
+
+extern uint8_t csKnobPage;
 char* UIClassicSynthButtons(VocodecButton button, ButtonAction action);
 char* UIRhodesButtons(VocodecButton button, ButtonAction action);
 
