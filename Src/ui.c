@@ -112,8 +112,8 @@ void initModeNames(void)
 	shortModeNames[AutotunePoly] = "AT";
 	modeNamesDetails[AutotunePoly] = "";
 	paramNames[AutotunePoly][0] = "FID THRESH";
-	paramNames[AutotunePoly][1] = "";
-	paramNames[AutotunePoly][2] = "";
+	paramNames[AutotunePoly][1] = "ALPHA";
+	paramNames[AutotunePoly][2] = "TOLERANCE";
 	paramNames[AutotunePoly][3] = "";
 	paramNames[AutotunePoly][4] = "";
 	paramNames[AutotunePoly][5] = "";

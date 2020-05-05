@@ -127,8 +127,8 @@ void initGlobalSFXObjects()
 	presetKnobValues[AutotuneMono][5] = 0.0f;
 
 	presetKnobValues[AutotunePoly][0] = 1.0f; // fidelity thresh
-	presetKnobValues[AutotunePoly][1] = 0.0f;
-	presetKnobValues[AutotunePoly][2] = 0.0f;
+	presetKnobValues[AutotunePoly][1] = 0.5f;
+	presetKnobValues[AutotunePoly][2] = 0.1f;
 	presetKnobValues[AutotunePoly][3] = 0.0f;
 	presetKnobValues[AutotunePoly][4] = 0.0f;
 	presetKnobValues[AutotunePoly][5] = 0.0f;
@@ -495,7 +495,14 @@ void SFXAutotuneFrame()
 void SFXAutotuneTick(float audioIn)
 {
 	knobParams[0] = 0.5f + (smoothedADC[0] * 0.47f);
+
+	knobParams[1] = smoothedADC[1];
+
+	knobParams[2] = smoothedADC[2];
+
 	tAutotune_setFidelityThreshold(&autotunePoly, knobParams[0]);
+	tAutotune_setAlpha(&autotunePoly, knobParams[1]);
+	tAutotune_setTolerance(&autotunePoly, knobParams[2]);
 	tPoly_tickPitch(&poly);
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); ++i)
