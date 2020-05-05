@@ -694,6 +694,11 @@ char* UIDelayButtons(VocodecButton button, ButtonAction action)
 char* UIReverbButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
+	if (buttonActionsUI[ButtonA][ActionPress])
+	{
+		writeString = freeze ? "FREEZE" : "UNFREEZE";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
 	return writeString;
 }
 

@@ -221,10 +221,11 @@ void audioFrame(uint16_t buffer_offset)
 				if (previousPreset != PresetNil)
 				{
 					// do this if you want to save knob values when changing off a preset
-					for (int i = 0; i < NUM_ADC_CHANNELS; i++)
-					{
-						presetKnobValues[previousPreset][i] = smoothedADC[i];
-					}
+					// this won't work for presets with multiple pages currently
+//					for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+//					{
+//						presetKnobValues[previousPreset][i] = smoothedADC[i];
+//					}
 					freeFunctions[previousPreset]();
 				}
 				else
@@ -234,8 +235,8 @@ void audioFrame(uint16_t buffer_offset)
 				setLED_A(0);
 				setLED_B(0);
 				setLED_1(0);
-				allocFunctions[currentPreset]();
 				resetKnobValues();
+				allocFunctions[currentPreset]();
 				leaf.clearOnAllocation = 0;
 				loadingPreset = 0;
 			}

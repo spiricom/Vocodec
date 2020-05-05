@@ -1392,6 +1392,13 @@ void SFXLivingStringSynthAlloc()
 
 void SFXLivingStringSynthFrame()
 {
+	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
+	{
+		numVoices = (numVoices > 1) ? 1 : NUM_STRINGS;
+		tPoly_setNumVoices(&poly, numVoices);
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
+		setLED_A(numVoices == 1);
+	}
 	//knobParams[0] = mtof((smoothedADC[0] * 135.0f)); //freq
 	//knobParams[1] = smoothedADC[1]; //detune
 	knobParams[2] = ((smoothedADC[2] * 0.09999999f) + 0.9f);
@@ -1442,13 +1449,18 @@ float synthMidiNotes[NUM_VOC_VOICES];
 tEfficientSVF synthLP[NUM_VOC_VOICES];
 uint16_t filtFreqs[NUM_VOC_VOICES];
 
-uint8_t csKnobPage = 0;
+uint8_t csKnobPage;
 float csKnobValues[2][NUM_ADC_CHANNELS];
 float csValues[2][NUM_ADC_CHANNELS];
 tADSR csEnvs[NUM_VOC_VOICES];
 
 void SFXClassicSynthAlloc()
 {
+	paramNames[ClassicSynth][0] = "VOLUME";
+	paramNames[ClassicSynth][1] = "LOWPASS";
+	paramNames[ClassicSynth][2] = "KEYFOLLOW";
+	paramNames[ClassicSynth][3] = "DETUNE";
+	paramNames[ClassicSynth][4] = "FILTER Q";
 	tPoly_setNumVoices(&poly, numVoices);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
@@ -1473,7 +1485,7 @@ void SFXClassicSynthAlloc()
 	csKnobValues[1][1] = 0.06f;
 	csKnobValues[1][2] = 0.9f;
 	csKnobValues[1][3] = 0.1f;
-	csKnobValues[1][4] = 0.7f;
+	csKnobValues[1][4] = 0.1f;
 
 	setLED_A(numVoices == 1);
 }
@@ -1510,13 +1522,14 @@ void SFXClassicSynthFrame()
     csValues[1][1] = (csKnobValues[1][1] * 993.0f) + 7.0f; //dec
 	csValues[1][2] = csKnobValues[1][2]; //sus
 	csValues[1][3] = (csKnobValues[1][3] * 993.0f) + 7.0f; //rel
-	csValues[1][4] = (csKnobValues[1][4] > 0.98) ? 1 : ((csKnobValues[1][4] * 0.0001f) + 0.9999f); //leak
+	csValues[1][4] = (csKnobValues[1][4] > 0.98) ? 0.9985f : (((1.0f - csKnobValues[1][4]*csKnobValues[1][4]) * 0.0015f) + 0.9985f); //leak
 
 	knobParams[0] = csValues[csKnobPage][0];
 	knobParams[1] = csValues[csKnobPage][1];
 	knobParams[2] = csValues[csKnobPage][2];
 	knobParams[3] = csValues[csKnobPage][3];
 	knobParams[4] = csValues[csKnobPage][4];
+	if (csKnobPage == 1) knobParams[4] = csKnobValues[1][4];
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
@@ -1539,12 +1552,6 @@ void SFXClassicSynthFrame()
 		tADSR_setRelease(&csEnvs[i], csValues[1][3]);
 		tADSR_setLeakFactor(&csEnvs[i], csValues[1][4]);
 	}
-
-	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
-	{
-		tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
-	}
-
 }
 
 //waveshaper?
@@ -1557,17 +1564,18 @@ void SFXClassicSynthTick(float audioIn)
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
-		float amplitudeTemp = tRamp_tick(&polyRamp[i]);
 		float tempSample = 0.0f;
+		float env = tADSR_tick(&csEnvs[i]);
+
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tempSample += tSawtooth_tick(&osc[(i * NUM_OSC_PER_VOICE) + j]);// * amplitudeTemp;
+			tempSample += tSawtooth_tick(&osc[(i * NUM_OSC_PER_VOICE) + j]) * env;
 		}
 //		tempSample += tSawtooth_tick(&osc[i]) * amplitudeTemp;
 //		tempSample += tSawtooth_tick(&osc[i + NUM_VOC_VOICES]) * amplitudeTemp;
 //		tempSample += tSawtooth_tick(&osc[i] + (NUM_VOC_VOICES * 2)) * amplitudeTemp;
 		tEfficientSVF_setFreq(&synthLP[i], filtFreqs[i]);
-		sample += tEfficientSVF_tick(&synthLP[i], tempSample) * tADSR_tick(&csEnvs[i]);
+		sample += tEfficientSVF_tick(&synthLP[i], tempSample);
 	}
 	sample *= INV_NUM_OSC_PER_VOICE * csValues[0][0];
 
@@ -1657,7 +1665,6 @@ void SFXRhodesFrame()
 				tADSR_setSustain(&FM_envs[i][j], FM_decays[Rsound][j]);
 			}
 		}
-
 	}
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
