@@ -325,6 +325,7 @@ void SFXVocoderFree(void)
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		tSawtooth_freeFromPool(&osc[i], &smallPool);
+		tRosenbergGlottalPulse_freeFromPool(&glottal[i], &smallPool);
 	}
 }
 

@@ -7,5 +7,6 @@
 /objects.list
 /objects.mk
 /sources.mk
+output.map
 *.hex
 *.elf
