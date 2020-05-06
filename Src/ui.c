@@ -76,10 +76,10 @@ void initModeNames(void)
 	shortModeNames[Vocoder] = "VC";
 	modeNamesDetails[Vocoder] = "";
 	paramNames[Vocoder][0] = "VOLUME";
-	paramNames[Vocoder][1] = "";
-	paramNames[Vocoder][2] = "";
-	paramNames[Vocoder][3] = "";
-	paramNames[Vocoder][4] = "";
+	paramNames[Vocoder][1] = "WARP";
+	paramNames[Vocoder][2] = "QUALITY";
+	paramNames[Vocoder][3] = "PULSE";
+	paramNames[Vocoder][4] = "SAWtoPULSE";
 	paramNames[Vocoder][5] = "";
 	paramNames[Vocoder][NUM_ADC_CHANNELS + ButtonA] = "POLY MONO";
 	paramNames[Vocoder][NUM_ADC_CHANNELS + ButtonB] = "SOURCE";

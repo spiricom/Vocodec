@@ -105,11 +105,11 @@ void initGlobalSFXObjects()
 	// Note that these are the actual knob values
 	// not the parameter value
 	// (i.e. 0.5 for fine pitch is actually 0.0 fine pitch)
-	presetKnobValues[Vocoder][0] = 0.4f; // volume
-	presetKnobValues[Vocoder][1] = 0.0f;
-	presetKnobValues[Vocoder][2] = 0.0f;
-	presetKnobValues[Vocoder][3] = 0.0f;
-	presetKnobValues[Vocoder][4] = 0.0f;
+	presetKnobValues[Vocoder][0] = 0.6f; // volume
+	presetKnobValues[Vocoder][1] = 0.5f; // warp factor
+	presetKnobValues[Vocoder][2] = 0.75f; // quality
+	presetKnobValues[Vocoder][3] = 0.5f; // pulse length
+	presetKnobValues[Vocoder][4] = 0.0f; // saw->pulse fade
 	presetKnobValues[Vocoder][5] = 0.0f;
 
 	presetKnobValues[Pitchshift][0] = 1.0f; // pitch
@@ -228,18 +228,24 @@ void initGlobalSFXObjects()
 ///1 vocoder internal poly
 
 tTalkbox vocoder;
-tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
-
+tSawtooth osc[NUM_VOC_VOICES];
+tRosenbergGlottalPulse glottal[NUM_VOC_VOICES];
 uint8_t numVoices = NUM_VOC_VOICES;
 uint8_t internalExternal = 0;
 
 void SFXVocoderAlloc()
 {
 	tTalkbox_init(&vocoder, 1024);
+	tTalkbox_setWarpOn(&vocoder, 1);
 	tPoly_setNumVoices(&poly, numVoices);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
+
 		tSawtooth_initToPool(&osc[i], &smallPool);
+
+		tRosenbergGlottalPulse_initToPool(&glottal[i], &smallPool);
+		tRosenbergGlottalPulse_setOpenLength(&glottal[i], 0.3f);
+		tRosenbergGlottalPulse_setPulseLength(&glottal[i], 0.4f);
 	}
 	setLED_A(numVoices == 1);
 	setLED_B(internalExternal);
@@ -268,6 +274,7 @@ void SFXVocoderFrame()
 		tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
 		calculateFreq(i);
 		tSawtooth_setFreq(&osc[i], freq[i]);
+		tRosenbergGlottalPulse_setFreq(&glottal[i], freq[i]);
 	}
 
 	if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
@@ -275,20 +282,39 @@ void SFXVocoderFrame()
 
 void SFXVocoderTick(float audioIn)
 {
+
+
+	knobParams[3] = smoothedADC[3]; //pulse length
+
+	knobParams[4] = smoothedADC[4]; //crossfade between sawtooth and glottal pulse
+
 	if (internalExternal == 1) sample = rightIn;
+
 	else
 	{
 		tPoly_tickPitch(&poly);
 
 		for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 		{
-			sample += tSawtooth_tick(&osc[i]) * tRamp_tick(&polyRamp[i]);
+			sample += tSawtooth_tick(&osc[i]) * tRamp_tick(&polyRamp[i]) * (1.0f-knobParams[4]);
+
+			tRosenbergGlottalPulse_setPulseLength(&glottal[i], knobParams[3] );
+
+			//tRosenbergGlottalPulse_setOpenLength(&glottal[i], smoothedADC[2] * smoothedADC[1]);
+			sample += tRosenbergGlottalPulse_tick(&glottal[i]) * tRamp_tick(&polyRamp[i]) * knobParams[4];
 		}
 		sample *= tRamp_tick(&comp);
 	}
 	knobParams[0] = smoothedADC[0]; //vocoder volume
-	sample *= knobParams[0];
+
+	knobParams[1] = (smoothedADC[1] * 0.4f) - 0.2f; //warp factor
+	tTalkbox_setWarpFactor(&vocoder, knobParams[1]);
+
+	knobParams[2] = (smoothedADC[2] * 1.3f); //quality
+	tTalkbox_setQuality(&vocoder, knobParams[2]);
+
 	sample = tTalkbox_tick(&vocoder, sample, audioIn);
+	sample *= knobParams[0] * 0.5f;
 	sample = tanhf(sample);
 	rightOut = sample;
 }
@@ -501,8 +527,8 @@ void SFXAutotuneTick(float audioIn)
 	knobParams[2] = smoothedADC[2];
 
 	tAutotune_setFidelityThreshold(&autotunePoly, knobParams[0]);
-	tAutotune_setAlpha(&autotunePoly, knobParams[1]);
-	tAutotune_setTolerance(&autotunePoly, knobParams[2]);
+	//tAutotune_setAlpha(&autotunePoly, knobParams[1]);
+	//tAutotune_setTolerance(&autotunePoly, knobParams[2]);
 	tPoly_tickPitch(&poly);
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); ++i)
@@ -524,7 +550,6 @@ void SFXAutotuneFree(void)
 {
 	tAutotune_free(&autotunePoly);
 }
-
 
 
 //7 sampler - button press
