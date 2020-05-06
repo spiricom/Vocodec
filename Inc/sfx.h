@@ -123,6 +123,7 @@ void SFXBitcrusherFree(void);
 
 // delay
 extern int delayShaper;
+extern uint8_t capFeedback;
 
 void SFXDelayAlloc();
 void SFXDelayFrame();
@@ -156,13 +157,16 @@ void SFXLivingStringSynthFree(void);
 
 
 // classic synth
+extern uint8_t csKnobPage;
 void SFXClassicSynthAlloc();
 void SFXClassicSynthFrame();
 void SFXClassicSynthTick(float audioIn);
 void SFXClassicSynthFree(void);
 
-
 // rhodes
+extern char* soundNames[4];
+extern int Rsound;
+extern uint8_t rhodesKnobPage;
 void SFXRhodesAlloc();
 void SFXRhodesFrame();
 void SFXRhodesTick(float audioIn);

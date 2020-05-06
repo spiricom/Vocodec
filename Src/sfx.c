@@ -164,7 +164,7 @@ void initGlobalSFXObjects()
 	presetKnobValues[Wavefolder][0] = 0.25f; // gain
 	presetKnobValues[Wavefolder][1] = 0.5f; // offset1
 	presetKnobValues[Wavefolder][2] = 0.5f; // offset2
-	presetKnobValues[Wavefolder][3] = 0.5f; // offset3
+	presetKnobValues[Wavefolder][3] = 0.10f; // post gain
 	presetKnobValues[Wavefolder][4] = 0.0f;
 	presetKnobValues[Wavefolder][5] = 0.0f;
 
@@ -172,7 +172,7 @@ void initGlobalSFXObjects()
 	presetKnobValues[BitCrusher][1] = 0.5f; // samp ratio
 	presetKnobValues[BitCrusher][2] = 0.0f; // rounding
 	presetKnobValues[BitCrusher][3] = 0.0f; // operation
-	presetKnobValues[BitCrusher][4] = 0.5f; // gain
+	presetKnobValues[BitCrusher][4] = 0.5f; // post gain
 	presetKnobValues[BitCrusher][5] = 0.0f;
 
 	presetKnobValues[Delay][0] = 0.25f; // delayL
@@ -529,7 +529,7 @@ void SFXAutotuneFree(void)
 
 //7 sampler - button press
 int samplePlayStart = 0;
-int samplePlayEnd = 0;
+int samplePlayLength = 0;
 float sampleLength = 0.0f;
 int crossfadeLength = 0;
 float samplerRate = 1.0f;
@@ -585,16 +585,16 @@ void SFXSamplerBPTick(float audioIn)
 
 	sampleLength = recordPosition * leaf.invSampleRate;
 	knobParams[0] = smoothedADC[0] * sampleLength;
-	knobParams[1] = smoothedADC[1] * sampleLength;
+	knobParams[1] = LEAF_clip(0.0f, smoothedADC[1] * sampleLength, sampleLength * (1.0f - smoothedADC[0]));
 	knobParams[2] = (smoothedADC[2] - 0.5f) * 4.0f;
 	knobParams[3] = smoothedADC[3] * 4000.0f;
 
 	samplePlayStart = smoothedADC[0] * recordPosition;
-	samplePlayEnd = smoothedADC[1] * recordPosition;
+	samplePlayLength = smoothedADC[1] * recordPosition;
 	samplerRate = knobParams[2];
 	crossfadeLength = knobParams[3];
 	tSampler_setStart(&sampler, samplePlayStart);
-	tSampler_setEnd(&sampler, samplePlayEnd);
+	tSampler_setLength(&sampler, samplePlayLength);
 	tSampler_setRate(&sampler, samplerRate);
 	tSampler_setCrossfadeLength(&sampler, crossfadeLength);
 
@@ -694,17 +694,17 @@ void SFXSamplerKTick(float audioIn)
 	}
 
 	knobParams[0] = smoothedADC[0] * sampleLength;
-	knobParams[1] = smoothedADC[1] * sampleLength;
+	knobParams[1] = LEAF_clip(0.0f, smoothedADC[1] * sampleLength, sampleLength * (1.0f - smoothedADC[0]));
 	knobParams[2] = (smoothedADC[2] - 0.5f) * 4.0f;
 	knobParams[3] = smoothedADC[3] * 4000.0f;
 
 	samplePlayStart = smoothedADC[0] * recordPosition;
-	samplePlayEnd = smoothedADC[1] * recordPosition;
+	samplePlayLength = smoothedADC[1] * recordPosition;
 	samplerRate = knobParams[2];
 	crossfadeLength = knobParams[3];
 
 	tSampler_setStart(&keySampler[currentSamplerKey], samplePlayStart);
-	tSampler_setEnd(&keySampler[currentSamplerKey], samplePlayEnd);
+	tSampler_setLength(&keySampler[currentSamplerKey], samplePlayLength);
 	tSampler_setRate(&keySampler[currentSamplerKey], samplerRate);
 	tSampler_setCrossfadeLength(&keySampler[currentSamplerKey], crossfadeLength);
 
@@ -965,6 +965,7 @@ void SFXWaveFolderTick(float audioIn)
 
 	knobParams[2] = (smoothedADC[2] * 2.0f) - 1.0f;
 	float gain = knobParams[0];
+	knobParams[3] = smoothedADC[3];
 
 
 	//sample = sample * gain * 0.33f;
@@ -993,7 +994,7 @@ void SFXWaveFolderTick(float audioIn)
 			//oversamplerArray[i] *= .8f;
 			oversamplerArray[i] = LEAF_tanh(oversamplerArray[i]);
 		}
-		sample = tHighpass_tick(&wfHP, tOversampler_downsample(&oversampler, oversamplerArray));
+		sample = tHighpass_tick(&wfHP, tOversampler_downsample(&oversampler, oversamplerArray)) * knobParams[3];
 		rightOut = sample;
 	}
 	else
@@ -1016,7 +1017,7 @@ void SFXWaveFolderTick(float audioIn)
 		sample = tLockhartWavefolder_tick(&wavefolder2, sample);
 
 		sample = tOversampler_tick(&oversampler, sample, &LEAF_tanh);
-		tHighpass_tick(&wfHP, sample);
+		sample = tHighpass_tick(&wfHP, sample) * knobParams[3];
 		//sample *= 0.99f;
 		rightOut = sample;
 	}
@@ -1057,9 +1058,9 @@ void SFXBitcrusherTick(float audioIn)
 	knobParams[3] = smoothedADC[3];
 	tCrusher_setOperation (&crush, smoothedADC[3]);
 	tCrusher_setOperation (&crush2, smoothedADC[3]);
-	knobParams[4] = smoothedADC[4] + 1.0f;
-	sample = tCrusher_tick(&crush, tanhf(audioIn * (smoothedADC[4]))) * .98f;
-	rightOut = tCrusher_tick(&crush2, tanhf(rightIn * (smoothedADC[4]))) * .98f;
+	knobParams[4] = smoothedADC[4];
+	sample = tanh(tCrusher_tick(&crush, audioIn)) * knobParams[4];
+	rightOut = tanh(tCrusher_tick(&crush2, rightIn)) * knobParams[4];
 
 }
 
@@ -1072,6 +1073,7 @@ void SFXBitcrusherFree(void)
 
 //delay
 int delayShaper = 0;
+uint8_t capFeedback = 0;
 
 void SFXDelayAlloc()
 {
@@ -1087,18 +1089,23 @@ void SFXDelayAlloc()
 	tHighpass_init(&delayShaperHp, 20.0f);
 	tFeedbackLeveler_init(&feedbackControl, .99f, 0.01, 0.125f, 0);
 	delayShaper = 0;
+	capFeedback = 1;
 	setLED_A(delayShaper);
 	leaf.clearOnAllocation = 0;
 }
 
 void SFXDelayFrame()
 {
-
 	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
 		delayShaper = !delayShaper;
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(delayShaper);
+	}
+	if (buttonActionsSFX[ButtonB][ActionPress])
+	{
+		capFeedback = !capFeedback;
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
 	}
 }
 float delayFB1;
@@ -1108,7 +1115,7 @@ void SFXDelayTick(float audioIn)
 {
 	knobParams[0] = smoothedADC[0] * 30000.0f;
 	knobParams[1] = smoothedADC[1] * 30000.0f;
-	knobParams[2] = smoothedADC[2] * 1.1f;
+	knobParams[2] = capFeedback ? LEAF_clip(0.0f, smoothedADC[2] * 1.1f, 0.9f) : smoothedADC[2] * 1.1f;
 	knobParams[3] = faster_mtof((smoothedADC[3] * 128) + 10.0f);
 	knobParams[4] = faster_mtof((smoothedADC[4] * 128) + 10.0f);
 
@@ -1176,18 +1183,23 @@ void SFXReverbAlloc()
 	tDattorroReverb_init(&reverb);
 	tDattorroReverb_setMix(&reverb, 1.0f);
 	freeze = 0;
+	capFeedback = 1;
 	leaf.clearOnAllocation = 0;
 }
 
 void SFXReverbFrame()
 {
+	if (buttonActionsSFX[ButtonB][ActionPress])
+	{
+		capFeedback = !capFeedback;
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
+	}
 	knobParams[1] = faster_mtof(smoothedADC[1]*135.0f);
 	tDattorroReverb_setInputFilter(&reverb, knobParams[1]);
 	knobParams[2] =  faster_mtof(smoothedADC[2]*128.0f);
 	tDattorroReverb_setHP(&reverb, knobParams[2]);
 	knobParams[3] = faster_mtof(smoothedADC[3]*135.0f);
 	tDattorroReverb_setFeedbackFilter(&reverb, knobParams[3]);
-
 }
 
 void SFXReverbTick(float audioIn)
@@ -1215,7 +1227,7 @@ void SFXReverbTick(float audioIn)
 	audioIn *= 4.0f;
 	knobParams[0] = smoothedADC[0];
 	tDattorroReverb_setSize(&reverb, knobParams[0]);
-	knobParams[4] = smoothedADC[4];
+	knobParams[4] = capFeedback ? LEAF_clip(0.0f, smoothedADC[4], 0.5f) : smoothedADC[4];
 	tDattorroReverb_setFeedbackGain(&reverb, knobParams[4]);
 	tDattorroReverb_tickStereo(&reverb, audioIn, stereo);
 	sample = tanhf(stereo[0]) * 0.99f;
@@ -1450,9 +1462,9 @@ tEfficientSVF synthLP[NUM_VOC_VOICES];
 uint16_t filtFreqs[NUM_VOC_VOICES];
 
 uint8_t csKnobPage;
-float csKnobValues[2][NUM_ADC_CHANNELS];
-float csValues[2][NUM_ADC_CHANNELS];
-tADSR csEnvs[NUM_VOC_VOICES];
+float pageKnobValues[2][NUM_ADC_CHANNELS];
+float pageValues[2][NUM_ADC_CHANNELS];
+tADSR polyEnvs[NUM_VOC_VOICES];
 
 void SFXClassicSynthAlloc()
 {
@@ -1471,21 +1483,21 @@ void SFXClassicSynthAlloc()
 		}
 
 		tEfficientSVF_initToPool(&synthLP[i], SVFTypeLowpass, 6000.0f, 0.8f, &smallPool);
-		tADSR_initToPool(&csEnvs[i], 7.0f, 64.0f, 0.9f, 100.0f, &smallPool);
-		tADSR_setLeakFactor(&csEnvs[i], 0.999987f);
+		tADSR_initToPool(&polyEnvs[i], 7.0f, 64.0f, 0.9f, 100.0f, &smallPool);
+		tADSR_setLeakFactor(&polyEnvs[i], 0.999987f);
 	}
 
 	csKnobPage = 0;
 	// take this out if you want settings to persist across changing presets
 	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 	{
-		csKnobValues[0][i] = presetKnobValues[currentPreset][i];
+		pageKnobValues[0][i] = presetKnobValues[currentPreset][i];
 	}
-	csKnobValues[1][0] = 0.0f;
-	csKnobValues[1][1] = 0.06f;
-	csKnobValues[1][2] = 0.9f;
-	csKnobValues[1][3] = 0.1f;
-	csKnobValues[1][4] = 0.1f;
+	pageKnobValues[1][0] = 0.0f;
+	pageKnobValues[1][1] = 0.06f;
+	pageKnobValues[1][2] = 0.9f;
+	pageKnobValues[1][3] = 0.1f;
+	pageKnobValues[1][4] = 0.1f;
 
 	setLED_A(numVoices == 1);
 }
@@ -1502,34 +1514,34 @@ void SFXClassicSynthFrame()
 	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
 	{
 		csKnobPage = (csKnobPage + 1) % 2;
-		setKnobValues(csKnobValues[csKnobPage]);
+		setKnobValues(pageKnobValues[csKnobPage]);
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
 		setLED_B(csKnobPage == 1);
 	}
 
 	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 	{
-		csKnobValues[csKnobPage][i] = smoothedADC[i];
+		pageKnobValues[csKnobPage][i] = smoothedADC[i];
 	}
 
-	csValues[0][0] = csKnobValues[0][0]; //synth volume
-	csValues[0][1] = csKnobValues[0][1] * 4096.0f; //lowpass cutoff
-	csValues[0][2] = csKnobValues[0][2]; //keyfollow filter cutoff
-	csValues[0][3] = csKnobValues[0][3]; //detune
-	csValues[0][4] = (csKnobValues[0][4] * 2.0f) + 0.4f; //filter Q
+	pageValues[0][0] = pageKnobValues[0][0]; //synth volume
+	pageValues[0][1] = pageKnobValues[0][1] * 4096.0f; //lowpass cutoff
+	pageValues[0][2] = pageKnobValues[0][2]; //keyfollow filter cutoff
+	pageValues[0][3] = pageKnobValues[0][3]; //detune
+	pageValues[0][4] = (pageKnobValues[0][4] * 2.0f) + 0.4f; //filter Q
 
-	csValues[1][0] = (csKnobValues[1][0] * 993.0f) + 7.0f; //att
-    csValues[1][1] = (csKnobValues[1][1] * 993.0f) + 7.0f; //dec
-	csValues[1][2] = csKnobValues[1][2]; //sus
-	csValues[1][3] = (csKnobValues[1][3] * 993.0f) + 7.0f; //rel
-	csValues[1][4] = (csKnobValues[1][4] > 0.98) ? 0.9985f : (((1.0f - csKnobValues[1][4]*csKnobValues[1][4]) * 0.0015f) + 0.9985f); //leak
+	pageValues[1][0] = (pageKnobValues[1][0] * 993.0f) + 7.0f; //att
+    pageValues[1][1] = (pageKnobValues[1][1] * 993.0f) + 7.0f; //dec
+	pageValues[1][2] = pageKnobValues[1][2]; //sus
+	pageValues[1][3] = (pageKnobValues[1][3] * 993.0f) + 7.0f; //rel
+	pageValues[1][4] = (pageKnobValues[1][4] > 0.98) ? 0.9985f : (((1.0f - pageKnobValues[1][4]*pageKnobValues[1][4]) * 0.0015f) + 0.9985f); //leak
 
-	knobParams[0] = csValues[csKnobPage][0];
-	knobParams[1] = csValues[csKnobPage][1];
-	knobParams[2] = csValues[csKnobPage][2];
-	knobParams[3] = csValues[csKnobPage][3];
-	knobParams[4] = csValues[csKnobPage][4];
-	if (csKnobPage == 1) knobParams[4] = csKnobValues[1][4];
+	knobParams[0] = pageValues[csKnobPage][0];
+	knobParams[1] = pageValues[csKnobPage][1];
+	knobParams[2] = pageValues[csKnobPage][2];
+	knobParams[3] = pageValues[csKnobPage][3];
+	knobParams[4] = pageValues[csKnobPage][4];
+	if (csKnobPage == 1) knobParams[4] = pageKnobValues[1][4];
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
@@ -1537,20 +1549,20 @@ void SFXClassicSynthFrame()
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSawtooth_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * csValues[0][3])));
+			tSawtooth_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * pageValues[0][3])));
 		}
-		float keyFollowFilt = myMidiNote * csValues[0][2] * 64.0f;
-		float tempFreq = csValues[0][1] +  keyFollowFilt;
+		float keyFollowFilt = myMidiNote * pageValues[0][2] * 64.0f;
+		float tempFreq = pageValues[0][1] +  keyFollowFilt;
 		tempFreq = LEAF_clip(0.0f, tempFreq, 4095.0f);
 
 		filtFreqs[i] = (uint16_t) tempFreq;
-		tEfficientSVF_setQ(&synthLP[i],csValues[0][4]);
+		tEfficientSVF_setQ(&synthLP[i],pageValues[0][4]);
 
-		tADSR_setAttack(&csEnvs[i], csValues[1][0]);
-		tADSR_setDecay(&csEnvs[i], csValues[1][1]);
-		tADSR_setSustain(&csEnvs[i], csValues[1][2]);
-		tADSR_setRelease(&csEnvs[i], csValues[1][3]);
-		tADSR_setLeakFactor(&csEnvs[i], csValues[1][4]);
+		tADSR_setAttack(&polyEnvs[i], pageValues[1][0]);
+		tADSR_setDecay(&polyEnvs[i], pageValues[1][1]);
+		tADSR_setSustain(&polyEnvs[i], pageValues[1][2]);
+		tADSR_setRelease(&polyEnvs[i], pageValues[1][3]);
+		tADSR_setLeakFactor(&polyEnvs[i], pageValues[1][4]);
 	}
 }
 
@@ -1565,7 +1577,7 @@ void SFXClassicSynthTick(float audioIn)
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
 		float tempSample = 0.0f;
-		float env = tADSR_tick(&csEnvs[i]);
+		float env = tADSR_tick(&polyEnvs[i]);
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
@@ -1577,7 +1589,7 @@ void SFXClassicSynthTick(float audioIn)
 		tEfficientSVF_setFreq(&synthLP[i], filtFreqs[i]);
 		sample += tEfficientSVF_tick(&synthLP[i], tempSample);
 	}
-	sample *= INV_NUM_OSC_PER_VOICE * csValues[0][0];
+	sample *= INV_NUM_OSC_PER_VOICE * pageValues[0][0];
 
 
 	sample = tanhf(sample);
@@ -1592,7 +1604,7 @@ void SFXClassicSynthFree(void)
 			tSawtooth_freeFromPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 		}
 		tEfficientSVF_freeFromPool(&synthLP[i], &smallPool);
-		tADSR_freeFromPool(&csEnvs[i], &smallPool);
+		tADSR_freeFromPool(&polyEnvs[i], &smallPool);
 	}
 
 }
@@ -1616,6 +1628,8 @@ int Rsound = 0;
 
 char* soundNames[4];
 
+uint8_t rhodesKnobPage;
+
 //FM Rhodes
 void SFXRhodesAlloc()
 {
@@ -1638,6 +1652,16 @@ void SFXRhodesAlloc()
 	setLED_A(numVoices == 1);
 	OLEDclearLine(SecondLine);
 	OLEDwriteString(soundNames[Rsound], 6, 0, SecondLine);
+	rhodesKnobPage = 0;
+	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+	{
+		pageKnobValues[0][i] = presetKnobValues[currentPreset][i];
+	}
+	pageKnobValues[1][0] = 0.05f;
+	pageKnobValues[1][1] = 0.05f;
+	pageKnobValues[1][2] = 0.9f;
+	pageKnobValues[1][3] = 0.1007f;
+	pageKnobValues[1][4] = 0.065f;
 
 }
 void SFXRhodesFrame()
@@ -1649,21 +1673,59 @@ void SFXRhodesFrame()
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(numVoices == 1);
 	}
-
-	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
+	if (buttonActionsSFX[ButtonUp][ActionPress] == 1)
 	{
 		Rsound = (Rsound + 1 ) % 4; // switch to another rhodes preset sound
+		buttonActionsSFX[ButtonUp][ActionPress] = 0;
+	}
+	if (buttonActionsSFX[ButtonDown][ActionPress] == 1)
+	{
+		if (Rsound == 0) Rsound = 3; // switch to another rhodes preset sound
+		else Rsound--;
+		buttonActionsSFX[ButtonDown][ActionPress] = 0;
+	}
+	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
+	{
+		rhodesKnobPage = (rhodesKnobPage + 1) % 2;
+		setKnobValues(pageKnobValues[rhodesKnobPage]);
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
-		OLEDclearLine(SecondLine);
-		OLEDwriteString(soundNames[Rsound], 6, 0, SecondLine);
-		for (int i = 0; i < NUM_VOC_VOICES; i++)
+		setLED_B(rhodesKnobPage == 1);
+	}
+
+	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+	{
+		pageKnobValues[rhodesKnobPage][i] = smoothedADC[i];
+	}
+
+
+	float adsrParams[5];
+	adsrParams[0] = (pageKnobValues[1][0] * 19.9f) + 0.1f; //att mult
+	adsrParams[1] = (pageKnobValues[1][1] * 19.9f) + 0.1f; //dec mult
+	adsrParams[2] = pageKnobValues[1][2] * 1.111f; //sus mult
+	adsrParams[3] = (pageKnobValues[1][3] * 993.0f) + 7.0f; //rel
+	adsrParams[4] = ((1.0f - pageKnobValues[1][4]) * 0.0002f) + 0.9998f; //leak
+
+	// kinda messy but need to avoid setting everything every frame
+	uint8_t changed[5];
+	for (int i = 0; i < 5; i++)
+	{
+		if (pageValues[1][i] != adsrParams[i])
 		{
-			for (int j = 0; j < 6; j++)
-			{
-				tADSR_setAttack(&FM_envs[i][j], FM_attacks[Rsound][j]);
-				tADSR_setDecay(&FM_envs[i][j], FM_sustains[Rsound][j]);
-				tADSR_setSustain(&FM_envs[i][j], FM_decays[Rsound][j]);
-			}
+			pageValues[1][i] = adsrParams[i];
+			changed[i] = 1;
+		}
+		else changed[i] = 0;
+	}
+
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
+	{
+		for (int j = 0; j < 6; j++)
+		{
+			if (changed[0]) tADSR_setAttack(&FM_envs[i][j], FM_attacks[Rsound][j] * pageValues[1][0]);
+			if (changed[1]) tADSR_setDecay(&FM_envs[i][j], FM_decays[Rsound][j] * pageValues[1][1]);
+			if (changed[2]) tADSR_setSustain(&FM_envs[i][j], FM_sustains[Rsound][j] * pageValues[1][2]);
+			if (changed[3]) tADSR_setRelease(&FM_envs[i][j], pageValues[1][3]);
+			if (changed[4]) tADSR_setLeakFactor(&FM_envs[i][j], pageValues[1][4]);
 		}
 	}
 
@@ -1679,7 +1741,7 @@ void SFXRhodesFrame()
 			for (int j = 0; j < 6; j++)
 			{
 				FM_decays[Rsound][j] = (CCs[j+1] * 8.0f);
-				tADSR_setDecay(&FM_envs[i][j], FM_decays[Rsound][j]);
+				tADSR_setDecay(&FM_envs[i][j], FM_decays[Rsound][j] * pageValues[1][1]);
 			}
 		}
 	}
@@ -1706,7 +1768,7 @@ void SFXRhodesFrame()
 			for (int j = 0; j < 6; j++)
 			{
 				FM_sustains[Rsound][j] = (CCs[j+1] * 0.007874015748031f );
-				tADSR_setSustain(&FM_envs[i][j], FM_sustains[Rsound][j]);
+				tADSR_setSustain(&FM_envs[i][j], FM_sustains[Rsound][j] * pageValues[1][2]);
 			}
 		}
 	}
@@ -1715,40 +1777,48 @@ void SFXRhodesFrame()
 
 void SFXRhodesTick(float audioIn)
 {
+
 	tPoly_tickPitch(&poly);
-	knobParams[0] = smoothedADC[0] * 2.0f; //brightness
+	pageValues[0][0] = pageKnobValues[0][0] * 2.0f; //synth volume
+	pageValues[0][1] = pageKnobValues[0][1]; //lowpass cutoff
+	pageValues[0][2] = pageKnobValues[0][2] * 8.0f; //keyfollow filter cutoff
 
-	knobParams[1] = smoothedADC[1];  //tremolo amount
-	knobParams[2] = smoothedADC[2] * 8.0f;  //tremolo speed
+	knobParams[0] = pageValues[rhodesKnobPage][0];
+	knobParams[1] = pageValues[rhodesKnobPage][1];
+	knobParams[2] = pageValues[rhodesKnobPage][2];
+	knobParams[3] = pageValues[rhodesKnobPage][3];
+	knobParams[4] = pageValues[rhodesKnobPage][4];
 
-	tCycle_setFreq(&tremolo, knobParams[2]);
-
-
-	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	if (rhodesKnobPage == 1)
 	{
-		float myFrequency = freq[i];
-		tCycle_setFreq(&FM_sines[i][5], (myFrequency  * FM_freqRatios[Rsound][5]) + (FM_indices[Rsound][5] * feedback_output * knobParams[0]));
-		feedback_output = tCycle_tick(&FM_sines[i][5]);
-		tCycle_setFreq(&FM_sines[i][4], (myFrequency  * FM_freqRatios[Rsound][4]) + (FM_indices[Rsound][4] * feedback_output * knobParams[0] * tADSR_tick(&FM_envs[i][5])));
-		tCycle_setFreq(&FM_sines[i][3], (myFrequency  * FM_freqRatios[Rsound][3]) + (FM_indices[Rsound][3] * knobParams[0] * tCycle_tick(&FM_sines[i][4]) * tADSR_tick(&FM_envs[i][4])));
-		tCycle_setFreq(&FM_sines[i][2], (myFrequency  * FM_freqRatios[Rsound][2]) + (FM_indices[Rsound][2] * knobParams[0] * tCycle_tick(&FM_sines[i][3]) * tADSR_tick(&FM_envs[i][3])));
-		tCycle_setFreq(&FM_sines[i][1], myFrequency  * FM_freqRatios[Rsound][1]);
-		tCycle_setFreq(&FM_sines[i][0],( myFrequency  * FM_freqRatios[Rsound][0]) + (FM_indices[Rsound][0] * knobParams[0] * tCycle_tick(&FM_sines[i][1]) * tADSR_tick(&FM_envs[i][1])));
-
+		knobParams[2] = pageValues[rhodesKnobPage][2] * 0.9f;
+		knobParams[3] = pageValues[rhodesKnobPage][3];
+		knobParams[4] = pageKnobValues[rhodesKnobPage][4];
 	}
+
+	tCycle_setFreq(&tremolo, pageValues[0][2]);
 
 	//if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
 		//float amplitudeTemp = tRamp_tick(&polyRamp[i]);
 		//amplitudeTemp = 1.0f;
+		float myFrequency = freq[i];
+		tCycle_setFreq(&FM_sines[i][5], (myFrequency  * FM_freqRatios[Rsound][5]) + (FM_indices[Rsound][5] * feedback_output * pageValues[0][0]));
+		feedback_output = tCycle_tick(&FM_sines[i][5]);
+		tCycle_setFreq(&FM_sines[i][4], (myFrequency  * FM_freqRatios[Rsound][4]) + (FM_indices[Rsound][4] * feedback_output * pageValues[0][0] * tADSR_tick(&FM_envs[i][5])));
+		tCycle_setFreq(&FM_sines[i][3], (myFrequency  * FM_freqRatios[Rsound][3]) + (FM_indices[Rsound][3] * pageValues[0][0] * tCycle_tick(&FM_sines[i][4]) * tADSR_tick(&FM_envs[i][4])));
+		tCycle_setFreq(&FM_sines[i][2], (myFrequency  * FM_freqRatios[Rsound][2]) + (FM_indices[Rsound][2] * pageValues[0][0] * tCycle_tick(&FM_sines[i][3]) * tADSR_tick(&FM_envs[i][3])));
+		tCycle_setFreq(&FM_sines[i][1], myFrequency  * FM_freqRatios[Rsound][1]);
+		tCycle_setFreq(&FM_sines[i][0],( myFrequency  * FM_freqRatios[Rsound][0]) + (FM_indices[Rsound][0] * pageValues[0][0] * tCycle_tick(&FM_sines[i][1]) * tADSR_tick(&FM_envs[i][1])));
+
 
 		sample += tCycle_tick(&FM_sines[i][2]) * tADSR_tick(&FM_envs[i][2]);
 		sample += tCycle_tick(&FM_sines[i][0]) * tADSR_tick(&FM_envs[i][0]);
 
 	}
-	float tremoloSignal = ((tCycle_tick(&tremolo) * 0.5f) + 0.5f) * knobParams[1];
-	sample = sample * (tremoloSignal + (1.0f - knobParams[1]));
+	float tremoloSignal = ((tCycle_tick(&tremolo) * 0.5f) + 0.5f) * pageValues[0][1];
+	sample = sample * (tremoloSignal + (1.0f - pageValues[0][1]));
 
 	sample *= 0.125f;
 	rightOut = sample;
@@ -1877,7 +1947,7 @@ void noteOn(int key, int velocity)
 			}
 			else if (currentPreset == ClassicSynth)
 			{
-				tADSR_on(&csEnvs[whichVoice], velocity * 0.0078125f);
+				tADSR_on(&polyEnvs[whichVoice], velocity * 0.0078125f);
 			}
 		}
 
@@ -1928,7 +1998,7 @@ void noteOff(int key, int velocity)
 		}
 		else if (currentPreset == ClassicSynth)
 		{
-			tADSR_off(&csEnvs[voice]);
+			tADSR_off(&polyEnvs[voice]);
 		}
 	}
 

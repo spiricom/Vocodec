@@ -99,6 +99,8 @@ void resetKnobValues(void);
 
 void setKnobValues(float* values);
 
+void deactivateKnob(int knob);
+
 char* UIVocoderButtons(VocodecButton button, ButtonAction action);
 char* UIPitchShiftButtons(VocodecButton button, ButtonAction action);
 char* UINeartuneButtons(VocodecButton button, ButtonAction action);
@@ -114,8 +116,6 @@ char* UIReverbButtons(VocodecButton button, ButtonAction action);
 char* UIReverb2Buttons(VocodecButton button, ButtonAction action);
 char* UILivingStringButtons(VocodecButton button, ButtonAction action);
 char* UILivingStringSynthButtons(VocodecButton button, ButtonAction action);
-
-extern uint8_t csKnobPage;
 char* UIClassicSynthButtons(VocodecButton button, ButtonAction action);
 char* UIRhodesButtons(VocodecButton button, ButtonAction action);
 

@@ -124,7 +124,7 @@ void initModeNames(void)
 	shortModeNames[SamplerButtonPress] = "SB";
 	modeNamesDetails[SamplerButtonPress] = "PRESS BUTTON A";
 	paramNames[SamplerButtonPress][0] = "START";
-	paramNames[SamplerButtonPress][1] = "END";
+	paramNames[SamplerButtonPress][1] = "LENGTH";
 	paramNames[SamplerButtonPress][2] = "SPEED";
 	paramNames[SamplerButtonPress][3] = "CROSSFADE";
 	paramNames[SamplerButtonPress][4] = "";
@@ -136,7 +136,7 @@ void initModeNames(void)
 	shortModeNames[SamplerKeyboard] = "KS";
 	modeNamesDetails[SamplerKeyboard] = "A OR KEY TO REC";
 	paramNames[SamplerKeyboard][0] = "START";
-	paramNames[SamplerKeyboard][1] = "END";
+	paramNames[SamplerKeyboard][1] = "LENGTH";
 	paramNames[SamplerKeyboard][2] = "SPEED";
 	paramNames[SamplerKeyboard][3] = "CROSSFADE";
 	paramNames[SamplerKeyboard][4] = "";
@@ -174,7 +174,7 @@ void initModeNames(void)
 	paramNames[Wavefolder][0] = "GAIN";
 	paramNames[Wavefolder][1] = "OFFSET1";
 	paramNames[Wavefolder][2] = "OFFSET2";
-	paramNames[Wavefolder][3] = "";
+	paramNames[Wavefolder][3] = "POST GAIN";
 	paramNames[Wavefolder][4] = "";
 	paramNames[Wavefolder][5] = "";
 	paramNames[Wavefolder][NUM_ADC_CHANNELS + ButtonA] = "";
@@ -187,7 +187,7 @@ void initModeNames(void)
 	paramNames[BitCrusher][1] = "SAMP RATIO";
 	paramNames[BitCrusher][2] = "ROUNDING";
 	paramNames[BitCrusher][3] = "OPERATION";
-	paramNames[BitCrusher][4] = "GAIN";
+	paramNames[BitCrusher][4] = "POST GAIN";
 	paramNames[BitCrusher][5] = "";
 	paramNames[BitCrusher][NUM_ADC_CHANNELS + ButtonA] = "";
 	paramNames[BitCrusher][NUM_ADC_CHANNELS + ButtonB] = "";
@@ -545,6 +545,12 @@ void setKnobValues(float* values)
 	}
 }
 
+void deactivateKnob(int knob)
+{
+	knobActive[knob] = 0;
+	floatADCUI[knob] = -1.0f;
+}
+
 char* UIVocoderButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
@@ -688,6 +694,11 @@ char* UIDelayButtons(VocodecButton button, ButtonAction action)
 		writeString = delayShaper ? "SHAPER ON" : "SHAPER OFF";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
+	if (buttonActionsUI[ButtonB][ActionPress])
+	{
+		writeString = capFeedback ? "FB CAP" : "FB UNCAP";
+		buttonActionsUI[ButtonB][ActionPress] = 0;
+	}
 	return writeString;
 }
 
@@ -698,6 +709,11 @@ char* UIReverbButtons(VocodecButton button, ButtonAction action)
 	{
 		writeString = freeze ? "FREEZE" : "UNFREEZE";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
+	if (buttonActionsUI[ButtonB][ActionPress])
+	{
+		writeString = capFeedback ? "FB CAP" : "FB UNCAP";
+		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;
 }
@@ -771,6 +787,36 @@ char* UIRhodesButtons(VocodecButton button, ButtonAction action)
 	{
 		writeString = (numVoices > 1) ? "POLY" : "MONO";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
+	if (buttonActionsUI[ButtonUp][ActionPress] || buttonActionsUI[ButtonDown][ActionPress])
+	{
+		OLEDclearLine(SecondLine);
+		OLEDwriteString(soundNames[Rsound], 6, 0, SecondLine);
+		buttonActionsUI[ButtonUp][ActionPress] = 0;
+		buttonActionsUI[ButtonDown][ActionPress] = 0;
+
+	}
+	if (buttonActionsUI[ButtonB][ActionPress])
+	{
+		if (rhodesKnobPage == 0)
+		{
+			writeString = "SETTINGS";
+			paramNames[Rhodes][0] = "BRIGHTNESS";
+			paramNames[Rhodes][1] = "TREM DEPTH";
+			paramNames[Rhodes][2] = "TREM RATE";
+			paramNames[Rhodes][3] = "";
+			paramNames[Rhodes][4] = "";
+		}
+		else
+		{
+			writeString = "ADSR";
+			paramNames[Rhodes][0] = "ATKFACTOR";
+			paramNames[Rhodes][1] = "DECFACTOR";
+			paramNames[Rhodes][2] = "SUSTAIN";
+			paramNames[Rhodes][3] = "RELEASE";
+			paramNames[Rhodes][4] = "LEAK";
+		}
+		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;
 }
