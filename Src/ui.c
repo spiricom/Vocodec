@@ -72,17 +72,29 @@ void initModeNames(void)
 	orderedParams[6] = ButtonA;
 	orderedParams[7] = ButtonB;
 
-	modeNames[Vocoder] = "VOCODER";
-	shortModeNames[Vocoder] = "VC";
+	modeNames[Vocoder] = "VOCODER LPC";
+	shortModeNames[Vocoder] = "VL";
 	modeNamesDetails[Vocoder] = "";
 	paramNames[Vocoder][0] = "VOLUME";
 	paramNames[Vocoder][1] = "WARP";
 	paramNames[Vocoder][2] = "QUALITY";
 	paramNames[Vocoder][3] = "PULSE";
-	paramNames[Vocoder][4] = "SAWtoPULSE";
+	paramNames[Vocoder][4] = "NOISE THRESH";
 	paramNames[Vocoder][5] = "";
 	paramNames[Vocoder][NUM_ADC_CHANNELS + ButtonA] = "POLY MONO";
 	paramNames[Vocoder][NUM_ADC_CHANNELS + ButtonB] = "SOURCE";
+
+	modeNames[VocoderCh] = "VOCODER CH";
+	shortModeNames[VocoderCh] = "VC";
+	modeNamesDetails[VocoderCh] = "";
+	paramNames[VocoderCh][0] = "VOLUME";
+	paramNames[VocoderCh][1] = "WARP";
+	paramNames[VocoderCh][2] = "QUALITY";
+	paramNames[VocoderCh][3] = "PULSE";
+	paramNames[VocoderCh][4] = "SAWtoPULSE";
+	paramNames[VocoderCh][5] = "";
+	paramNames[VocoderCh][NUM_ADC_CHANNELS + ButtonA] = "POLY MONO";
+	paramNames[VocoderCh][NUM_ADC_CHANNELS + ButtonB] = "SOURCE";
 
 	modeNames[Pitchshift] = "PITCHSHIFT";
 	shortModeNames[Pitchshift] = "PS";
@@ -552,6 +564,22 @@ void deactivateKnob(int knob)
 }
 
 char* UIVocoderButtons(VocodecButton button, ButtonAction action)
+{
+	char* writeString = "";
+	if (buttonActionsUI[ButtonA][ActionPress] == 1)
+	{
+		writeString = (numVoices > 1) ? "POLY" : "MONO";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
+	if (buttonActionsUI[ButtonB][ActionPress] == 1)
+	{
+		writeString = internalExternal ? "EXTERNAL" : "INTERNAL";
+		buttonActionsUI[ButtonB][ActionPress] = 0;
+	}
+	return writeString;
+}
+
+char* UIVocoderChButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
 	if (buttonActionsUI[ButtonA][ActionPress] == 1)

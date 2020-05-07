@@ -388,6 +388,11 @@ void initFunctionPointers(void)
 	tickFunctions[Vocoder] = SFXVocoderTick;
 	freeFunctions[Vocoder] = SFXVocoderFree;
 
+	allocFunctions[VocoderCh] = SFXVocoderChAlloc;
+	frameFunctions[VocoderCh] = SFXVocoderChFrame;
+	tickFunctions[VocoderCh] = SFXVocoderChTick;
+	freeFunctions[VocoderCh] = SFXVocoderChFree;
+
 	allocFunctions[Pitchshift] = SFXPitchShiftAlloc;
 	frameFunctions[Pitchshift] = SFXPitchShiftFrame;
 	tickFunctions[Pitchshift] = SFXPitchShiftTick;

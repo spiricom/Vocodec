@@ -14,6 +14,7 @@
 typedef enum _VocodecPresetType
 {
 	Vocoder = 0,
+	VocoderCh,
 	Pitchshift,
 	AutotuneMono,
 	AutotunePoly,
@@ -102,6 +103,7 @@ void setKnobValues(float* values);
 void deactivateKnob(int knob);
 
 char* UIVocoderButtons(VocodecButton button, ButtonAction action);
+char* UIVocoderChButtons(VocodecButton button, ButtonAction action);
 char* UIPitchShiftButtons(VocodecButton button, ButtonAction action);
 char* UINeartuneButtons(VocodecButton button, ButtonAction action);
 char* UIAutotuneButtons(VocodecButton button, ButtonAction action);

@@ -65,6 +65,7 @@ void OLED_init(I2C_HandleTypeDef* hi2c)
 void initUIFunctionPointers(void)
 {
 	buttonActionFunctions[Vocoder] = UIVocoderButtons;
+	buttonActionFunctions[VocoderCh] = UIVocoderChButtons;
 	buttonActionFunctions[Pitchshift] = UIPitchShiftButtons;
 	buttonActionFunctions[AutotuneMono] = UINeartuneButtons;
 	buttonActionFunctions[AutotunePoly] = UIAutotuneButtons;
@@ -241,7 +242,7 @@ void OLED_process(void)
 
 void OLED_writePreset()
 {
-	GFXsetFont(&theGFX, &EuphemiaCAS9pt7b);
+	GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
 	OLEDclear();
 	char tempString[24];
 	itoa((currentPreset+1), tempString, 10);
