@@ -876,7 +876,7 @@ void SFXSamplerBPFree(void)
 int currentSamplerKey = 60 - LOWEST_SAMPLER_KEY;
 int recordingSamplerKey = 60 - LOWEST_SAMPLER_KEY;
 uint8_t samplerKeyHeld[NUM_SAMPLER_KEYS];
-float keyKnobValues[NUM_SAMPLER_KEYS][NUM_ADC_CHANNELS];
+float keyKnobValues[NUM_SAMPLER_KEYS][KNOB_PAGE_SIZE];
 
 void SFXSamplerKAlloc()
 {
@@ -888,7 +888,7 @@ void SFXSamplerKAlloc()
 		tBuffer_setRecordMode(&keyBuff[i], RecordOneShot);
 		tSampler_init(&keySampler[i], &keyBuff[i]);
 		tSampler_setMode(&keySampler[i], PlayLoop);
-		for (int j = 0; j < NUM_ADC_CHANNELS; j++)
+		for (int j = 0; j < KNOB_PAGE_SIZE; j++)
 		{
 			keyKnobValues[i][j] = defaultPresetKnobValues[currentPreset][j];
 		}

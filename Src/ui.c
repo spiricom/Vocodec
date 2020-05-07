@@ -461,7 +461,8 @@ void adcCheck()
 				buttonActionsUI[ButtonEdit][ActionHoldContinuous] = 0;
 			}
 			lastFloatADC[i] = floatADC[i];
-			writeKnobFlag = i;
+			if (i == 5) writeKnobFlag = cvAddParam - (knobPage * KNOB_PAGE_SIZE);
+			else writeKnobFlag = i;
 			knobActive[i] = 1;
 		}
 		// only do the following check after the knob has already passed the above
@@ -470,7 +471,8 @@ void adcCheck()
 		{
 			if (fastabsf(smoothedADC[i] - floatADCUI[i]) > adcHysteresisThreshold)
 			{
-				writeKnobFlag = i;
+				if (i == 5) writeKnobFlag = cvAddParam - (knobPage * KNOB_PAGE_SIZE);
+				else writeKnobFlag = i;
 			}
 		}
 		if (knobActive[i]) tRamp_setDest(&adc[i], floatADC[i]);
@@ -549,24 +551,31 @@ void resetKnobValues(void)
 
 void setKnobValues(float* values)
 {
-	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+	for (int i = 0; i < KNOB_PAGE_SIZE; i++)
 	{
-		knobActive[i] = 0;
-		floatADCUI[i] = -1.0f;
-		float value = 0.0f;
-		if (i != 5) value = values[i];
-		tRamp_setVal(&adc[i], value);
-		tRamp_setDest(&adc[i], value);
-		smoothedADC[i] = value;
+		int knob = i;
+		// if the knob is being replaced by cv pedal, set cv pedal instead
+		if (knob + (knobPage * KNOB_PAGE_SIZE) == cvAddParam[currentPreset])
+		{
+			knob = 5;
+		}
+		knobActive[knob] = 0;
+		floatADCUI[knob] = -1.0f;
+		tRamp_setVal(&adc[knob], values[knob]);
+		tRamp_setDest(&adc[knob], values[knob]);
+		smoothedADC[knob] = values[knob];
 	}
 }
 
-void setKnobValue(int knob, float values)
+void setKnobValue(int knob, float value)
 {
+	// if the knob is being replaced by cv pedal, set cv pedal instead
+	if (knob + (knobPage * KNOB_PAGE_SIZE) == cvAddParam[currentPreset])
+	{
+		knob = 5;
+	}
 	knobActive[knob] = 0;
 	floatADCUI[knob] = -1.0f;
-	float value = 0.0f;
-	if (knob != 5) value = values[knob];
 	tRamp_setVal(&adc[knob], value);
 	tRamp_setDest(&adc[knob], value);
 	smoothedADC[knob] = value;
