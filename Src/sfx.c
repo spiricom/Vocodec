@@ -11,7 +11,9 @@
 #include "tunings.h"
 #include "MIDI_application.h"
 
-float presetKnobValues[PresetNil][NUM_ADC_CHANNELS];
+float defaultPresetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
+float presetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
+float params[NUM_PRESET_KNOB_VALUES];
 uint8_t knobActive[NUM_ADC_CHANNELS];
 
 //audio objects
@@ -105,131 +107,147 @@ void initGlobalSFXObjects()
 	// Note that these are the actual knob values
 	// not the parameter value
 	// (i.e. 0.5 for fine pitch is actually 0.0 fine pitch)
-	presetKnobValues[Vocoder][0] = 0.6f; // volume
-	presetKnobValues[Vocoder][1] = 0.5f; // warp factor
-	presetKnobValues[Vocoder][2] = 0.75f; // quality
-	presetKnobValues[Vocoder][3] = 0.5f; // pulse length
-	presetKnobValues[Vocoder][4] = 0.4f; // noise threshold
-	presetKnobValues[Vocoder][5] = 0.0f;
+	defaultPresetKnobValues[Vocoder][0] = 0.6f; // volume
+	defaultPresetKnobValues[Vocoder][1] = 0.5f; // warp factor
+	defaultPresetKnobValues[Vocoder][2] = 0.75f; // quality
+	defaultPresetKnobValues[Vocoder][3] = 0.5f; // pulse length
+	defaultPresetKnobValues[Vocoder][4] = 0.4f; // noise threshold
+	defaultPresetKnobValues[Vocoder][5] = 0.0f;
 
-	presetKnobValues[VocoderCh][0] = 0.6f; // volume
-	presetKnobValues[VocoderCh][1] = 0.5f; // warp factor
-	presetKnobValues[VocoderCh][2] = 0.75f; // quality
-	presetKnobValues[VocoderCh][3] = 0.5f; // pulse length
-	presetKnobValues[VocoderCh][4] = 0.0f; // saw->pulse fade
-	presetKnobValues[VocoderCh][5] = 0.0f;
+	defaultPresetKnobValues[VocoderCh][0] = 0.6f; // volume
+	defaultPresetKnobValues[VocoderCh][1] = 0.5f; // warp factor
+	defaultPresetKnobValues[VocoderCh][2] = 0.75f; // quality
+	defaultPresetKnobValues[VocoderCh][3] = 0.5f; // pulse length
+	defaultPresetKnobValues[VocoderCh][4] = 0.0f; // saw->pulse fade
+	defaultPresetKnobValues[VocoderCh][5] = 0.0f;
 
-	presetKnobValues[Pitchshift][0] = 1.0f; // pitch
-	presetKnobValues[Pitchshift][1] = 0.5f; // fine pitch
-	presetKnobValues[Pitchshift][2] = 0.0f; // f amount
-	presetKnobValues[Pitchshift][3] = 0.5f; // formant
-	presetKnobValues[Pitchshift][4] = 0.0f;
-	presetKnobValues[Pitchshift][5] = 0.0f;
+	defaultPresetKnobValues[Pitchshift][0] = 1.0f; // pitch
+	defaultPresetKnobValues[Pitchshift][1] = 0.5f; // fine pitch
+	defaultPresetKnobValues[Pitchshift][2] = 0.0f; // f amount
+	defaultPresetKnobValues[Pitchshift][3] = 0.5f; // formant
+	defaultPresetKnobValues[Pitchshift][4] = 0.0f;
+	defaultPresetKnobValues[Pitchshift][5] = 0.0f;
 
-	presetKnobValues[AutotuneMono][0] = 1.0f; // fidelity thresh
-	presetKnobValues[AutotuneMono][1] = 1.0f; // amount
-	presetKnobValues[AutotuneMono][2] = 1.0f; // speed
-	presetKnobValues[AutotuneMono][3] = 0.0f;
-	presetKnobValues[AutotuneMono][4] = 0.0f;
-	presetKnobValues[AutotuneMono][5] = 0.0f;
+	defaultPresetKnobValues[AutotuneMono][0] = 1.0f; // fidelity thresh
+	defaultPresetKnobValues[AutotuneMono][1] = 1.0f; // amount
+	defaultPresetKnobValues[AutotuneMono][2] = 1.0f; // speed
+	defaultPresetKnobValues[AutotuneMono][3] = 0.0f;
+	defaultPresetKnobValues[AutotuneMono][4] = 0.0f;
+	defaultPresetKnobValues[AutotuneMono][5] = 0.0f;
 
-	presetKnobValues[AutotunePoly][0] = 1.0f; // fidelity thresh
-	presetKnobValues[AutotunePoly][1] = 0.5f;
-	presetKnobValues[AutotunePoly][2] = 0.1f;
-	presetKnobValues[AutotunePoly][3] = 0.0f;
-	presetKnobValues[AutotunePoly][4] = 0.0f;
-	presetKnobValues[AutotunePoly][5] = 0.0f;
+	defaultPresetKnobValues[AutotunePoly][0] = 1.0f; // fidelity thresh
+	defaultPresetKnobValues[AutotunePoly][1] = 0.5f;
+	defaultPresetKnobValues[AutotunePoly][2] = 0.1f;
+	defaultPresetKnobValues[AutotunePoly][3] = 0.0f;
+	defaultPresetKnobValues[AutotunePoly][4] = 0.0f;
+	defaultPresetKnobValues[AutotunePoly][5] = 0.0f;
 
-	presetKnobValues[SamplerButtonPress][0] = 0.0f; // start
-	presetKnobValues[SamplerButtonPress][1] = 1.0f; // end
-	presetKnobValues[SamplerButtonPress][2] = 0.75f; // speed
-	presetKnobValues[SamplerButtonPress][3] = 0.25f; // crossfade
-	presetKnobValues[SamplerButtonPress][4] = 0.0f;
-	presetKnobValues[SamplerButtonPress][5] = 0.0f;
+	defaultPresetKnobValues[SamplerButtonPress][0] = 0.0f; // start
+	defaultPresetKnobValues[SamplerButtonPress][1] = 1.0f; // end
+	defaultPresetKnobValues[SamplerButtonPress][2] = 0.75f; // speed
+	defaultPresetKnobValues[SamplerButtonPress][3] = 0.25f; // crossfade
+	defaultPresetKnobValues[SamplerButtonPress][4] = 0.0f;
+	defaultPresetKnobValues[SamplerButtonPress][5] = 0.0f;
 
-	presetKnobValues[SamplerKeyboard][0] = 0.0f; // start
-	presetKnobValues[SamplerKeyboard][1] = 1.0f; // end
-	presetKnobValues[SamplerKeyboard][2] = 0.75f; // speed
-	presetKnobValues[SamplerKeyboard][3] = 0.25f; // crossfade
-	presetKnobValues[SamplerKeyboard][4] = 0.0f;
-	presetKnobValues[SamplerKeyboard][5] = 0.0f;
+	defaultPresetKnobValues[SamplerKeyboard][0] = 0.0f; // start
+	defaultPresetKnobValues[SamplerKeyboard][1] = 1.0f; // end
+	defaultPresetKnobValues[SamplerKeyboard][2] = 0.75f; // speed
+	defaultPresetKnobValues[SamplerKeyboard][3] = 0.25f; // crossfade
+	defaultPresetKnobValues[SamplerKeyboard][4] = 0.0f;
+	defaultPresetKnobValues[SamplerKeyboard][5] = 0.0f;
 
-	presetKnobValues[SamplerAutoGrab][0] = 0.95f; // thresh
-	presetKnobValues[SamplerAutoGrab][1] = 0.5f; // window
-	presetKnobValues[SamplerAutoGrab][2] = 0.0f; // rel thresh
-	presetKnobValues[SamplerAutoGrab][3] = 0.25f; // crossfade
-	presetKnobValues[SamplerAutoGrab][4] = 0.0f;
-	presetKnobValues[SamplerAutoGrab][5] = 0.0f;
+	defaultPresetKnobValues[SamplerAutoGrab][0] = 0.95f; // thresh
+	defaultPresetKnobValues[SamplerAutoGrab][1] = 0.5f; // window
+	defaultPresetKnobValues[SamplerAutoGrab][2] = 0.0f; // rel thresh
+	defaultPresetKnobValues[SamplerAutoGrab][3] = 0.25f; // crossfade
+	defaultPresetKnobValues[SamplerAutoGrab][4] = 0.0f;
+	defaultPresetKnobValues[SamplerAutoGrab][5] = 0.0f;
 
-	presetKnobValues[Distortion][0] = .25f; // pre gain
-	presetKnobValues[Distortion][1] = 0.5f; // tilt (low and high shelfs, opposing gains
-	presetKnobValues[Distortion][2] = 0.5f; // mid gain
-	presetKnobValues[Distortion][3] = 0.5f; // mid freq
-	presetKnobValues[Distortion][4] = 0.25f; //post gain
-	presetKnobValues[Distortion][5] = 0.0f;
+	defaultPresetKnobValues[Distortion][0] = .25f; // pre gain
+	defaultPresetKnobValues[Distortion][1] = 0.5f; // tilt (low and high shelfs, opposing gains
+	defaultPresetKnobValues[Distortion][2] = 0.5f; // mid gain
+	defaultPresetKnobValues[Distortion][3] = 0.5f; // mid freq
+	defaultPresetKnobValues[Distortion][4] = 0.25f; //post gain
+	defaultPresetKnobValues[Distortion][5] = 0.0f;
 
-	presetKnobValues[Wavefolder][0] = 0.25f; // gain
-	presetKnobValues[Wavefolder][1] = 0.5f; // offset1
-	presetKnobValues[Wavefolder][2] = 0.5f; // offset2
-	presetKnobValues[Wavefolder][3] = 0.10f; // post gain
-	presetKnobValues[Wavefolder][4] = 0.0f;
-	presetKnobValues[Wavefolder][5] = 0.0f;
+	defaultPresetKnobValues[Wavefolder][0] = 0.25f; // gain
+	defaultPresetKnobValues[Wavefolder][1] = 0.5f; // offset1
+	defaultPresetKnobValues[Wavefolder][2] = 0.5f; // offset2
+	defaultPresetKnobValues[Wavefolder][3] = 0.10f; // post gain
+	defaultPresetKnobValues[Wavefolder][4] = 0.0f;
+	defaultPresetKnobValues[Wavefolder][5] = 0.0f;
 
-	presetKnobValues[BitCrusher][0] = 0.1f; // quality
-	presetKnobValues[BitCrusher][1] = 0.5f; // samp ratio
-	presetKnobValues[BitCrusher][2] = 0.0f; // rounding
-	presetKnobValues[BitCrusher][3] = 0.0f; // operation
-	presetKnobValues[BitCrusher][4] = 0.5f; // post gain
-	presetKnobValues[BitCrusher][5] = 0.0f;
+	defaultPresetKnobValues[BitCrusher][0] = 0.1f; // quality
+	defaultPresetKnobValues[BitCrusher][1] = 0.5f; // samp ratio
+	defaultPresetKnobValues[BitCrusher][2] = 0.0f; // rounding
+	defaultPresetKnobValues[BitCrusher][3] = 0.0f; // operation
+	defaultPresetKnobValues[BitCrusher][4] = 0.5f; // post gain
+	defaultPresetKnobValues[BitCrusher][5] = 0.0f;
 
-	presetKnobValues[Delay][0] = 0.25f; // delayL
-	presetKnobValues[Delay][1] = 0.25f; // delayR
-	presetKnobValues[Delay][2] = 0.5f; // feedback
-	presetKnobValues[Delay][3] = 1.0f; // lowpass
-	presetKnobValues[Delay][4] = 0.0f; // highpass
-	presetKnobValues[Delay][5] = 0.0f;
+	defaultPresetKnobValues[Delay][0] = 0.25f; // delayL
+	defaultPresetKnobValues[Delay][1] = 0.25f; // delayR
+	defaultPresetKnobValues[Delay][2] = 0.5f; // feedback
+	defaultPresetKnobValues[Delay][3] = 1.0f; // lowpass
+	defaultPresetKnobValues[Delay][4] = 0.0f; // highpass
+	defaultPresetKnobValues[Delay][5] = 0.0f;
 
-	presetKnobValues[Reverb][0] = 0.5f; // size
-	presetKnobValues[Reverb][1] = 0.5f; // in lowpass
-	presetKnobValues[Reverb][2] = 0.5f; // in highpass
-	presetKnobValues[Reverb][3] = 0.5f; // fb lowpass
-	presetKnobValues[Reverb][4] = 0.5f; // fb gain
-	presetKnobValues[Reverb][5] = 0.0f;
+	defaultPresetKnobValues[Reverb][0] = 0.5f; // size
+	defaultPresetKnobValues[Reverb][1] = 0.5f; // in lowpass
+	defaultPresetKnobValues[Reverb][2] = 0.5f; // in highpass
+	defaultPresetKnobValues[Reverb][3] = 0.5f; // fb lowpass
+	defaultPresetKnobValues[Reverb][4] = 0.5f; // fb gain
+	defaultPresetKnobValues[Reverb][5] = 0.0f;
 
-	presetKnobValues[Reverb2][0] = 0.2f; // size
-	presetKnobValues[Reverb2][1] = 0.5f; // lowpass
-	presetKnobValues[Reverb2][2] = 0.5f; // highpass
-	presetKnobValues[Reverb2][3] = 0.5f; // peak freq
-	presetKnobValues[Reverb2][4] = 0.5f; // peak gain
-	presetKnobValues[Reverb2][5] = 0.0f;
+	defaultPresetKnobValues[Reverb2][0] = 0.2f; // size
+	defaultPresetKnobValues[Reverb2][1] = 0.5f; // lowpass
+	defaultPresetKnobValues[Reverb2][2] = 0.5f; // highpass
+	defaultPresetKnobValues[Reverb2][3] = 0.5f; // peak freq
+	defaultPresetKnobValues[Reverb2][4] = 0.5f; // peak gain
+	defaultPresetKnobValues[Reverb2][5] = 0.0f;
 
-	presetKnobValues[LivingString][0] = 0.5f; // freq
-	presetKnobValues[LivingString][1] = 0.5f; // detune
-	presetKnobValues[LivingString][2] = 0.5f; // decay
-	presetKnobValues[LivingString][3] = 0.8f; // damping
-	presetKnobValues[LivingString][4] = 0.5f; // pick pos
-	presetKnobValues[LivingString][5] = 0.0f;
+	defaultPresetKnobValues[LivingString][0] = 0.5f; // freq
+	defaultPresetKnobValues[LivingString][1] = 0.5f; // detune
+	defaultPresetKnobValues[LivingString][2] = 0.5f; // decay
+	defaultPresetKnobValues[LivingString][3] = 0.8f; // damping
+	defaultPresetKnobValues[LivingString][4] = 0.5f; // pick pos
+	defaultPresetKnobValues[LivingString][5] = 0.0f;
 
-	presetKnobValues[LivingStringSynth][0] = 0.0f;
-	presetKnobValues[LivingStringSynth][1] = 0.0f;
-	presetKnobValues[LivingStringSynth][2] = 0.5f; // decay
-	presetKnobValues[LivingStringSynth][3] = 0.8f; // damping
-	presetKnobValues[LivingStringSynth][4] = 0.5f; // pick pos
-	presetKnobValues[LivingStringSynth][5] = 0.0f;
+	defaultPresetKnobValues[LivingStringSynth][0] = 0.0f;
+	defaultPresetKnobValues[LivingStringSynth][1] = 0.0f;
+	defaultPresetKnobValues[LivingStringSynth][2] = 0.5f; // decay
+	defaultPresetKnobValues[LivingStringSynth][3] = 0.8f; // damping
+	defaultPresetKnobValues[LivingStringSynth][4] = 0.5f; // pick pos
+	defaultPresetKnobValues[LivingStringSynth][5] = 0.0f;
 
-	presetKnobValues[ClassicSynth][0] = 0.5f; // volume
-	presetKnobValues[ClassicSynth][1] = 0.5f; // lowpass
-	presetKnobValues[ClassicSynth][2] = 0.2f; // detune
-	presetKnobValues[ClassicSynth][3] = 0.0f;
-	presetKnobValues[ClassicSynth][4] = 0.0f;
-	presetKnobValues[ClassicSynth][5] = 0.0f;
+	defaultPresetKnobValues[ClassicSynth][0] = 0.5f; // volume
+	defaultPresetKnobValues[ClassicSynth][1] = 0.5f; // lowpass
+	defaultPresetKnobValues[ClassicSynth][2] = 0.2f; // detune
+	defaultPresetKnobValues[ClassicSynth][3] = 0.0f;
+	defaultPresetKnobValues[ClassicSynth][4] = 0.0f;
+	defaultPresetKnobValues[ClassicSynth][5] = 0.0f;
+	defaultPresetKnobValues[ClassicSynth][6] = 0.06f;
+	defaultPresetKnobValues[ClassicSynth][7] = 0.9f;
+	defaultPresetKnobValues[ClassicSynth][8] = 0.1f;
+	defaultPresetKnobValues[ClassicSynth][9] = 0.1f;
 
-	presetKnobValues[Rhodes][0] = 0.5f;
-	presetKnobValues[Rhodes][1] = 0.25f;
-	presetKnobValues[Rhodes][2] = 0.25f;
-	presetKnobValues[Rhodes][3] = 0.0f;
-	presetKnobValues[Rhodes][4] = 0.0f;
-	presetKnobValues[Rhodes][5] = 0.0f;
+	defaultPresetKnobValues[Rhodes][0] = 0.5f;
+	defaultPresetKnobValues[Rhodes][1] = 0.25f;
+	defaultPresetKnobValues[Rhodes][2] = 0.25f;
+	defaultPresetKnobValues[Rhodes][3] = 0.0f;
+	defaultPresetKnobValues[Rhodes][4] = 0.0f;
+	defaultPresetKnobValues[Rhodes][5] = 0.05f;
+	defaultPresetKnobValues[Rhodes][6] = 0.05f;
+	defaultPresetKnobValues[Rhodes][7] = 0.9f;
+	defaultPresetKnobValues[Rhodes][8] = 0.1007f;
+	defaultPresetKnobValues[Rhodes][9] = 0.065f;
+
+	for (int p = 0; p < PresetNil; p++)
+	{
+		for (int v = 0; v < NUM_PRESET_KNOB_VALUES; v++)
+		{
+			presetKnobValues[p][v] = defaultPresetKnobValues[p][v];
+		}
+	}
 }
 
 ///1 vocoder internal poly
@@ -306,9 +324,18 @@ void SFXVocoderTick(float audioIn)
 	float zerocross = 0.0f;
 	float noiseRampVal = 0.0f;
 
-	knobParams[3] = smoothedADC[3]; //pulse length
+	// presetKnobValues are ALL the 0-1 values for each preset (numpresets*15), set from smoothedADC
+	// in audiostream frame before sfx frame function are called, and in audiostream tick before sfx ticks are called
 
-	knobParams[4] = smoothedADC[4]; //crossfade between sawtooth and glottal pulse
+	// params are the presetKnobValues (15) after adjusting the range and should be used for setting objects
+
+	// displayValues (5) are the values to be written to the screen and should depend on knobPage,
+	// usually equal to params but sometimes different
+
+	// ** we could replace params with local variables in each function, but the other two need to be global
+	displayValues[3] = params[3] = presetKnobValues[Vocoder][3]; //pulse length
+
+	displayValues[4] = params[4] = presetKnobValues[Vocoder][4]; //crossfade between sawtooth and glottal pulse
 
 	if (internalExternal == 1) sample = rightIn;
 
@@ -318,7 +345,7 @@ void SFXVocoderTick(float audioIn)
 		zerocross = tZeroCrossing_tick(&zerox, audioIn);
 
 		//currently reusing the sawtooth/pulse fade knob for noise amount but need to separate these -JS
-		if (zerocross > ((knobParams[4])-0.1f))
+		if (zerocross > ((params[4])-0.1f))
 		{
 			tRamp_setDest(&noiseRamp, 1.0f);
 		}
@@ -335,27 +362,27 @@ void SFXVocoderTick(float audioIn)
 
 		for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 		{
-			sample += tSawtooth_tick(&osc[i]) * tRamp_tick(&polyRamp[i]) * (1.0f-knobParams[4]);
+			sample += tSawtooth_tick(&osc[i]) * tRamp_tick(&polyRamp[i]) * (1.0f-params[4]);
 
-			tRosenbergGlottalPulse_setPulseLength(&glottal[i], knobParams[3] );
+			tRosenbergGlottalPulse_setPulseLength(&glottal[i], params[3] );
 
 			//tRosenbergGlottalPulse_setOpenLength(&glottal[i], smoothedADC[2] * smoothedADC[1]);
-			sample += tRosenbergGlottalPulse_tick(&glottal[i]) * tRamp_tick(&polyRamp[i]) * knobParams[4];
+			sample += tRosenbergGlottalPulse_tick(&glottal[i]) * tRamp_tick(&polyRamp[i]) * params[4];
 		}
 
 		sample = (sample * (1.0f-noiseRampVal)) + noiseSample;
 		sample *= tRamp_tick(&comp);
 	}
-	knobParams[0] = smoothedADC[0]; //vocoder volume
+	displayValues[0] = params[0] = presetKnobValues[Vocoder][0]; //vocoder volume
 
-	knobParams[1] = (smoothedADC[1] * 0.4f) - 0.2f; //warp factor
-	tTalkbox_setWarpFactor(&vocoder, knobParams[1]);
+	displayValues[1] = params[1] = (presetKnobValues[Vocoder][1] * 0.4f) - 0.2f; //warp factor
+	tTalkbox_setWarpFactor(&vocoder, params[1]);
 
-	knobParams[2] = (smoothedADC[2] * 1.3f); //quality
-	tTalkbox_setQuality(&vocoder, knobParams[2]);
+	displayValues[2] = params[2] = (presetKnobValues[Vocoder][2] * 1.3f); //quality
+	tTalkbox_setQuality(&vocoder, params[2]);
 
 	sample = tTalkbox_tick(&vocoder, sample, audioIn);
-	sample *= knobParams[0] * 0.5f;
+	sample *= params[0] * 0.5f;
 	sample = tanhf(sample);
 	rightOut = sample;
 }
@@ -439,21 +466,19 @@ void SFXVocoderChFrame()
 		tRosenbergGlottalPulse_setFreq(&glottal[i], freq[i]);
 	}
 
-
-
-	knobParams[1] = (smoothedADC[1] * 0.8f) - 0.4f; //warp factor
+	displayValues[1] = (presetKnobValues[VocoderCh][1] * 0.8f) - 0.4f; //warp factor
 	//tTalkbox_setWarpFactor(&vocoder, knobParams[1]);
 
-	knobParams[2] = (smoothedADC[2] * 30.0f) + 1.0f; //quality
+	displayValues[2] = (presetKnobValues[VocoderCh][2] * 30.0f) + 1.0f; //quality
 	//tTalkbox_setQuality(&vocoder, knobParams[2]);
 
-	knobParams[3] = (smoothedADC[3]* 50.0f) + 0.5f; //pulse length
+	displayValues[3] = (presetKnobValues[VocoderCh][3]* 50.0f) + 0.5f; //pulse length
 
-	knobParams[4] = smoothedADC[4]; //crossfade between sawtooth and glottal pulse
+	displayValues[4] = presetKnobValues[VocoderCh][4]; //crossfade between sawtooth and glottal pulse
 
-	warpFactor = 1.0f + knobParams[1];
-	numberOfVocoderBands = knobParams[2];
-	myQ = knobParams[3];
+	warpFactor = 1.0f + displayValues[1];
+	numberOfVocoderBands = displayValues[2];
+	myQ = displayValues[3];
 
 	if ((numberOfVocoderBands != prevNumberOfVocoderBands) || (myQ != prevMyQ) || (warpFactor != prevWarpFactor))
 	{
@@ -508,7 +533,7 @@ void SFXVocoderChTick(float audioIn)
 		}
 		sample *= tRamp_tick(&comp);
 	}
-	knobParams[0] = smoothedADC[0]; //vocoder volume
+	displayValues[0] = presetKnobValues[VocoderCh][0]; //vocoder volume
 
 
 	tempSamp = 0.0f;
@@ -522,7 +547,7 @@ void SFXVocoderChTick(float audioIn)
 	}
 
 	sample = output;
-	sample *= (knobParams[0] * 5.0f);
+	sample *= (displayValues[0] * 5.0f);
 	sample = tanhf(sample);
 	rightOut = sample;
 }
@@ -574,23 +599,23 @@ void SFXPitchShiftTick(float audioIn)
 	//pitchFactor = (smoothedADC[0]*3.75f)+0.25f;
 
 
-	float myPitchFactorCoarse = (smoothedADC[0]*2.0f) - 1.0f;
-	float myPitchFactorFine = ((smoothedADC[1]*2.0f) - 1.0f) * 0.1f;
+	float myPitchFactorCoarse = (presetKnobValues[Pitchshift][0]*2.0f) - 1.0f;
+	float myPitchFactorFine = ((presetKnobValues[Pitchshift][1]*2.0f) - 1.0f) * 0.1f;
 	float myPitchFactorCombined = myPitchFactorFine + myPitchFactorCoarse;
-	knobParams[0] = myPitchFactorCombined;
-	knobParams[1] = myPitchFactorCombined;
+	displayValues[0] = myPitchFactorCombined;
+	displayValues[1] = myPitchFactorCombined;
 	float myPitchFactor = fastexp2f(myPitchFactorCombined);
 	tRetune_setPitchFactor(&retune, myPitchFactor, 0);
 	tRetune_setPitchFactor(&retune2, myPitchFactor, 0);
 
 
-	knobParams[2] = LEAF_clip( 0.0f,((smoothedADC[2]) * 3.0f) - 0.2f,3.0f);
+	displayValues[2] = LEAF_clip( 0.0f,((presetKnobValues[Pitchshift][2]) * 3.0f) - 0.2f,3.0f);
 
-	knobParams[3] = fastexp2f((smoothedADC[3]*2.0f) - 1.0f);
-	tExpSmooth_setDest(&smoother3, knobParams[2]);
+	displayValues[3] = fastexp2f((presetKnobValues[Pitchshift][3]*2.0f) - 1.0f);
+	tExpSmooth_setDest(&smoother3, displayValues[2]);
 	tFormantShifter_setIntensity(&fs, tExpSmooth_tick(&smoother3)+.1f);
-	tFormantShifter_setShiftFactor(&fs, knobParams[3]);
-	if (knobParams[2] > 0.01f)
+	tFormantShifter_setShiftFactor(&fs, displayValues[3]);
+	if (displayValues[2] > 0.01f)
 	{
 		tRamp_setDest(&pitchshiftRamp, -1.0f);
 	}
@@ -676,12 +701,12 @@ void SFXNeartuneFrame()
 
 void SFXNeartuneTick(float audioIn)
 {
-	knobParams[0] = 0.75f + (smoothedADC[0] * 0.22f);
-	tAutotune_setFidelityThreshold(&autotuneMono, knobParams[0]);
+	displayValues[0] = 0.75f + (presetKnobValues[AutotuneMono][0] * 0.22f);
+	tAutotune_setFidelityThreshold(&autotuneMono, displayValues[0]);
 
-	knobParams[1] = LEAF_clip(0.0f, smoothedADC[1] * 1.1f, 1.0f); // amount of forcing to new pitch
-	knobParams[2] = smoothedADC[2]; //speed to get to desired pitch shift
-	tExpSmooth_setFactor(&neartune_smoother, (knobParams[2] * .01f));
+	displayValues[1] = LEAF_clip(0.0f, presetKnobValues[AutotuneMono][1] * 1.1f, 1.0f); // amount of forcing to new pitch
+	displayValues[2] = presetKnobValues[AutotuneMono][2]; //speed to get to desired pitch shift
+	tExpSmooth_setFactor(&neartune_smoother, (displayValues[2] * .01f));
 
 	float detectedPeriod = tAutotune_getInputPeriod(&autotuneMono);
 	if (detectedPeriod > 0.0f)
@@ -689,7 +714,7 @@ void SFXNeartuneTick(float audioIn)
 		float detectedNote = LEAF_frequencyToMidi(leaf.sampleRate / detectedPeriod);
 		float desiredSnap = nearestNote(detectedPeriod);
 
-		float destinationNote = (desiredSnap * knobParams[1]) + (detectedNote * (1.0f - knobParams[0]));
+		float destinationNote = (desiredSnap * displayValues[1]) + (detectedNote * (1.0f - displayValues[0]));
 		float destinationFreq = LEAF_midiToFrequency(destinationNote);
 		tExpSmooth_setDest(&neartune_smoother, destinationFreq);
 	}
@@ -737,13 +762,13 @@ void SFXAutotuneFrame()
 
 void SFXAutotuneTick(float audioIn)
 {
-	knobParams[0] = 0.5f + (smoothedADC[0] * 0.47f);
+	displayValues[0] = 0.5f + (presetKnobValues[AutotunePoly][0] * 0.47f);
 
-	knobParams[1] = smoothedADC[1];
+	displayValues[1] = presetKnobValues[AutotunePoly][1];
 
-	knobParams[2] = smoothedADC[2];
+	displayValues[2] = presetKnobValues[AutotunePoly][2];
 
-	tAutotune_setFidelityThreshold(&autotunePoly, knobParams[0]);
+	tAutotune_setFidelityThreshold(&autotunePoly, displayValues[0]);
 	//tAutotune_setAlpha(&autotunePoly, knobParams[1]);
 	//tAutotune_setTolerance(&autotunePoly, knobParams[2]);
 	tPoly_tickPitch(&poly);
@@ -825,16 +850,18 @@ void SFXSamplerBPTick(float audioIn)
 		setLED_A(0);
 	}
 
-	sampleLength = recordPosition * leaf.invSampleRate;
-	knobParams[0] = smoothedADC[0] * sampleLength;
-	knobParams[1] = LEAF_clip(0.0f, smoothedADC[1] * sampleLength, sampleLength * (1.0f - smoothedADC[0]));
-	knobParams[2] = (smoothedADC[2] - 0.5f) * 4.0f;
-	knobParams[3] = smoothedADC[3] * 4000.0f;
+	float* knobs = presetKnobValues[SamplerButtonPress];
 
-	samplePlayStart = smoothedADC[0] * recordPosition;
-	samplePlayLength = smoothedADC[1] * recordPosition;
-	samplerRate = knobParams[2];
-	crossfadeLength = knobParams[3];
+	sampleLength = recordPosition * leaf.invSampleRate;
+	displayValues[0] = knobs[0] * sampleLength;
+	displayValues[1] = LEAF_clip(0.0f, knobs[1] * sampleLength, sampleLength * (1.0f - knobs[0]));
+	displayValues[2] = (knobs[2] - 0.5f) * 4.0f;
+	displayValues[3] = knobs[3] * 4000.0f;
+
+	samplePlayStart = knobs[0] * recordPosition;
+	samplePlayLength = knobs[1] * recordPosition;
+	samplerRate = displayValues[2];
+	crossfadeLength = displayValues[3];
 	tSampler_setStart(&sampler, samplePlayStart);
 	tSampler_setLength(&sampler, samplePlayLength);
 	tSampler_setRate(&sampler, samplerRate);
@@ -869,7 +896,7 @@ void SFXSamplerKAlloc()
 		tSampler_setMode(&keySampler[i], PlayLoop);
 		for (int j = 0; j < NUM_ADC_CHANNELS; j++)
 		{
-			keyKnobValues[i][j] = presetKnobValues[currentPreset][j];
+			keyKnobValues[i][j] = defaultPresetKnobValues[currentPreset][j];
 		}
 		samplerKeyHeld[i] = 0;
 	}
@@ -930,20 +957,22 @@ void SFXSamplerKTick(float audioIn)
 	int recordPosition = tBuffer_getRecordPosition(&keyBuff[currentSamplerKey]);
 	sampleLength = recordPosition * leaf.invSampleRate;
 
+	float* knobs = presetKnobValues[SamplerKeyboard];
+
 	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 	{
-		keyKnobValues[currentSamplerKey][i] = smoothedADC[i];
+		keyKnobValues[currentSamplerKey][i] = knobs[i];
 	}
 
-	knobParams[0] = smoothedADC[0] * sampleLength;
-	knobParams[1] = LEAF_clip(0.0f, smoothedADC[1] * sampleLength, sampleLength * (1.0f - smoothedADC[0]));
-	knobParams[2] = (smoothedADC[2] - 0.5f) * 4.0f;
-	knobParams[3] = smoothedADC[3] * 4000.0f;
+	displayValues[0] = knobs[0] * sampleLength;
+	displayValues[1] = LEAF_clip(0.0f, knobs[1] * sampleLength, sampleLength * (1.0f - knobs[0]));
+	displayValues[2] = (knobs[2] - 0.5f) * 4.0f;
+	displayValues[3] = knobs[3] * 4000.0f;
 
-	samplePlayStart = smoothedADC[0] * recordPosition;
-	samplePlayLength = smoothedADC[1] * recordPosition;
-	samplerRate = knobParams[2];
-	crossfadeLength = knobParams[3];
+	samplePlayStart = knobs[0] * recordPosition;
+	samplePlayLength = knobs[1] * recordPosition;
+	samplerRate = displayValues[2];
+	crossfadeLength = displayValues[3];
 
 	tSampler_setStart(&keySampler[currentSamplerKey], samplePlayStart);
 	tSampler_setLength(&keySampler[currentSamplerKey], samplePlayLength);
@@ -1014,12 +1043,14 @@ void SFXSamplerAutoTick(float audioIn)
 	if (triggerChannel > 0) currentPower = tEnvelopeFollower_tick(&envfollow, rightIn);
 	else currentPower = tEnvelopeFollower_tick(&envfollow, audioIn);
 
-	samp_thresh = 1.0f - smoothedADC[0];
-	knobParams[0] = samp_thresh;
-	int window_size = smoothedADC[1] * 10000.0f;
-	knobParams[1] = window_size;
-	knobParams[3] = smoothedADC[3] * 1000.0f;
-	crossfadeLength = knobParams[3];
+	float* knobs = presetKnobValues[SamplerAutoGrab];
+
+	samp_thresh = 1.0f - knobs[0];
+	displayValues[0] = samp_thresh;
+	int window_size = knobs[1] * 10000.0f;
+	displayValues[1] = window_size;
+	displayValues[3] = knobs[3] * 1000.0f;
+	crossfadeLength = displayValues[3];
 
 	tSampler_setCrossfadeLength(&sampler, crossfadeLength);
 
@@ -1124,14 +1155,14 @@ void SFXDistortionFrame()
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(distortionMode);
 	}
-	knobParams[1] = (smoothedADC[1] * 30.0f) - 15.0f;
-	knobParams[2] = (smoothedADC[2] * 34.0f) - 17.0f;
-	knobParams[3] = faster_mtof(smoothedADC[3] * 77.0f + 42.0f);
+	displayValues[1] = (presetKnobValues[Distortion][1] * 30.0f) - 15.0f;
+	displayValues[2] = (presetKnobValues[Distortion][2] * 34.0f) - 17.0f;
+	displayValues[3] = faster_mtof(presetKnobValues[Distortion][3] * 77.0f + 42.0f);
 
-	tVZFilter_setGain(&shelf1, fastdbtoa(-1.0f * knobParams[1]));
-	tVZFilter_setGain(&shelf2, fastdbtoa(knobParams[1]));
-	tVZFilter_setFreq(&bell1, knobParams[3]);
-	tVZFilter_setGain(&bell1, fastdbtoa(knobParams[2]));
+	tVZFilter_setGain(&shelf1, fastdbtoa(-1.0f * displayValues[1]));
+	tVZFilter_setGain(&shelf2, fastdbtoa(displayValues[1]));
+	tVZFilter_setFreq(&bell1, displayValues[3]);
+	tVZFilter_setGain(&bell1, fastdbtoa(displayValues[2]));
 
 }
 
@@ -1139,9 +1170,9 @@ void SFXDistortionTick(float audioIn)
 {
 	//knob 0 = gain
 	sample = audioIn;
-	knobParams[0] = ((smoothedADC[0] * 20.0f) + 1.0f); // 15.0f
-	knobParams[4] = smoothedADC[4]; // 15.0f
-	sample = sample * knobParams[0];
+	displayValues[0] = ((presetKnobValues[Distortion][0] * 20.0f) + 1.0f); // 15.0f
+	displayValues[4] = presetKnobValues[Distortion][4]; // 15.0f
+	sample = sample * displayValues[0];
 
 	tOversampler_upsample(&oversampler, sample, oversamplerArray);
 	for (int i = 0; i < distOS_ratio; i++)
@@ -1151,7 +1182,7 @@ void SFXDistortionTick(float audioIn)
 		oversamplerArray[i] = tVZFilter_tick(&shelf1, oversamplerArray[i]); //put it through the low shelf
 		oversamplerArray[i] = tVZFilter_tick(&shelf2, oversamplerArray[i]); // now put that result through the high shelf
 		oversamplerArray[i] = tVZFilter_tick(&bell1, oversamplerArray[i]); // now add a bell (or peaking eq) filter
-		oversamplerArray[i] = tanhf(oversamplerArray[i] * smoothedADC[4]);
+		oversamplerArray[i] = tanhf(oversamplerArray[i] * presetKnobValues[Distortion][4]);
 	}
 	sample = tOversampler_downsample(&oversampler, oversamplerArray);
 	rightOut = sample;
@@ -1201,13 +1232,13 @@ void SFXWaveFolderTick(float audioIn)
 	//knob 0 = gain
 	sample = audioIn;
 
-	knobParams[0] = (smoothedADC[0] * 2.0f);
+	displayValues[0] = (presetKnobValues[Wavefolder][0] * 2.0f);
 
-	knobParams[1] = (smoothedADC[1] * 2.0f) - 1.0f;
+	displayValues[1] = (presetKnobValues[Wavefolder][1] * 2.0f) - 1.0f;
 
-	knobParams[2] = (smoothedADC[2] * 2.0f) - 1.0f;
-	float gain = knobParams[0];
-	knobParams[3] = smoothedADC[3];
+	displayValues[2] = (presetKnobValues[Wavefolder][2] * 2.0f) - 1.0f;
+	float gain = displayValues[0];
+	displayValues[3] = presetKnobValues[Wavefolder][3];
 
 
 	//sample = sample * gain * 0.33f;
@@ -1219,8 +1250,8 @@ void SFXWaveFolderTick(float audioIn)
 		tOversampler_upsample(&oversampler, sample, oversamplerArray);
 		for (int i = 0; i < 2; i++)
 		{
-			oversamplerArray[i] = sample + knobParams[1];
-			oversamplerArray[i] *= knobParams[0] * 2.0f;
+			oversamplerArray[i] = sample + displayValues[1];
+			oversamplerArray[i] *= displayValues[0] * 2.0f;
 			oversamplerArray[i] = LEAF_tanh(oversamplerArray[i]);
 			//oversamplerArray[i] *= knobParams[0] * 1.5f;
 
@@ -1236,14 +1267,14 @@ void SFXWaveFolderTick(float audioIn)
 			//oversamplerArray[i] *= .8f;
 			oversamplerArray[i] = LEAF_tanh(oversamplerArray[i]);
 		}
-		sample = tHighpass_tick(&wfHP, tOversampler_downsample(&oversampler, oversamplerArray)) * knobParams[3];
+		sample = tHighpass_tick(&wfHP, tOversampler_downsample(&oversampler, oversamplerArray)) * displayValues[3];
 		rightOut = sample;
 	}
 	else
 	{
 
-		sample = sample + knobParams[1];
-		sample *= knobParams[0] * 2.0f;
+		sample = sample + displayValues[1];
+		sample *= displayValues[0] * 2.0f;
 		sample = LEAF_tanh(sample);
 		//oversamplerArray[i] *= knobParams[0] * 1.5f;
 
@@ -1251,15 +1282,15 @@ void SFXWaveFolderTick(float audioIn)
 
 
 
-		sample = sample + knobParams[2];
-		sample *= knobParams[0] * 2.0f;
+		sample = sample + displayValues[2];
+		sample *= displayValues[0] * 2.0f;
 		sample = LEAF_tanh(sample);
 		//oversamplerArray[i] *= knobParams[0] * 1.5f;
 
 		sample = tLockhartWavefolder_tick(&wavefolder2, sample);
 
 		sample = tOversampler_tick(&oversampler, sample, &LEAF_tanh);
-		sample = tHighpass_tick(&wfHP, sample) * knobParams[3];
+		sample = tHighpass_tick(&wfHP, sample) * displayValues[3];
 		//sample *= 0.99f;
 		rightOut = sample;
 	}
@@ -1288,21 +1319,21 @@ void SFXBitcrusherFrame()
 
 void SFXBitcrusherTick(float audioIn)
 {
-	knobParams[0] = smoothedADC[0];
-	tCrusher_setQuality (&crush, smoothedADC[0]);
-	tCrusher_setQuality (&crush2, smoothedADC[0]);
-	knobParams[1] = smoothedADC[1];
-	tCrusher_setSamplingRatio (&crush, smoothedADC[1]);
-	tCrusher_setSamplingRatio (&crush2, smoothedADC[1]);
-	knobParams[2] = smoothedADC[2];
-	tCrusher_setRound (&crush, smoothedADC[2]);
-	tCrusher_setRound (&crush2, smoothedADC[2]);
-	knobParams[3] = smoothedADC[3];
-	tCrusher_setOperation (&crush, smoothedADC[3]);
-	tCrusher_setOperation (&crush2, smoothedADC[3]);
-	knobParams[4] = smoothedADC[4];
-	sample = tanh(tCrusher_tick(&crush, audioIn)) * knobParams[4];
-	rightOut = tanh(tCrusher_tick(&crush2, rightIn)) * knobParams[4];
+	displayValues[0] = presetKnobValues[BitCrusher][0];
+	tCrusher_setQuality (&crush, presetKnobValues[BitCrusher][0]);
+	tCrusher_setQuality (&crush2, presetKnobValues[BitCrusher][0]);
+	displayValues[1] = presetKnobValues[BitCrusher][1];
+	tCrusher_setSamplingRatio (&crush, presetKnobValues[BitCrusher][1]);
+	tCrusher_setSamplingRatio (&crush2, presetKnobValues[BitCrusher][1]);
+	displayValues[2] = presetKnobValues[BitCrusher][2];
+	tCrusher_setRound (&crush, presetKnobValues[BitCrusher][2]);
+	tCrusher_setRound (&crush2, presetKnobValues[BitCrusher][2]);
+	displayValues[3] = presetKnobValues[BitCrusher][3];
+	tCrusher_setOperation (&crush, presetKnobValues[BitCrusher][3]);
+	tCrusher_setOperation (&crush2, presetKnobValues[BitCrusher][3]);
+	displayValues[4] = presetKnobValues[BitCrusher][4];
+	sample = tanh(tCrusher_tick(&crush, audioIn)) * displayValues[4];
+	rightOut = tanh(tCrusher_tick(&crush2, rightIn)) * displayValues[4];
 
 }
 
@@ -1355,16 +1386,16 @@ float delayFB2;
 
 void SFXDelayTick(float audioIn)
 {
-	knobParams[0] = smoothedADC[0] * 30000.0f;
-	knobParams[1] = smoothedADC[1] * 30000.0f;
-	knobParams[2] = capFeedback ? LEAF_clip(0.0f, smoothedADC[2] * 1.1f, 0.9f) : smoothedADC[2] * 1.1f;
-	knobParams[3] = faster_mtof((smoothedADC[3] * 128) + 10.0f);
-	knobParams[4] = faster_mtof((smoothedADC[4] * 128) + 10.0f);
+	displayValues[0] = presetKnobValues[Delay][0] * 30000.0f;
+	displayValues[1] = presetKnobValues[Delay][1] * 30000.0f;
+	displayValues[2] = capFeedback ? LEAF_clip(0.0f, presetKnobValues[Delay][2] * 1.1f, 0.9f) : presetKnobValues[Delay][2] * 1.1f;
+	displayValues[3] = faster_mtof((presetKnobValues[Delay][3] * 128) + 10.0f);
+	displayValues[4] = faster_mtof((presetKnobValues[Delay][4] * 128) + 10.0f);
 
-	tSVF_setFreq(&delayLP, knobParams[3]);
-	tSVF_setFreq(&delayLP2, knobParams[3]);
-	tSVF_setFreq(&delayHP, knobParams[4]);
-	tSVF_setFreq(&delayHP2, knobParams[4]);
+	tSVF_setFreq(&delayLP, displayValues[3]);
+	tSVF_setFreq(&delayLP2, displayValues[3]);
+	tSVF_setFreq(&delayHP, displayValues[4]);
+	tSVF_setFreq(&delayHP2, displayValues[4]);
 
 	//swap tanh for shaper and add cheap fixed highpass after both shapers
 
@@ -1372,19 +1403,19 @@ void SFXDelayTick(float audioIn)
 
 	if (delayShaper == 0)
 	{
-		input1 = tFeedbackLeveler_tick(&feedbackControl, tanhf(audioIn + (delayFB1 * knobParams[2])));
-		input2 = tFeedbackLeveler_tick(&feedbackControl, tanhf(audioIn + (delayFB2 * knobParams[2])));
+		input1 = tFeedbackLeveler_tick(&feedbackControl, tanhf(audioIn + (delayFB1 * displayValues[2])));
+		input2 = tFeedbackLeveler_tick(&feedbackControl, tanhf(audioIn + (delayFB2 * displayValues[2])));
 	}
 	else
 	{
-		input1 = tFeedbackLeveler_tick(&feedbackControl, tHighpass_tick(&delayShaperHp, LEAF_shaper(audioIn + (delayFB1 * knobParams[2] * 0.5f), 0.5f)));
-		input2 = tFeedbackLeveler_tick(&feedbackControl, tHighpass_tick(&delayShaperHp, LEAF_shaper(audioIn + (delayFB2 * knobParams[2] * 0.5f), 0.5f)));
+		input1 = tFeedbackLeveler_tick(&feedbackControl, tHighpass_tick(&delayShaperHp, LEAF_shaper(audioIn + (delayFB1 * displayValues[2] * 0.5f), 0.5f)));
+		input2 = tFeedbackLeveler_tick(&feedbackControl, tHighpass_tick(&delayShaperHp, LEAF_shaper(audioIn + (delayFB2 * displayValues[2] * 0.5f), 0.5f)));
 	}
-	tTapeDelay_setDelay(&delay, knobParams[0]);
+	tTapeDelay_setDelay(&delay, displayValues[0]);
 
 	delayFB1 = tTapeDelay_tick(&delay, input1);
 
-	tTapeDelay_setDelay(&delay2, knobParams[1]);
+	tTapeDelay_setDelay(&delay2, displayValues[1]);
 
 	delayFB2 = tTapeDelay_tick(&delay2, input2);
 
@@ -1436,12 +1467,12 @@ void SFXReverbFrame()
 		capFeedback = !capFeedback;
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
 	}
-	knobParams[1] = faster_mtof(smoothedADC[1]*135.0f);
-	tDattorroReverb_setInputFilter(&reverb, knobParams[1]);
-	knobParams[2] =  faster_mtof(smoothedADC[2]*128.0f);
-	tDattorroReverb_setHP(&reverb, knobParams[2]);
-	knobParams[3] = faster_mtof(smoothedADC[3]*135.0f);
-	tDattorroReverb_setFeedbackFilter(&reverb, knobParams[3]);
+	displayValues[1] = faster_mtof(presetKnobValues[Reverb][1]*135.0f);
+	tDattorroReverb_setInputFilter(&reverb, displayValues[1]);
+	displayValues[2] =  faster_mtof(presetKnobValues[Reverb][2]*128.0f);
+	tDattorroReverb_setHP(&reverb, displayValues[2]);
+	displayValues[3] = faster_mtof(presetKnobValues[Reverb][3]*135.0f);
+	tDattorroReverb_setFeedbackFilter(&reverb, displayValues[3]);
 }
 
 void SFXReverbTick(float audioIn)
@@ -1467,10 +1498,10 @@ void SFXReverbTick(float audioIn)
 
 	//tDattorroReverb_setInputDelay(&reverb, smoothedADC[1] * 200.f);
 	audioIn *= 4.0f;
-	knobParams[0] = smoothedADC[0];
-	tDattorroReverb_setSize(&reverb, knobParams[0]);
-	knobParams[4] = capFeedback ? LEAF_clip(0.0f, smoothedADC[4], 0.5f) : smoothedADC[4];
-	tDattorroReverb_setFeedbackGain(&reverb, knobParams[4]);
+	displayValues[0] = presetKnobValues[Reverb][0];
+	tDattorroReverb_setSize(&reverb, displayValues[0]);
+	displayValues[4] = capFeedback ? LEAF_clip(0.0f, presetKnobValues[Reverb][4], 0.5f) : presetKnobValues[Reverb][4];
+	tDattorroReverb_setFeedbackGain(&reverb, displayValues[4]);
 	tDattorroReverb_tickStereo(&reverb, audioIn, stereo);
 	sample = tanhf(stereo[0]) * 0.99f;
 	rightOut = tanhf(stereo[1]) * 0.99f;
@@ -1518,10 +1549,10 @@ void SFXReverb2Tick(float audioIn)
 {
 	float stereoOuts[2];
 
-	knobParams[0] = smoothedADC[0] * 4.0f;
+	displayValues[0] = presetKnobValues[Reverb2][0] * 4.0f;
 	if (!freeze)
 	{
-		tNReverb_setT60(&reverb2, knobParams[0]);
+		tNReverb_setT60(&reverb2, displayValues[0]);
 
 	}
 	else
@@ -1530,17 +1561,17 @@ void SFXReverb2Tick(float audioIn)
 		audioIn = 0.0f;
 	}
 
-	knobParams[1] = faster_mtof(smoothedADC[1]*135.0f);
-	tSVF_setFreq(&lowpass, knobParams[1]);
-	tSVF_setFreq(&lowpass2, knobParams[1]);
-	knobParams[2] = faster_mtof(smoothedADC[2]*128.0f);
-	tSVF_setFreq(&highpass, knobParams[2]);
-	tSVF_setFreq(&highpass2, knobParams[2]);
-	knobParams[3] = faster_mtof(smoothedADC[3]*128.0f);
-	tSVF_setFreq(&bandpass, knobParams[3]);
-	tSVF_setFreq(&bandpass2, knobParams[3]);
+	displayValues[1] = faster_mtof(presetKnobValues[Reverb2][1]*135.0f);
+	tSVF_setFreq(&lowpass, displayValues[1]);
+	tSVF_setFreq(&lowpass2, displayValues[1]);
+	displayValues[2] = faster_mtof(presetKnobValues[Reverb2][2]*128.0f);
+	tSVF_setFreq(&highpass, displayValues[2]);
+	tSVF_setFreq(&highpass2, displayValues[2]);
+	displayValues[3] = faster_mtof(presetKnobValues[Reverb2][3]*128.0f);
+	tSVF_setFreq(&bandpass, displayValues[3]);
+	tSVF_setFreq(&bandpass2, displayValues[3]);
 
-	knobParams[4] = (smoothedADC[4] * 4.0f) - 2.0f;
+	displayValues[4] = (presetKnobValues[Reverb2][4] * 4.0f) - 2.0f;
 
 	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
@@ -1561,11 +1592,11 @@ void SFXReverb2Tick(float audioIn)
 	tNReverb_tickStereo(&reverb2, audioIn, stereoOuts);
 	float leftOut = tSVF_tick(&lowpass, stereoOuts[0]);
 	leftOut = tSVF_tick(&highpass, leftOut);
-	leftOut += tSVF_tick(&bandpass, leftOut) * knobParams[4];
+	leftOut += tSVF_tick(&bandpass, leftOut) * displayValues[4];
 
 	float rightOutTemp = tSVF_tick(&lowpass2, stereoOuts[1]);
 	rightOutTemp = tSVF_tick(&highpass2, rightOutTemp);
-	rightOutTemp += tSVF_tick(&bandpass, rightOutTemp) * knobParams[4];
+	rightOutTemp += tSVF_tick(&bandpass, rightOutTemp) * displayValues[4];
 	sample = tanhf(leftOut);
 	rightOut = tanhf(rightOutTemp);
 
@@ -1597,17 +1628,17 @@ void SFXLivingStringAlloc()
 
 void SFXLivingStringFrame()
 {
-	knobParams[0] = mtof((smoothedADC[0] * 135.0f)); //freq
-	knobParams[1] = smoothedADC[1]; //detune
-	knobParams[2] = ((smoothedADC[2] * 0.09999999f) + 0.9f);
-	knobParams[3] = mtof((smoothedADC[3] * 130.0f)+12.0f); //lowpass
-	knobParams[4] = (smoothedADC[4] * 0.5) + 0.02f;//pickPos
+	displayValues[0] = mtof((presetKnobValues[LivingString][0] * 135.0f)); //freq
+	displayValues[1] = presetKnobValues[LivingString][1]; //detune
+	displayValues[2] = ((presetKnobValues[LivingString][2] * 0.09999999f) + 0.9f);
+	displayValues[3] = mtof((presetKnobValues[LivingString][3] * 130.0f)+12.0f); //lowpass
+	displayValues[4] = (presetKnobValues[LivingString][4] * 0.5) + 0.02f;//pickPos
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		tLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * knobParams[1]))) * knobParams[0]);
-		tLivingString_setDecay(&theString[i], knobParams[2]);
-		tLivingString_setDampFreq(&theString[i], knobParams[3]);
-		tLivingString_setPickPos(&theString[i], knobParams[4]);
+		tLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * displayValues[1]))) * displayValues[0]);
+		tLivingString_setDecay(&theString[i], displayValues[2]);
+		tLivingString_setDampFreq(&theString[i], displayValues[3]);
+		tLivingString_setPickPos(&theString[i], displayValues[4]);
 	}
 
 }
@@ -1653,17 +1684,17 @@ void SFXLivingStringSynthFrame()
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(numVoices == 1);
 	}
-	//knobParams[0] = mtof((smoothedADC[0] * 135.0f)); //freq
-	//knobParams[1] = smoothedADC[1]; //detune
-	knobParams[2] = ((smoothedADC[2] * 0.09999999f) + 0.9f);
-	knobParams[3] = mtof((smoothedADC[3] * 130.0f)+12.0f); //lowpass
-	knobParams[4] = (smoothedADC[4] * 0.5) + 0.02f;//pickPos
+	//displayValues[0] = mtof((smoothedADC[0] * 135.0f)); //freq
+	//displayValues[1] = smoothedADC[1]; //detune
+	displayValues[2] = ((presetKnobValues[LivingStringSynth][2] * 0.09999999f) + 0.9f);
+	displayValues[3] = mtof((presetKnobValues[LivingStringSynth][3] * 130.0f)+12.0f); //lowpass
+	displayValues[4] = (presetKnobValues[LivingStringSynth][4] * 0.5) + 0.02f;//pickPos
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 		//tLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * knobParams[1]))) * knobParams[0]);
-		tLivingString_setDecay(&theString[i], knobParams[2]);
-		tLivingString_setDampFreq(&theString[i], knobParams[3]);
-		tLivingString_setPickPos(&theString[i], knobParams[4]);
+		tLivingString_setDecay(&theString[i], displayValues[2]);
+		tLivingString_setDampFreq(&theString[i], displayValues[3]);
+		tLivingString_setPickPos(&theString[i], displayValues[4]);
 	}
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
@@ -1702,19 +1733,10 @@ void SFXLivingStringSynthFree(void)
 float synthMidiNotes[NUM_VOC_VOICES];
 tEfficientSVF synthLP[NUM_VOC_VOICES];
 uint16_t filtFreqs[NUM_VOC_VOICES];
-
-uint8_t csKnobPage;
-float pageKnobValues[2][NUM_ADC_CHANNELS];
-float pageValues[2][NUM_ADC_CHANNELS];
 tADSR polyEnvs[NUM_VOC_VOICES];
 
 void SFXClassicSynthAlloc()
 {
-	paramNames[ClassicSynth][0] = "VOLUME";
-	paramNames[ClassicSynth][1] = "LOWPASS";
-	paramNames[ClassicSynth][2] = "KEYFOLLOW";
-	paramNames[ClassicSynth][3] = "DETUNE";
-	paramNames[ClassicSynth][4] = "FILTER Q";
 	tPoly_setNumVoices(&poly, numVoices);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
@@ -1728,18 +1750,6 @@ void SFXClassicSynthAlloc()
 		tADSR_initToPool(&polyEnvs[i], 7.0f, 64.0f, 0.9f, 100.0f, &smallPool);
 		tADSR_setLeakFactor(&polyEnvs[i], 0.999987f);
 	}
-
-	csKnobPage = 0;
-	// take this out if you want settings to persist across changing presets
-	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
-	{
-		pageKnobValues[0][i] = presetKnobValues[currentPreset][i];
-	}
-	pageKnobValues[1][0] = 0.0f;
-	pageKnobValues[1][1] = 0.06f;
-	pageKnobValues[1][2] = 0.9f;
-	pageKnobValues[1][3] = 0.1f;
-	pageKnobValues[1][4] = 0.1f;
 
 	setLED_A(numVoices == 1);
 }
@@ -1755,35 +1765,31 @@ void SFXClassicSynthFrame()
 	}
 	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
 	{
-		csKnobPage = (csKnobPage + 1) % 2;
-		setKnobValues(pageKnobValues[csKnobPage]);
+		incrementPage();
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
-		setLED_B(csKnobPage == 1);
+		setLED_B(knobPage == 1);
 	}
 
-	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
-	{
-		pageKnobValues[csKnobPage][i] = smoothedADC[i];
-	}
+	float* knobs = presetKnobValues[ClassicSynth];
 
-	pageValues[0][0] = pageKnobValues[0][0]; //synth volume
-	pageValues[0][1] = pageKnobValues[0][1] * 4096.0f; //lowpass cutoff
-	pageValues[0][2] = pageKnobValues[0][2]; //keyfollow filter cutoff
-	pageValues[0][3] = pageKnobValues[0][3]; //detune
-	pageValues[0][4] = (pageKnobValues[0][4] * 2.0f) + 0.4f; //filter Q
+	params[0] = knobs[0]; //synth volume
+	params[1] = knobs[1] * 4096.0f; //lowpass cutoff
+	params[2] = knobs[2]; //keyfollow filter cutoff
+	params[3] = knobs[3]; //detune
+	params[4] = (knobs[4] * 2.0f) + 0.4f; //filter Q
 
-	pageValues[1][0] = (pageKnobValues[1][0] * 993.0f) + 7.0f; //att
-    pageValues[1][1] = (pageKnobValues[1][1] * 993.0f) + 7.0f; //dec
-	pageValues[1][2] = pageKnobValues[1][2]; //sus
-	pageValues[1][3] = (pageKnobValues[1][3] * 993.0f) + 7.0f; //rel
-	pageValues[1][4] = (pageKnobValues[1][4] > 0.98) ? 0.9985f : (((1.0f - pageKnobValues[1][4]*pageKnobValues[1][4]) * 0.0015f) + 0.9985f); //leak
+	params[5] = (knobs[5] * 993.0f) + 7.0f; //att
+	params[6] = (knobs[6] * 993.0f) + 7.0f; //dec
+    params[7] = knobs[7]; //sus
+    params[8] = (knobs[8] * 993.0f) + 7.0f; //rel
+    params[9] = (knobs[9] > 0.98) ? 0.9985f : (((1.0f - knobs[9]*knobs[9]) * 0.0015f) + 0.9985f); //leak
 
-	knobParams[0] = pageValues[csKnobPage][0];
-	knobParams[1] = pageValues[csKnobPage][1];
-	knobParams[2] = pageValues[csKnobPage][2];
-	knobParams[3] = pageValues[csKnobPage][3];
-	knobParams[4] = pageValues[csKnobPage][4];
-	if (csKnobPage == 1) knobParams[4] = pageKnobValues[1][4];
+    displayValues[0] = params[knobPage * KNOB_PAGE_SIZE];
+    displayValues[1] = params[1 + (knobPage * KNOB_PAGE_SIZE)];
+    displayValues[2] = params[2 + (knobPage * KNOB_PAGE_SIZE)];
+    displayValues[3] = params[3 + (knobPage * KNOB_PAGE_SIZE)];
+    displayValues[4] = params[4 + (knobPage * KNOB_PAGE_SIZE)];
+	if (knobPage == 1) displayValues[4] = knobs[9];
 
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
 	{
@@ -1791,20 +1797,20 @@ void SFXClassicSynthFrame()
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSawtooth_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * pageValues[0][3])));
+			tSawtooth_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * params[3])));
 		}
-		float keyFollowFilt = myMidiNote * pageValues[0][2] * 64.0f;
-		float tempFreq = pageValues[0][1] +  keyFollowFilt;
+		float keyFollowFilt = myMidiNote * params[2] * 64.0f;
+		float tempFreq = params[1] +  keyFollowFilt;
 		tempFreq = LEAF_clip(0.0f, tempFreq, 4095.0f);
 
 		filtFreqs[i] = (uint16_t) tempFreq;
-		tEfficientSVF_setQ(&synthLP[i],pageValues[0][4]);
+		tEfficientSVF_setQ(&synthLP[i],params[4]);
 
-		tADSR_setAttack(&polyEnvs[i], pageValues[1][0]);
-		tADSR_setDecay(&polyEnvs[i], pageValues[1][1]);
-		tADSR_setSustain(&polyEnvs[i], pageValues[1][2]);
-		tADSR_setRelease(&polyEnvs[i], pageValues[1][3]);
-		tADSR_setLeakFactor(&polyEnvs[i], pageValues[1][4]);
+		tADSR_setAttack(&polyEnvs[i], params[5]);
+		tADSR_setDecay(&polyEnvs[i], params[6]);
+		tADSR_setSustain(&polyEnvs[i], params[7]);
+		tADSR_setRelease(&polyEnvs[i], params[8]);
+		tADSR_setLeakFactor(&polyEnvs[i], params[9]);
 	}
 }
 
@@ -1831,7 +1837,7 @@ void SFXClassicSynthTick(float audioIn)
 		tEfficientSVF_setFreq(&synthLP[i], filtFreqs[i]);
 		sample += tEfficientSVF_tick(&synthLP[i], tempSample);
 	}
-	sample *= INV_NUM_OSC_PER_VOICE * pageValues[0][0];
+	sample *= INV_NUM_OSC_PER_VOICE * params[0];
 
 
 	sample = tanhf(sample);
@@ -1870,8 +1876,6 @@ int Rsound = 0;
 
 char* soundNames[4];
 
-uint8_t rhodesKnobPage;
-
 //FM Rhodes
 void SFXRhodesAlloc()
 {
@@ -1894,18 +1898,8 @@ void SFXRhodesAlloc()
 	setLED_A(numVoices == 1);
 	OLEDclearLine(SecondLine);
 	OLEDwriteString(soundNames[Rsound], 6, 0, SecondLine);
-	rhodesKnobPage = 0;
-	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
-	{
-		pageKnobValues[0][i] = presetKnobValues[currentPreset][i];
-	}
-	pageKnobValues[1][0] = 0.05f;
-	pageKnobValues[1][1] = 0.05f;
-	pageKnobValues[1][2] = 0.9f;
-	pageKnobValues[1][3] = 0.1007f;
-	pageKnobValues[1][4] = 0.065f;
-
 }
+
 void SFXRhodesFrame()
 {
 	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
@@ -1928,46 +1922,56 @@ void SFXRhodesFrame()
 	}
 	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
 	{
-		rhodesKnobPage = (rhodesKnobPage + 1) % 2;
-		setKnobValues(pageKnobValues[rhodesKnobPage]);
+		incrementPage();
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
-		setLED_B(rhodesKnobPage == 1);
+		setLED_B(knobPage == 1);
 	}
 
-	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
-	{
-		pageKnobValues[rhodesKnobPage][i] = smoothedADC[i];
-	}
-
+	params[0] = presetKnobValues[Rhodes][0] * 2.0f; //synth volume
+	params[1] = presetKnobValues[Rhodes][1]; //lowpass cutoff
+	params[2] = presetKnobValues[Rhodes][2] * 8.0f; //keyfollow filter cutoff
 
 	float adsrParams[5];
-	adsrParams[0] = (pageKnobValues[1][0] * 19.9f) + 0.1f; //att mult
-	adsrParams[1] = (pageKnobValues[1][1] * 19.9f) + 0.1f; //dec mult
-	adsrParams[2] = pageKnobValues[1][2] * 1.111f; //sus mult
-	adsrParams[3] = (pageKnobValues[1][3] * 993.0f) + 7.0f; //rel
-	adsrParams[4] = ((1.0f - pageKnobValues[1][4]) * 0.0002f) + 0.9998f; //leak
+	adsrParams[0] = (presetKnobValues[Rhodes][5] * 19.9f) + 0.1f; //att mult
+	adsrParams[1] = (presetKnobValues[Rhodes][6] * 19.9f) + 0.1f; //dec mult
+	adsrParams[2] = presetKnobValues[Rhodes][7] * 1.111f; //sus mult
+	adsrParams[3] = (presetKnobValues[Rhodes][8] * 993.0f) + 7.0f; //rel
+	adsrParams[4] = ((1.0f - presetKnobValues[Rhodes][9]) * 0.0002f) + 0.9998f; //leak
 
 	// kinda messy but need to avoid setting everything every frame
 	uint8_t changed[5];
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < KNOB_PAGE_SIZE; i++)
 	{
-		if (pageValues[1][i] != adsrParams[i])
+		if (params[i + KNOB_PAGE_SIZE] != adsrParams[i])
 		{
-			pageValues[1][i] = adsrParams[i];
+			params[i + KNOB_PAGE_SIZE] = adsrParams[i];
 			changed[i] = 1;
 		}
 		else changed[i] = 0;
+	}
+
+	displayValues[0] = params[0 + (knobPage * KNOB_PAGE_SIZE)];
+	displayValues[1] = params[1 + (knobPage * KNOB_PAGE_SIZE)];
+	displayValues[2] = params[2 + (knobPage * KNOB_PAGE_SIZE)];
+	displayValues[3] = params[3 + (knobPage * KNOB_PAGE_SIZE)];
+	displayValues[4] = params[4 + (knobPage * KNOB_PAGE_SIZE)];
+
+	if (knobPage == 1)
+	{
+		displayValues[2] = params[7] * 0.9f;
+		displayValues[3] = params[8];
+		displayValues[4] = params[9];
 	}
 
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		for (int j = 0; j < 6; j++)
 		{
-			if (changed[0]) tADSR_setAttack(&FM_envs[i][j], FM_attacks[Rsound][j] * pageValues[1][0]);
-			if (changed[1]) tADSR_setDecay(&FM_envs[i][j], FM_decays[Rsound][j] * pageValues[1][1]);
-			if (changed[2]) tADSR_setSustain(&FM_envs[i][j], FM_sustains[Rsound][j] * pageValues[1][2]);
-			if (changed[3]) tADSR_setRelease(&FM_envs[i][j], pageValues[1][3]);
-			if (changed[4]) tADSR_setLeakFactor(&FM_envs[i][j], pageValues[1][4]);
+			if (changed[0]) tADSR_setAttack(&FM_envs[i][j], FM_attacks[Rsound][j] * params[5]);
+			if (changed[1]) tADSR_setDecay(&FM_envs[i][j], FM_decays[Rsound][j] * params[6]);
+			if (changed[2]) tADSR_setSustain(&FM_envs[i][j], FM_sustains[Rsound][j] * params[7]);
+			if (changed[3]) tADSR_setRelease(&FM_envs[i][j], params[8]);
+			if (changed[4]) tADSR_setLeakFactor(&FM_envs[i][j], params[9]);
 		}
 	}
 
@@ -1983,7 +1987,7 @@ void SFXRhodesFrame()
 			for (int j = 0; j < 6; j++)
 			{
 				FM_decays[Rsound][j] = (CCs[j+1] * 8.0f);
-				tADSR_setDecay(&FM_envs[i][j], FM_decays[Rsound][j] * pageValues[1][1]);
+				tADSR_setDecay(&FM_envs[i][j], FM_decays[Rsound][j] * params[6]);
 			}
 		}
 	}
@@ -2010,7 +2014,7 @@ void SFXRhodesFrame()
 			for (int j = 0; j < 6; j++)
 			{
 				FM_sustains[Rsound][j] = (CCs[j+1] * 0.007874015748031f );
-				tADSR_setSustain(&FM_envs[i][j], FM_sustains[Rsound][j] * pageValues[1][2]);
+				tADSR_setSustain(&FM_envs[i][j], FM_sustains[Rsound][j] * params[7]);
 			}
 		}
 	}
@@ -2021,24 +2025,8 @@ void SFXRhodesTick(float audioIn)
 {
 
 	tPoly_tickPitch(&poly);
-	pageValues[0][0] = pageKnobValues[0][0] * 2.0f; //synth volume
-	pageValues[0][1] = pageKnobValues[0][1]; //lowpass cutoff
-	pageValues[0][2] = pageKnobValues[0][2] * 8.0f; //keyfollow filter cutoff
 
-	knobParams[0] = pageValues[rhodesKnobPage][0];
-	knobParams[1] = pageValues[rhodesKnobPage][1];
-	knobParams[2] = pageValues[rhodesKnobPage][2];
-	knobParams[3] = pageValues[rhodesKnobPage][3];
-	knobParams[4] = pageValues[rhodesKnobPage][4];
-
-	if (rhodesKnobPage == 1)
-	{
-		knobParams[2] = pageValues[rhodesKnobPage][2] * 0.9f;
-		knobParams[3] = pageValues[rhodesKnobPage][3];
-		knobParams[4] = pageKnobValues[rhodesKnobPage][4];
-	}
-
-	tCycle_setFreq(&tremolo, pageValues[0][2]);
+	tCycle_setFreq(&tremolo, params[2]);
 
 	//if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
 	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
@@ -2046,21 +2034,21 @@ void SFXRhodesTick(float audioIn)
 		//float amplitudeTemp = tRamp_tick(&polyRamp[i]);
 		//amplitudeTemp = 1.0f;
 		float myFrequency = freq[i];
-		tCycle_setFreq(&FM_sines[i][5], (myFrequency  * FM_freqRatios[Rsound][5]) + (FM_indices[Rsound][5] * feedback_output * pageValues[0][0]));
+		tCycle_setFreq(&FM_sines[i][5], (myFrequency  * FM_freqRatios[Rsound][5]) + (FM_indices[Rsound][5] * feedback_output * params[0]));
 		feedback_output = tCycle_tick(&FM_sines[i][5]);
-		tCycle_setFreq(&FM_sines[i][4], (myFrequency  * FM_freqRatios[Rsound][4]) + (FM_indices[Rsound][4] * feedback_output * pageValues[0][0] * tADSR_tick(&FM_envs[i][5])));
-		tCycle_setFreq(&FM_sines[i][3], (myFrequency  * FM_freqRatios[Rsound][3]) + (FM_indices[Rsound][3] * pageValues[0][0] * tCycle_tick(&FM_sines[i][4]) * tADSR_tick(&FM_envs[i][4])));
-		tCycle_setFreq(&FM_sines[i][2], (myFrequency  * FM_freqRatios[Rsound][2]) + (FM_indices[Rsound][2] * pageValues[0][0] * tCycle_tick(&FM_sines[i][3]) * tADSR_tick(&FM_envs[i][3])));
+		tCycle_setFreq(&FM_sines[i][4], (myFrequency  * FM_freqRatios[Rsound][4]) + (FM_indices[Rsound][4] * feedback_output * params[0] * tADSR_tick(&FM_envs[i][5])));
+		tCycle_setFreq(&FM_sines[i][3], (myFrequency  * FM_freqRatios[Rsound][3]) + (FM_indices[Rsound][3] * params[0] * tCycle_tick(&FM_sines[i][4]) * tADSR_tick(&FM_envs[i][4])));
+		tCycle_setFreq(&FM_sines[i][2], (myFrequency  * FM_freqRatios[Rsound][2]) + (FM_indices[Rsound][2] * params[0] * tCycle_tick(&FM_sines[i][3]) * tADSR_tick(&FM_envs[i][3])));
 		tCycle_setFreq(&FM_sines[i][1], myFrequency  * FM_freqRatios[Rsound][1]);
-		tCycle_setFreq(&FM_sines[i][0],( myFrequency  * FM_freqRatios[Rsound][0]) + (FM_indices[Rsound][0] * pageValues[0][0] * tCycle_tick(&FM_sines[i][1]) * tADSR_tick(&FM_envs[i][1])));
+		tCycle_setFreq(&FM_sines[i][0],( myFrequency  * FM_freqRatios[Rsound][0]) + (FM_indices[Rsound][0] * params[0] * tCycle_tick(&FM_sines[i][1]) * tADSR_tick(&FM_envs[i][1])));
 
 
 		sample += tCycle_tick(&FM_sines[i][2]) * tADSR_tick(&FM_envs[i][2]);
 		sample += tCycle_tick(&FM_sines[i][0]) * tADSR_tick(&FM_envs[i][0]);
 
 	}
-	float tremoloSignal = ((tCycle_tick(&tremolo) * 0.5f) + 0.5f) * pageValues[0][1];
-	sample = sample * (tremoloSignal + (1.0f - pageValues[0][1]));
+	float tremoloSignal = ((tCycle_tick(&tremolo) * 0.5f) + 0.5f) * params[1];
+	sample = sample * (tremoloSignal + (1.0f - params[1]));
 
 	sample *= 0.125f;
 	rightOut = sample;

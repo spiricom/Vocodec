@@ -9,6 +9,8 @@
 
 #define NUM_ADC_CHANNELS 6
 #define NUM_BUTTONS 10
+#define NUM_PRESET_KNOB_VALUES 15
+#define KNOB_PAGE_SIZE 5
 
 //PresetNil is used as a counter for the size of the enum
 typedef enum _VocodecPresetType
@@ -77,9 +79,10 @@ extern uint8_t loadingPreset;
 extern char* modeNames[PresetNil];
 extern char* modeNamesDetails[PresetNil];
 extern char* shortModeNames[PresetNil];
-extern char* paramNames[PresetNil][NUM_ADC_CHANNELS + NUM_BUTTONS];
-extern float knobParams[NUM_ADC_CHANNELS];
-extern int8_t cvAddParam;
+extern char* knobParamNames[PresetNil][NUM_PRESET_KNOB_VALUES];
+extern float displayValues[NUM_ADC_CHANNELS];
+extern int8_t cvAddParam[PresetNil];
+extern uint8_t knobPage;
 extern uint8_t buttonActionsUI[NUM_BUTTONS][ActionNil];
 extern uint8_t buttonActionsSFX[NUM_BUTTONS][ActionNil];
 extern char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
@@ -96,11 +99,16 @@ void changeTuning(void);
 
 void writeCurrentPresetToFlash(void);
 
+void incrementPage(void);
+
+void decrementPage(void);
+
 void resetKnobValues(void);
 
 void setKnobValues(float* values);
 
 void deactivateKnob(int knob);
+void deactivateAllKnobs(void);
 
 char* UIVocoderButtons(VocodecButton button, ButtonAction action);
 char* UIVocoderChButtons(VocodecButton button, ButtonAction action);

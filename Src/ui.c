@@ -19,6 +19,9 @@ float lastFloatADC[NUM_ADC_CHANNELS];
 float floatADCUI[NUM_ADC_CHANNELS];
 float adcHysteresisThreshold = 0.001f;
 
+uint8_t knobPage = 0;
+uint8_t numPages[PresetNil];
+
 uint8_t buttonValues[NUM_BUTTONS]; // Actual state of the buttons
 uint8_t buttonValuesPrev[NUM_BUTTONS];
 uint8_t cleanButtonValues[NUM_BUTTONS]; // Button values after hysteresis
@@ -39,15 +42,15 @@ char* modeNames[PresetNil];
 char* modeNamesDetails[PresetNil];
 char* shortModeNames[PresetNil];
 
-char* controlNames[NUM_ADC_CHANNELS + NUM_BUTTONS];
-char* paramNames[PresetNil][NUM_ADC_CHANNELS + NUM_BUTTONS];
+char* knobParamNames[PresetNil][NUM_PRESET_KNOB_VALUES];
+
 int8_t currentParamIndex = -1;
 uint8_t orderedParams[8];
 
 uint8_t buttonActionsSFX[NUM_BUTTONS][ActionNil];
 uint8_t buttonActionsUI[NUM_BUTTONS][ActionNil];
-float knobParams[NUM_ADC_CHANNELS];
-int8_t cvAddParam = -1;
+float displayValues[NUM_ADC_CHANNELS];
+int8_t cvAddParam[PresetNil];
 char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
 
 VocodecPresetType currentPreset = 0;
@@ -56,14 +59,6 @@ uint8_t loadingPreset = 0;
 
 void initModeNames(void)
 {
-	controlNames[0] = "1";
-	controlNames[1] = "2";
-	controlNames[2] = "3";
-	controlNames[3] = "4";
-	controlNames[4] = "5";
-	controlNames[5] = "6";
-	controlNames[ButtonA] = "A";
-	controlNames[ButtonB] = "B";
 	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 	{
 		floatADCUI[i] = -1.0f;
@@ -72,221 +67,216 @@ void initModeNames(void)
 	orderedParams[6] = ButtonA;
 	orderedParams[7] = ButtonB;
 
+	for (int i = 0; i < PresetNil; i++)
+	{
+		cvAddParam[i] = -1;
+	}
+
 	modeNames[Vocoder] = "VOCODER LPC";
 	shortModeNames[Vocoder] = "VL";
 	modeNamesDetails[Vocoder] = "";
-	paramNames[Vocoder][0] = "VOLUME";
-	paramNames[Vocoder][1] = "WARP";
-	paramNames[Vocoder][2] = "QUALITY";
-	paramNames[Vocoder][3] = "PULSE";
-	paramNames[Vocoder][4] = "NOISE THRESH";
-	paramNames[Vocoder][5] = "";
-	paramNames[Vocoder][NUM_ADC_CHANNELS + ButtonA] = "POLY MONO";
-	paramNames[Vocoder][NUM_ADC_CHANNELS + ButtonB] = "SOURCE";
+	numPages[Vocoder] = 1;
+	knobParamNames[Vocoder][0] = "VOLUME";
+	knobParamNames[Vocoder][1] = "WARP";
+	knobParamNames[Vocoder][2] = "QUALITY";
+	knobParamNames[Vocoder][3] = "PULSE";
+	knobParamNames[Vocoder][4] = "NOISETHRESH";
+	knobParamNames[Vocoder][5] = "";
 
 	modeNames[VocoderCh] = "VOCODER CH";
 	shortModeNames[VocoderCh] = "VC";
 	modeNamesDetails[VocoderCh] = "";
-	paramNames[VocoderCh][0] = "VOLUME";
-	paramNames[VocoderCh][1] = "WARP";
-	paramNames[VocoderCh][2] = "QUALITY";
-	paramNames[VocoderCh][3] = "PULSE";
-	paramNames[VocoderCh][4] = "SAWtoPULSE";
-	paramNames[VocoderCh][5] = "";
-	paramNames[VocoderCh][NUM_ADC_CHANNELS + ButtonA] = "POLY MONO";
-	paramNames[VocoderCh][NUM_ADC_CHANNELS + ButtonB] = "SOURCE";
+	numPages[VocoderCh] = 1;
+	knobParamNames[VocoderCh][0] = "VOLUME";
+	knobParamNames[VocoderCh][1] = "WARP";
+	knobParamNames[VocoderCh][2] = "QUALITY";
+	knobParamNames[VocoderCh][3] = "PULSE";
+	knobParamNames[VocoderCh][4] = "SAWtoPULSE";
+	knobParamNames[VocoderCh][5] = "";
 
 	modeNames[Pitchshift] = "PITCHSHIFT";
 	shortModeNames[Pitchshift] = "PS";
 	modeNamesDetails[Pitchshift] = "";
-	paramNames[Pitchshift][0] = "PITCH";
-	paramNames[Pitchshift][1] = "FINE PITCH";
-	paramNames[Pitchshift][2] = "F AMT";
-	paramNames[Pitchshift][3] = "FORMANT";
-	paramNames[Pitchshift][4] = "";
-	paramNames[Pitchshift][5] = "";
-	paramNames[Pitchshift][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[Pitchshift][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[Pitchshift] = 1;
+	knobParamNames[Pitchshift][0] = "SHIFT";
+	knobParamNames[Pitchshift][1] = "FINE";
+	knobParamNames[Pitchshift][2] = "F AMT";
+	knobParamNames[Pitchshift][3] = "FORMANT";
+	knobParamNames[Pitchshift][4] = "";
+	knobParamNames[Pitchshift][5] = "";
 
-	modeNames[AutotuneMono] = "NEARTUNE";
+	modeNames[AutotuneMono] = "AUTOTUNE";
 	shortModeNames[AutotuneMono] = "NT";
 	modeNamesDetails[AutotuneMono] = "";
-	paramNames[AutotuneMono][0] = "FID THRESH";
-	paramNames[AutotuneMono][1] = "AMOUNT";
-	paramNames[AutotuneMono][2] = "SPEED";
-	paramNames[AutotuneMono][3] = "";
-	paramNames[AutotuneMono][4] = "";
-	paramNames[AutotuneMono][5] = "";
-	paramNames[AutotuneMono][NUM_ADC_CHANNELS + ButtonA] = "AUTOCHRM ON";
-	paramNames[AutotuneMono][NUM_ADC_CHANNELS + ButtonB] = "AUTOCHRM OFF";
+	numPages[AutotuneMono] = 1;
+	knobParamNames[AutotuneMono][0] = "FID THRESH";
+	knobParamNames[AutotuneMono][1] = "AMOUNT";
+	knobParamNames[AutotuneMono][2] = "SPEED";
+	knobParamNames[AutotuneMono][3] = "";
+	knobParamNames[AutotuneMono][4] = "";
+	knobParamNames[AutotuneMono][5] = "";
 
-	modeNames[AutotunePoly] = "AUTOTUNE";
+	modeNames[AutotunePoly] = "HARMONIZE";
 	shortModeNames[AutotunePoly] = "AT";
 	modeNamesDetails[AutotunePoly] = "";
-	paramNames[AutotunePoly][0] = "FID THRESH";
-	paramNames[AutotunePoly][1] = "ALPHA";
-	paramNames[AutotunePoly][2] = "TOLERANCE";
-	paramNames[AutotunePoly][3] = "";
-	paramNames[AutotunePoly][4] = "";
-	paramNames[AutotunePoly][5] = "";
-	paramNames[AutotunePoly][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[AutotunePoly][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[AutotunePoly] = 1;
+	knobParamNames[AutotunePoly][0] = "FID THRESH";
+	knobParamNames[AutotunePoly][1] = "ALPHA";
+	knobParamNames[AutotunePoly][2] = "TOLERANCE";
+	knobParamNames[AutotunePoly][3] = "";
+	knobParamNames[AutotunePoly][4] = "";
+	knobParamNames[AutotunePoly][5] = "";
 
 	modeNames[SamplerButtonPress] = "SAMPLER BP";
 	shortModeNames[SamplerButtonPress] = "SB";
 	modeNamesDetails[SamplerButtonPress] = "PRESS BUTTON A";
-	paramNames[SamplerButtonPress][0] = "START";
-	paramNames[SamplerButtonPress][1] = "LENGTH";
-	paramNames[SamplerButtonPress][2] = "SPEED";
-	paramNames[SamplerButtonPress][3] = "CROSSFADE";
-	paramNames[SamplerButtonPress][4] = "";
-	paramNames[SamplerButtonPress][5] = "";
-	paramNames[SamplerButtonPress][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[SamplerButtonPress][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[SamplerButtonPress] = 1;
+	knobParamNames[SamplerButtonPress][0] = "START";
+	knobParamNames[SamplerButtonPress][1] = "LENGTH";
+	knobParamNames[SamplerButtonPress][2] = "SPEED";
+	knobParamNames[SamplerButtonPress][3] = "CROSSFADE";
+	knobParamNames[SamplerButtonPress][4] = "";
+	knobParamNames[SamplerButtonPress][5] = "";
 
 	modeNames[SamplerKeyboard] = "KEYSAMPLER";
 	shortModeNames[SamplerKeyboard] = "KS";
 	modeNamesDetails[SamplerKeyboard] = "A OR KEY TO REC";
-	paramNames[SamplerKeyboard][0] = "START";
-	paramNames[SamplerKeyboard][1] = "LENGTH";
-	paramNames[SamplerKeyboard][2] = "SPEED";
-	paramNames[SamplerKeyboard][3] = "CROSSFADE";
-	paramNames[SamplerKeyboard][4] = "";
-	paramNames[SamplerKeyboard][5] = "";
-	paramNames[SamplerKeyboard][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[SamplerKeyboard][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[SamplerKeyboard] = 1;
+	knobParamNames[SamplerKeyboard][0] = "START";
+	knobParamNames[SamplerKeyboard][1] = "LENGTH";
+	knobParamNames[SamplerKeyboard][2] = "SPEED";
+	knobParamNames[SamplerKeyboard][3] = "CROSSFADE";
+	knobParamNames[SamplerKeyboard][4] = "";
+	knobParamNames[SamplerKeyboard][5] = "";
 
-	modeNames[SamplerAutoGrab] = "AUTOSAMPLE";
+	modeNames[SamplerAutoGrab] = "AUTOSAMPLER";
 	shortModeNames[SamplerAutoGrab] = "AS";
 	modeNamesDetails[SamplerAutoGrab] = "";
-	paramNames[SamplerAutoGrab][0] = "THRESHOLD";
-	paramNames[SamplerAutoGrab][1] = "WINDOW";
-	paramNames[SamplerAutoGrab][2] = "REL THRESH";
-	paramNames[SamplerAutoGrab][3] = "CROSSFADE";
-	paramNames[SamplerAutoGrab][4] = "";
-	paramNames[SamplerAutoGrab][5] = "";
-	paramNames[SamplerAutoGrab][NUM_ADC_CHANNELS + ButtonA] = "PLAY MODE";
-	paramNames[SamplerAutoGrab][NUM_ADC_CHANNELS + ButtonB] = "TRIGGER CH";
+	numPages[SamplerAutoGrab] = 1;
+	knobParamNames[SamplerAutoGrab][0] = "THRESHOLD";
+	knobParamNames[SamplerAutoGrab][1] = "WINDOW";
+	knobParamNames[SamplerAutoGrab][2] = "REL THRESH";
+	knobParamNames[SamplerAutoGrab][3] = "CROSSFADE";
+	knobParamNames[SamplerAutoGrab][4] = "";
+	knobParamNames[SamplerAutoGrab][5] = "";
 
 	modeNames[Distortion] = "DISTORTION";
 	shortModeNames[Distortion] = "DT";
 	modeNamesDetails[Distortion] = "";
-	paramNames[Distortion][0] = "PRE GAIN";
-	paramNames[Distortion][1] = "TILT";
-	paramNames[Distortion][2] = "MID GAIN";
-	paramNames[Distortion][3] = "MID FREQ";
-	paramNames[Distortion][4] = "POST GAIN";
-	paramNames[Distortion][5] = "";
-	paramNames[Distortion][NUM_ADC_CHANNELS + ButtonA] = "MODE";
-	paramNames[Distortion][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[Distortion] = 1;
+	knobParamNames[Distortion][0] = "PRE GAIN";
+	knobParamNames[Distortion][1] = "TILT";
+	knobParamNames[Distortion][2] = "MID GAIN";
+	knobParamNames[Distortion][3] = "MID FREQ";
+	knobParamNames[Distortion][4] = "POST GAIN";
+	knobParamNames[Distortion][5] = "";
 
-	modeNames[Wavefolder] = "WAVEFOLD";
+	modeNames[Wavefolder] = "WAVEFOLDER";
 	shortModeNames[Wavefolder] = "WF";
 	modeNamesDetails[Wavefolder] = "SERGE STYLE";
-	paramNames[Wavefolder][0] = "GAIN";
-	paramNames[Wavefolder][1] = "OFFSET1";
-	paramNames[Wavefolder][2] = "OFFSET2";
-	paramNames[Wavefolder][3] = "POST GAIN";
-	paramNames[Wavefolder][4] = "";
-	paramNames[Wavefolder][5] = "";
-	paramNames[Wavefolder][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[Wavefolder][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[Wavefolder] = 1;
+	knobParamNames[Wavefolder][0] = "GAIN";
+	knobParamNames[Wavefolder][1] = "OFFSET1";
+	knobParamNames[Wavefolder][2] = "OFFSET2";
+	knobParamNames[Wavefolder][3] = "POST GAIN";
+	knobParamNames[Wavefolder][4] = "";
+	knobParamNames[Wavefolder][5] = "";
 
-	modeNames[BitCrusher] = "BITCRUSH";
+	modeNames[BitCrusher] = "BITCRUSHER";
 	shortModeNames[BitCrusher] = "BC";
 	modeNamesDetails[BitCrusher] = "AHH HALP ME";
-	paramNames[BitCrusher][0] = "QUALITY";
-	paramNames[BitCrusher][1] = "SAMP RATIO";
-	paramNames[BitCrusher][2] = "ROUNDING";
-	paramNames[BitCrusher][3] = "OPERATION";
-	paramNames[BitCrusher][4] = "POST GAIN";
-	paramNames[BitCrusher][5] = "";
-	paramNames[BitCrusher][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[BitCrusher][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[BitCrusher] = 1;
+	knobParamNames[BitCrusher][0] = "QUALITY";
+	knobParamNames[BitCrusher][1] = "SAMP RATIO";
+	knobParamNames[BitCrusher][2] = "ROUNDING";
+	knobParamNames[BitCrusher][3] = "OPERATION";
+	knobParamNames[BitCrusher][4] = "POST GAIN";
+	knobParamNames[BitCrusher][5] = "";
 
 	modeNames[Delay] = "DELAY";
 	shortModeNames[Delay] = "DL";
 	modeNamesDetails[Delay] = "";
-	paramNames[Delay][0] = "DELAY_L";
-	paramNames[Delay][1] = "DELAY_R";
-	paramNames[Delay][2] = "FEEDBACK";
-	paramNames[Delay][3] = "LOWPASS";
-	paramNames[Delay][4] = "HIGHPASS";
-	paramNames[Delay][5] = "";
-	paramNames[Delay][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[Delay][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[Delay] = 1;
+	knobParamNames[Delay][0] = "DELAY_L";
+	knobParamNames[Delay][1] = "DELAY_R";
+	knobParamNames[Delay][2] = "FEEDBACK";
+	knobParamNames[Delay][3] = "LOWPASS";
+	knobParamNames[Delay][4] = "HIGHPASS";
+	knobParamNames[Delay][5] = "";
 
 	modeNames[Reverb] = "REVERB";
 	shortModeNames[Reverb] = "RV";
 	modeNamesDetails[Reverb] = "DATTORRO ALG";
-	paramNames[Reverb][0] = "SIZE";
-	paramNames[Reverb][1] = "IN LOPASS";
-	paramNames[Reverb][2] = "IN HIPASS";
-	paramNames[Reverb][3] = "FB LOPASS";
-	paramNames[Reverb][4] = "FB GAIN";
-	paramNames[Reverb][5] = "";
-	paramNames[Reverb][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[Reverb][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[Reverb] = 1;
+	knobParamNames[Reverb][0] = "SIZE";
+	knobParamNames[Reverb][1] = "IN LOPASS";
+	knobParamNames[Reverb][2] = "IN HIPASS";
+	knobParamNames[Reverb][3] = "FB LOPASS";
+	knobParamNames[Reverb][4] = "FB GAIN";
+	knobParamNames[Reverb][5] = "";
 
 	modeNames[Reverb2] = "REVERB2";
 	shortModeNames[Reverb2] = "RV";
 	modeNamesDetails[Reverb2] = "NREVERB ALG";
-	paramNames[Reverb2][0] = "SIZE";
-	paramNames[Reverb2][1] = "LOWPASS";
-	paramNames[Reverb2][2] = "HIGHPASS";
-	paramNames[Reverb2][3] = "PEAK_FREQ";
-	paramNames[Reverb2][4] = "PEAK_GAIN";
-	paramNames[Reverb2][5] = "";
-	paramNames[Reverb2][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[Reverb2][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[Reverb2] = 1;
+	knobParamNames[Reverb2][0] = "SIZE";
+	knobParamNames[Reverb2][1] = "LOWPASS";
+	knobParamNames[Reverb2][2] = "HIGHPASS";
+	knobParamNames[Reverb2][3] = "PEAK_FREQ";
+	knobParamNames[Reverb2][4] = "PEAK_GAIN";
+	knobParamNames[Reverb2][5] = "";
 
 	modeNames[LivingString] = "STRING";
 	shortModeNames[LivingString] = "LS";
 	modeNamesDetails[LivingString] = "LIVING STRING";
-	paramNames[LivingString][0] = "FREQ";
-	paramNames[LivingString][1] = "DETUNE";
-	paramNames[LivingString][2] = "DECAY";
-	paramNames[LivingString][3] = "DAMPING";
-	paramNames[LivingString][4] = "PICK_POS";
-	paramNames[LivingString][5] = "";
-	paramNames[LivingString][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[LivingString][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[LivingString] = 1;
+	knobParamNames[LivingString][0] = "FREQ";
+	knobParamNames[LivingString][1] = "DETUNE";
+	knobParamNames[LivingString][2] = "DECAY";
+	knobParamNames[LivingString][3] = "DAMPING";
+	knobParamNames[LivingString][4] = "PICK_POS";
+	knobParamNames[LivingString][5] = "";
 
 	modeNames[LivingStringSynth] = "STRING SYNTH";
 	shortModeNames[LivingStringSynth] = "SS";
 	modeNamesDetails[LivingStringSynth] = "LIVING STRING";
-	paramNames[LivingStringSynth][0] = "";
-	paramNames[LivingStringSynth][1] = "";
-	paramNames[LivingStringSynth][2] = "DECAY";
-	paramNames[LivingStringSynth][3] = "DAMPING";
-	paramNames[LivingStringSynth][4] = "PICK_POS";
-	paramNames[LivingStringSynth][5] = "";
-	paramNames[LivingStringSynth][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[LivingStringSynth][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[LivingStringSynth] = 1;
+	knobParamNames[LivingStringSynth][0] = "";
+	knobParamNames[LivingStringSynth][1] = "";
+	knobParamNames[LivingStringSynth][2] = "DECAY";
+	knobParamNames[LivingStringSynth][3] = "DAMPING";
+	knobParamNames[LivingStringSynth][4] = "PICK_POS";
+	knobParamNames[LivingStringSynth][5] = "";
 
 	modeNames[ClassicSynth] = "CLASSIC SYNTH";
 	shortModeNames[ClassicSynth] = "CS";
 	modeNamesDetails[ClassicSynth] = "VCO+VCF";
-	paramNames[ClassicSynth][0] = "VOLUME";
-	paramNames[ClassicSynth][1] = "LOWPASS";
-	paramNames[ClassicSynth][2] = "KEYFOLLOW";
-	paramNames[ClassicSynth][3] = "DETUNE";
-	paramNames[ClassicSynth][4] = "FILTER Q";
-	paramNames[ClassicSynth][5] = "";
-	paramNames[ClassicSynth][NUM_ADC_CHANNELS + ButtonA] = "POLY MONO";
-	paramNames[ClassicSynth][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[ClassicSynth] = 2;
+	knobParamNames[ClassicSynth][0] = "VOLUME";
+	knobParamNames[ClassicSynth][1] = "LOWPASS";
+	knobParamNames[ClassicSynth][2] = "KEYFOLLOW";
+	knobParamNames[ClassicSynth][3] = "DETUNE";
+	knobParamNames[ClassicSynth][4] = "FILTER Q";
+	knobParamNames[ClassicSynth][5] = "ATTACK";
+	knobParamNames[ClassicSynth][6] = "DECAY";
+	knobParamNames[ClassicSynth][7] = "SUSTAIN";
+	knobParamNames[ClassicSynth][8] = "RELEASE";
+	knobParamNames[ClassicSynth][9] = "LEAK";
 
 	modeNames[Rhodes] = "RHODES";
 	shortModeNames[Rhodes] = "RD";
 	modeNamesDetails[Rhodes] = "DARK";
-	paramNames[Rhodes][0] = "BRIGHTNESS";
-	paramNames[Rhodes][1] = "TREM DEPTH";
-	paramNames[Rhodes][2] = "TREM RATE";
-	paramNames[Rhodes][3] = "";
-	paramNames[Rhodes][4] = "";
-	paramNames[Rhodes][5] = "";
-	paramNames[Rhodes][NUM_ADC_CHANNELS + ButtonA] = "";
-	paramNames[Rhodes][NUM_ADC_CHANNELS + ButtonB] = "";
+	numPages[Rhodes] = 2;
+	knobParamNames[Rhodes][0] = "BRIGHTNESS";
+	knobParamNames[Rhodes][1] = "TREM DEPTH";
+	knobParamNames[Rhodes][2] = "TREM RATE";
+	knobParamNames[Rhodes][3] = "";
+	knobParamNames[Rhodes][4] = "";
+	knobParamNames[Rhodes][5] = "ATK MULT";
+	knobParamNames[Rhodes][6] = "DEC MULT";
+	knobParamNames[Rhodes][7] = "SUSTAIN";
+	knobParamNames[Rhodes][8] = "RELEASE";
+	knobParamNames[Rhodes][9] = "LEAK";
 }
 
 void buttonCheck(void)
@@ -429,7 +419,7 @@ void buttonCheck(void)
 			}
 			if (buttonActionsUI[ButtonDown][ActionPress])
 			{
-				cvAddParam = -1;
+				cvAddParam[currentPreset] = -1;
 				buttonActionsUI[ButtonDown][ActionPress] = 0;
 			}
 //			OLEDdrawFloatArray(audioDisplayBuffer, -1.0f, 1.0f, 128, displayBufferIndex, 0, BothLines);
@@ -463,14 +453,11 @@ void adcCheck()
 	}
 	for (int i = 0; i < 6; i++)
 	{
-		if (cvAddParam >= 0 && i == 5) continue;
-		if (cvAddParam == i) floatADC[i] += floatADC[5];
-
 		if (fastabsf(floatADC[i] - lastFloatADC[i]) > adcHysteresisThreshold)
 		{
 			if (buttonActionsUI[ButtonEdit][ActionHoldContinuous])
 			{
-				if (i != 5) cvAddParam = i;
+				if (i != 5) cvAddParam[currentPreset] = i + (knobPage * KNOB_PAGE_SIZE);;
 				buttonActionsUI[ButtonEdit][ActionHoldContinuous] = 0;
 			}
 			lastFloatADC[i] = floatADC[i];
@@ -533,15 +520,30 @@ void writeCurrentPresetToFlash(void)
 	}
 }
 
+void incrementPage(void)
+{
+	knobPage = (knobPage + 1) % numPages[currentPreset];
+	setKnobValues(presetKnobValues[currentPreset] + (knobPage * KNOB_PAGE_SIZE));
+}
+
+void decrementPage(void)
+{
+	if (knobPage == 0) knobPage = numPages[currentPreset] - 1;
+	else knobPage--;
+	setKnobValues(presetKnobValues[currentPreset] + (knobPage * KNOB_PAGE_SIZE));
+}
+
 void resetKnobValues(void)
 {
 	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 	{
 		knobActive[i] = 0;
 		floatADCUI[i] = -1.0f;
-		tRamp_setVal(&adc[i], presetKnobValues[currentPreset][i]);
-		tRamp_setDest(&adc[i], presetKnobValues[currentPreset][i]);
-		smoothedADC[i] = presetKnobValues[currentPreset][i];
+		float value = 0.0f;
+		if (i != 5) value = presetKnobValues[currentPreset][i + (knobPage * KNOB_PAGE_SIZE)];
+		tRamp_setVal(&adc[i], value);
+		tRamp_setDest(&adc[i], value);
+		smoothedADC[i] = value;
 	}
 }
 
@@ -551,9 +553,11 @@ void setKnobValues(float* values)
 	{
 		knobActive[i] = 0;
 		floatADCUI[i] = -1.0f;
-		tRamp_setVal(&adc[i], values[i]);
-		tRamp_setDest(&adc[i], values[i]);
-		smoothedADC[i] = values[i];
+		float value = 0.0f;
+		if (i != 5) value = values[i];
+		tRamp_setVal(&adc[i], value);
+		tRamp_setDest(&adc[i], value);
+		smoothedADC[i] = value;
 	}
 }
 
@@ -561,6 +565,15 @@ void deactivateKnob(int knob)
 {
 	knobActive[knob] = 0;
 	floatADCUI[knob] = -1.0f;
+}
+
+void deactivateAllKnobs()
+{
+	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+	{
+		knobActive[i] = 0;
+		floatADCUI[i] = -1.0f;
+	}
 }
 
 char* UIVocoderButtons(VocodecButton button, ButtonAction action)
@@ -784,25 +797,7 @@ char* UIClassicSynthButtons(VocodecButton button, ButtonAction action)
 	}
 	if (buttonActionsUI[ButtonB][ActionPress])
 	{
-		// Maybe not how we want to do this
-		if (csKnobPage == 0)
-		{
-			writeString = "SETTINGS";
-			paramNames[ClassicSynth][0] = "VOLUME";
-			paramNames[ClassicSynth][1] = "LOWPASS";
-			paramNames[ClassicSynth][2] = "KEYFOLLOW";
-			paramNames[ClassicSynth][3] = "DETUNE";
-			paramNames[ClassicSynth][4] = "FILTER Q";
-		}
-		else
-		{
-			writeString = "ADSR";
-			paramNames[ClassicSynth][0] = "ATTACK";
-			paramNames[ClassicSynth][1] = "DECAY";
-			paramNames[ClassicSynth][2] = "SUSTAIN";
-			paramNames[ClassicSynth][3] = "RELEASE";
-			paramNames[ClassicSynth][4] = "LEAK";
-		}
+		writeString = knobPage == 0 ? "SETTINGS" : "ADSR";
 		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;
@@ -826,24 +821,7 @@ char* UIRhodesButtons(VocodecButton button, ButtonAction action)
 	}
 	if (buttonActionsUI[ButtonB][ActionPress])
 	{
-		if (rhodesKnobPage == 0)
-		{
-			writeString = "SETTINGS";
-			paramNames[Rhodes][0] = "BRIGHTNESS";
-			paramNames[Rhodes][1] = "TREM DEPTH";
-			paramNames[Rhodes][2] = "TREM RATE";
-			paramNames[Rhodes][3] = "";
-			paramNames[Rhodes][4] = "";
-		}
-		else
-		{
-			writeString = "ADSR";
-			paramNames[Rhodes][0] = "ATKFACTOR";
-			paramNames[Rhodes][1] = "DECFACTOR";
-			paramNames[Rhodes][2] = "SUSTAIN";
-			paramNames[Rhodes][3] = "RELEASE";
-			paramNames[Rhodes][4] = "LEAK";
-		}
+		writeString = knobPage == 0 ? "SETTINGS" : "ADSR";
 		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;

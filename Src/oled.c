@@ -268,20 +268,21 @@ void OLED_writeEditScreen()
 	OLEDwriteString("C:SET KEY CENTER", 16, 0, SecondLine);
 }
 
-void OLED_writeKnobParameter(uint8_t whichParam)
+void OLED_writeKnobParameter(uint8_t whichKnob)
 {
 	// Knob params
-	if (whichParam < NUM_ADC_CHANNELS)
+	if (whichKnob < NUM_ADC_CHANNELS)
 	{
-		floatADCUI[whichParam] = smoothedADC[whichParam];
-		int len = strlen(paramNames[currentPreset][whichParam]);
+		int whichParam = whichKnob + (knobPage * KNOB_PAGE_SIZE);
+		floatADCUI[whichKnob] = smoothedADC[whichKnob];
+		int len = strlen(knobParamNames[currentPreset][whichParam]);
 		if (len > 0)
 		{
 			GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
 			OLEDclearLine(SecondLine);
-			OLEDwriteString(paramNames[currentPreset][whichParam], len, 0, SecondLine);
+			OLEDwriteString(knobParamNames[currentPreset][whichParam], len, 0, SecondLine);
 			OLEDwriteString(" ", 1, getCursorX(), SecondLine);
-			OLEDwriteFloat(knobParams[whichParam], getCursorX(), SecondLine);
+			OLEDwriteFloat(displayValues[whichKnob], getCursorX(), SecondLine);
 			//OLEDwriteString(paramNames[currentPreset][whichParam], strlen(paramNames[currentPreset][whichParam]), 0, SecondLine);
 		}
 	}

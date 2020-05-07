@@ -184,6 +184,11 @@ void audioFrame(uint16_t buffer_offset)
 
 	if (!loadingPreset)
 	{
+		for (int i = 0; i < KNOB_PAGE_SIZE; i++)
+		{
+			presetKnobValues[currentPreset][i + (knobPage * KNOB_PAGE_SIZE)] = smoothedADC[i];
+		}
+		if (cvAddParam[currentPreset] >= 0) presetKnobValues[currentPreset][cvAddParam[currentPreset]] += smoothedADC[5];
 		frameFunctions[currentPreset]();
 	}
 
@@ -220,12 +225,6 @@ void audioFrame(uint16_t buffer_offset)
 			{
 				if (previousPreset != PresetNil)
 				{
-					// do this if you want to save knob values when changing off a preset
-					// this won't work for presets with multiple pages currently
-//					for (int i = 0; i < NUM_ADC_CHANNELS; i++)
-//					{
-//						presetKnobValues[previousPreset][i] = smoothedADC[i];
-//					}
 					freeFunctions[previousPreset]();
 				}
 				else
@@ -235,6 +234,7 @@ void audioFrame(uint16_t buffer_offset)
 				setLED_A(0);
 				setLED_B(0);
 				setLED_1(0);
+				knobPage = 0;
 				resetKnobValues();
 				allocFunctions[currentPreset]();
 				leaf.clearOnAllocation = 0;
@@ -264,6 +264,12 @@ float audioTickL(float audioIn)
 	if (loadingPreset) return sample;
 
 	bufferCleared = FALSE;
+
+	for (int i = 0; i < KNOB_PAGE_SIZE; i++)
+	{
+		presetKnobValues[currentPreset][i + (knobPage * KNOB_PAGE_SIZE)] = smoothedADC[i];
+	}
+	if (cvAddParam[currentPreset] >= 0) presetKnobValues[currentPreset][cvAddParam[currentPreset]] += smoothedADC[5];
 
 	tickFunctions[currentPreset](audioIn);
 /*

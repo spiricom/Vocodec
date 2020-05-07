@@ -28,7 +28,7 @@
 #define NUM_SAMPLER_KEYS 76
 #define LOWEST_SAMPLER_KEY 28
 
-extern float presetKnobValues[PresetNil][NUM_ADC_CHANNELS];
+extern float presetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
 extern uint8_t knobActive[NUM_ADC_CHANNELS];
 
 extern tPoly poly;
@@ -45,7 +45,6 @@ void initGlobalSFXObjects();
 // vocoder
 extern uint8_t numVoices;
 extern uint8_t internalExternal;
-
 
 //LPC Vocoder
 void SFXVocoderAlloc();
@@ -67,7 +66,6 @@ void SFXPitchShiftFree(void);
 
 // neartune
 extern uint8_t autotuneChromatic;
-
 void SFXNeartuneAlloc();
 void SFXNeartuneFrame();
 void SFXNeartuneTick(float audioIn);
