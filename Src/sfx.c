@@ -511,11 +511,6 @@ float tempSamp = 0.0f;
 
 void SFXVocoderChTick(float audioIn)
 {
-
-
-
-
-
 	if (internalExternal == 1) sample = rightIn;
 
 	else
@@ -556,7 +551,6 @@ void SFXVocoderChFree(void)
 {
 	for (int i = 0; i < MAX_NUM_VOCODER_BANDS; i++)
 	{
-
 		tSVF_freeFromPool(&analysisBands[i], &smallPool);
 		tSVF_freeFromPool(&synthesisBands[i], &smallPool);
 		//tSlide_initToPool(&envFollowers[i], 4800, 4800, &smallPool); //10ms logarithmic rise and fall at 48k sample rate

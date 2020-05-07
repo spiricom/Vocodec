@@ -188,7 +188,7 @@ void audioFrame(uint16_t buffer_offset)
 		{
 			presetKnobValues[currentPreset][i + (knobPage * KNOB_PAGE_SIZE)] = smoothedADC[i];
 		}
-		if (cvAddParam[currentPreset] >= 0) presetKnobValues[currentPreset][cvAddParam[currentPreset]] += smoothedADC[5];
+		if (cvAddParam[currentPreset] >= 0) presetKnobValues[currentPreset][cvAddParam[currentPreset]] = smoothedADC[5];
 		frameFunctions[currentPreset]();
 	}
 
@@ -269,7 +269,7 @@ float audioTickL(float audioIn)
 	{
 		presetKnobValues[currentPreset][i + (knobPage * KNOB_PAGE_SIZE)] = smoothedADC[i];
 	}
-	if (cvAddParam[currentPreset] >= 0) presetKnobValues[currentPreset][cvAddParam[currentPreset]] += smoothedADC[5];
+	if (cvAddParam[currentPreset] >= 0) presetKnobValues[currentPreset][cvAddParam[currentPreset]] = smoothedADC[5];
 
 	tickFunctions[currentPreset](audioIn);
 /*

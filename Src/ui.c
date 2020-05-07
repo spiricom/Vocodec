@@ -561,6 +561,17 @@ void setKnobValues(float* values)
 	}
 }
 
+void setKnobValue(int knob, float values)
+{
+	knobActive[knob] = 0;
+	floatADCUI[knob] = -1.0f;
+	float value = 0.0f;
+	if (knob != 5) value = values[knob];
+	tRamp_setVal(&adc[knob], value);
+	tRamp_setDest(&adc[knob], value);
+	smoothedADC[knob] = value;
+}
+
 void deactivateKnob(int knob)
 {
 	knobActive[knob] = 0;
