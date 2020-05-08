@@ -401,13 +401,13 @@ void SFXVocoderFree(void)
 }
 
 
-#define MAX_NUM_VOCODER_BANDS 32
+#define MAX_NUM_VOCODER_BANDS 16
 tVZFilter analysisBands[MAX_NUM_VOCODER_BANDS][2];
 tVZFilter synthesisBands[MAX_NUM_VOCODER_BANDS][2];
 //tSlide envFollowers[MAX_NUM_VOCODER_BANDS];
 tPowerFollower envFollowers[MAX_NUM_VOCODER_BANDS];
-uint8_t numberOfVocoderBands = 1;
-uint8_t prevNumberOfVocoderBands = 1;
+uint8_t numberOfVocoderBands = 14;
+uint8_t prevNumberOfVocoderBands = 14;
 float warpFactor = 1.0f;
 int currentBandToAlter = 0;
 int alteringBands = 0;
@@ -419,8 +419,8 @@ void SFXVocoderChAlloc()
 		float bandFreq = 500.0f;
 		for (int j = 0; j < 2; j++)
 		{
-			tVZFilter_init(&analysisBands[i][j], BandpassPeak, bandFreq, 1.0f);
-			tVZFilter_init(&synthesisBands[i][j], BandpassPeak, bandFreq, 1.0f);
+			tVZFilter_initToPool(&analysisBands[i][j], BandpassPeak, bandFreq, 1.0f, &smallPool);
+			tVZFilter_initToPool(&synthesisBands[i][j], BandpassPeak, bandFreq, 1.0f, &smallPool);
 		}
 		//tVZFilter_setGain(&analysisBands[i], 100.0f);
 		//tVZFilter_setGain(&synthesisBands[i], 100.0f);
@@ -606,6 +606,9 @@ void SFXVocoderChFree(void)
 		tVZFilter_freeFromPool(&analysisBands[i][0], &smallPool);
 		tVZFilter_freeFromPool(&synthesisBands[i][1], &smallPool);
 
+		tNoise_freeFromPool(&vocoderNoise, &smallPool);
+		tZeroCrossing_freeFromPool(&zerox, &smallPool);
+		tRamp_freeFromPool(&noiseRamp, &smallPool);
 
 		//tSlide_initToPool(&envFollowers[i], 4800, 4800, &smallPool); //10ms logarithmic rise and fall at 48k sample rate
 		tPowerFollower_freeFromPool(&envFollowers[i], &smallPool); // factor of .001 is 10 ms?
