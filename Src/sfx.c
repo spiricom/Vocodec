@@ -401,7 +401,7 @@ void SFXVocoderFree(void)
 }
 
 
-#define MAX_NUM_VOCODER_BANDS 16
+#define MAX_NUM_VOCODER_BANDS 15
 tVZFilter analysisBands[MAX_NUM_VOCODER_BANDS][2];
 tVZFilter synthesisBands[MAX_NUM_VOCODER_BANDS][2];
 //tSlide envFollowers[MAX_NUM_VOCODER_BANDS];
@@ -415,12 +415,12 @@ void SFXVocoderChAlloc()
 {
 	for (int i = 0; i < MAX_NUM_VOCODER_BANDS; i++)
 	{
-		//float bandFreq = (i * 100.0f) + (i * 200.0f) + 90.0f;
-		float bandFreq = 500.0f;
+		float bandFreq = (i * 100.0f) + (i * 200.0f) + 90.0f;
+		//float bandFreq = 500.0f;
 		for (int j = 0; j < 2; j++)
 		{
-			tVZFilter_initToPool(&analysisBands[i][j], BandpassPeak, bandFreq, 1.0f, &smallPool);
-			tVZFilter_initToPool(&synthesisBands[i][j], BandpassPeak, bandFreq, 1.0f, &smallPool);
+			tVZFilter_init(&analysisBands[i][j], BandpassPeak, bandFreq, 1.0f);
+			tVZFilter_init(&synthesisBands[i][j], BandpassPeak, bandFreq, 1.0f);
 		}
 		//tVZFilter_setGain(&analysisBands[i], 100.0f);
 		//tVZFilter_setGain(&synthesisBands[i], 100.0f);
@@ -431,7 +431,7 @@ void SFXVocoderChAlloc()
 	}
 
 	tNoise_initToPool(&vocoderNoise, WhiteNoise, &smallPool);
-	tZeroCrossing_initToPool(&zerox, 64, &smallPool);
+	tZeroCrossing_initToPool(&zerox, 16, &smallPool);
 	tPoly_setNumVoices(&poly, numVoices);
 	tRamp_initToPool(&noiseRamp, 10, 1, &smallPool);
 
@@ -600,19 +600,21 @@ void SFXVocoderChFree(void)
 {
 	for (int i = 0; i < MAX_NUM_VOCODER_BANDS; i++)
 	{
-		tVZFilter_freeFromPool(&analysisBands[i][0], &smallPool);
-		tVZFilter_freeFromPool(&synthesisBands[i][1], &smallPool);
+		tVZFilter_free(&analysisBands[i][0]);
+		tVZFilter_free(&synthesisBands[i][1]);
 
-		tVZFilter_freeFromPool(&analysisBands[i][0], &smallPool);
-		tVZFilter_freeFromPool(&synthesisBands[i][1], &smallPool);
+		tVZFilter_free(&analysisBands[i][0]);
+		tVZFilter_free(&synthesisBands[i][1]);
 
-		tNoise_freeFromPool(&vocoderNoise, &smallPool);
-		tZeroCrossing_freeFromPool(&zerox, &smallPool);
-		tRamp_freeFromPool(&noiseRamp, &smallPool);
+
 
 		//tSlide_initToPool(&envFollowers[i], 4800, 4800, &smallPool); //10ms logarithmic rise and fall at 48k sample rate
 		tPowerFollower_freeFromPool(&envFollowers[i], &smallPool); // factor of .001 is 10 ms?
 	}
+
+	tNoise_freeFromPool(&vocoderNoise, &smallPool);
+	tZeroCrossing_freeFromPool(&zerox, &smallPool);
+	tRamp_freeFromPool(&noiseRamp, &smallPool);
 
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
