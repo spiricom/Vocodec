@@ -34,8 +34,8 @@ typedef enum
 MIDI_ApplicationTypeDef;
 
 
-#define RX_BUFF_SIZE   64  /* Max Received data 64 bytes */
 
+#define RX_BUFF_SIZE   64  /* Max Received data 64 bytes */ // trying something larger...
 extern uint8_t MIDI_RX_Buffer[RX_BUFF_SIZE];// __ATTR_RAM_D2; // MIDI reception buffer
 extern uint8_t CCs[128];
 
@@ -45,6 +45,5 @@ extern uint8_t MIDIStartOfFrame;
 void MIDI_Application(void);
 void LocalMidiHandler(uint8_t param, uint8_t data);
 void ProcessReceivedMidiDatas(uint32_t myLength);
-
 /*------------------------------------------------------------------------------*/
 #endif /* MIDI_APPLICATION_H_ */

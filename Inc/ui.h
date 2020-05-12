@@ -80,7 +80,7 @@ extern char* modeNames[PresetNil];
 extern char* modeNamesDetails[PresetNil];
 extern char* shortModeNames[PresetNil];
 extern char* knobParamNames[PresetNil][NUM_PRESET_KNOB_VALUES];
-extern float displayValues[NUM_ADC_CHANNELS];
+extern float displayValues[NUM_PRESET_KNOB_VALUES];
 extern int8_t cvAddParam[PresetNil];
 extern uint8_t knobPage;
 extern uint8_t buttonActionsUI[NUM_BUTTONS][ActionNil];

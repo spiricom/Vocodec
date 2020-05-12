@@ -49,7 +49,7 @@ uint8_t orderedParams[8];
 
 uint8_t buttonActionsSFX[NUM_BUTTONS][ActionNil];
 uint8_t buttonActionsUI[NUM_BUTTONS][ActionNil];
-float displayValues[NUM_ADC_CHANNELS];
+float displayValues[NUM_PRESET_KNOB_VALUES];
 int8_t cvAddParam[PresetNil];
 char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
 
@@ -75,24 +75,38 @@ void initModeNames(void)
 	modeNames[Vocoder] = "VOCODER LPC";
 	shortModeNames[Vocoder] = "VL";
 	modeNamesDetails[Vocoder] = "";
-	numPages[Vocoder] = 1;
+	numPages[Vocoder] = 2;
 	knobParamNames[Vocoder][0] = "VOLUME";
 	knobParamNames[Vocoder][1] = "WARP";
 	knobParamNames[Vocoder][2] = "QUALITY";
-	knobParamNames[Vocoder][3] = "PULSE";
+	knobParamNames[Vocoder][3] = "SAWtoPULSE";
 	knobParamNames[Vocoder][4] = "NOISETHRESH";
-	knobParamNames[Vocoder][5] = "";
+	knobParamNames[Vocoder][5] = "BREATHINESS";
+	knobParamNames[Vocoder][6] = "PULSEWIDTH";
+	knobParamNames[Vocoder][7] = "PULSESHAPE";
+	knobParamNames[Vocoder][8] = "";
+	knobParamNames[Vocoder][9] = "";
+
 
 	modeNames[VocoderCh] = "VOCODER CH";
 	shortModeNames[VocoderCh] = "VC";
 	modeNamesDetails[VocoderCh] = "";
-	numPages[VocoderCh] = 1;
+	numPages[VocoderCh] = 3;
 	knobParamNames[VocoderCh][0] = "VOLUME";
 	knobParamNames[VocoderCh][1] = "WARP";
 	knobParamNames[VocoderCh][2] = "QUALITY";
-	knobParamNames[VocoderCh][3] = "PULSE";
-	knobParamNames[VocoderCh][4] = "SAWtoPULSE";
-	knobParamNames[VocoderCh][5] = "";
+	knobParamNames[VocoderCh][3] = "BANDWIDTH";
+	knobParamNames[VocoderCh][4] = "NOISETHRESH";
+	knobParamNames[VocoderCh][5] = "SAWtoPULSE";
+	knobParamNames[VocoderCh][6] = "PULSEWIDTH";
+	knobParamNames[VocoderCh][7] = "PULSESHAPE";
+	knobParamNames[VocoderCh][8] = "BREATHINESS";
+	knobParamNames[VocoderCh][9] = "SPEED";
+	knobParamNames[VocoderCh][10] = "BANDSQUISH";
+	knobParamNames[VocoderCh][11] = "BANDOFFSET";
+	knobParamNames[VocoderCh][12] = "TILT";
+	knobParamNames[VocoderCh][13] = "STEREO";
+	knobParamNames[VocoderCh][14] = "";
 
 	modeNames[Pitchshift] = "PITCHSHIFT";
 	shortModeNames[Pitchshift] = "PS";
@@ -345,8 +359,6 @@ void buttonCheck(void)
 		// make some if statements if you want to find the "attack" of the buttons (getting the "press" action)
 		// we'll need if statements for each button  - maybe should go to functions that are dedicated to each button?
 
-		// TODO: buttons C and E are connected to pins that are used to set up the codec over I2C - we need to reconfigure those pins in some kind of button init after the codec is set up. not done yet.
-
 		/// DEFINE GLOBAL BUTTON BEHAVIOR HERE
 
 		if (buttonActionsUI[ButtonLeft][ActionPress] == 1)
@@ -429,6 +441,18 @@ void buttonCheck(void)
 			OLED_writePreset();
 			buttonActionsUI[ButtonEdit][ActionRelease] = 0;
 		}
+		if (buttonActionsUI[ButtonDown][ActionPress] == 1)
+		{
+
+			decrementPage();
+			buttonActionsUI[ButtonDown][ActionPress] = 0;
+		}
+		if (buttonActionsUI[ButtonUp][ActionPress] == 1)
+		{
+			incrementPage();
+			buttonActionsUI[ButtonUp][ActionPress] = 0;
+		}
+
 		// Trying out an audio display
 //		if (buttonActionsUI[ButtonEdit][ActionPress] == 1)
 //		{
@@ -526,6 +550,7 @@ void incrementPage(void)
 {
 	knobPage = (knobPage + 1) % numPages[currentPreset];
 	setKnobValues(presetKnobValues[currentPreset] + (knobPage * KNOB_PAGE_SIZE));
+
 }
 
 void decrementPage(void)

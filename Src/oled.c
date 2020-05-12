@@ -282,7 +282,7 @@ void OLED_writeKnobParameter(uint8_t whichKnob)
 			OLEDclearLine(SecondLine);
 			OLEDwriteString(knobParamNames[currentPreset][whichParam], len, 0, SecondLine);
 			OLEDwriteString(" ", 1, getCursorX(), SecondLine);
-			OLEDwriteFloat(displayValues[whichKnob], getCursorX(), SecondLine);
+			OLEDwriteFloat(displayValues[whichKnob + (knobPage * KNOB_PAGE_SIZE)], getCursorX(), SecondLine);
 			//OLEDwriteString(paramNames[currentPreset][whichParam], strlen(paramNames[currentPreset][whichParam]), 0, SecondLine);
 		}
 	}

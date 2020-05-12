@@ -1231,6 +1231,16 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
       HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)ch_num, hhcd->hc[ch_num].urb_state);
 #endif /* USE_HAL_HCD_REGISTER_CALLBACKS */
     }
+    else if (hhcd->hc[ch_num].ep_type == EP_TYPE_ISOC)
+    {
+      hhcd->hc[ch_num].urb_state = URB_DONE;
+
+#if (USE_HAL_HCD_REGISTER_CALLBACKS == 1U)
+      hhcd->HC_NotifyURBChangeCallback(hhcd, (uint8_t)ch_num, hhcd->hc[ch_num].urb_state);
+#else
+      HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)ch_num, hhcd->hc[ch_num].urb_state);
+#endif /* USE_HAL_HCD_REGISTER_CALLBACKS */
+    }
     else
     {
       /* ... */
@@ -1302,8 +1312,8 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
       __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
       (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
     }
-    else if ((hhcd->hc[ch_num].ep_type == EP_TYPE_CTRL) ||
-             (hhcd->hc[ch_num].ep_type == EP_TYPE_BULK))
+    else if (hhcd->hc[ch_num].ep_type == EP_TYPE_CTRL)
+
     {
       hhcd->hc[ch_num].ErrCnt = 0U;
 
@@ -1314,6 +1324,18 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
         (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
       }
     }
+    else if (hhcd->hc[ch_num].ep_type == EP_TYPE_BULK)
+    {
+      hhcd->hc[ch_num].ErrCnt = 0U;
+
+      if (hhcd->Init.dma_enable == 0U)
+      {
+        hhcd->hc[ch_num].state = HC_XFRC;
+        __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
+        (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
+      }
+    }
+
     else
     {
       /* ... */

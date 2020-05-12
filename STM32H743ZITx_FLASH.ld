@@ -223,4 +223,3 @@ SECTIONS
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }
 
-

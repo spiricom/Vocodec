@@ -21,7 +21,7 @@
 MIDI_ApplicationTypeDef MIDI_Appli_state = MIDI_APPLICATION_READY;
 extern ApplicationTypeDef Appli_state;
 extern USBH_HandleTypeDef hUsbHostFS;
-uint8_t MIDI_RX_Buffer[RX_BUFF_SIZE]__ATTR_RAM_D2; // MIDI reception buffer
+uint8_t MIDI_RX_Buffer[RX_BUFF_SIZE]; // MIDI reception buffer
 
 uint8_t key, velocity, ctrl, data, sustainInverted;
 

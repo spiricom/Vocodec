@@ -31,9 +31,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_MIDI.h"
+#include "oled.h"
 #include "MIDI_Application.h"
 /*------------------------------------------------------------------------------------------------------------------------------*/
-
 
 /** @defgroup USBH_MIDI_CORE_Private_FunctionPrototypes
  * @{
@@ -138,7 +138,7 @@ static USBH_StatusTypeDef USBH_MIDI_InterfaceInit (USBH_HandleTypeDef *phost)
 				MIDI_Handle->InEp,
 				phost->device.address,
 				phost->device.speed,
-				USB_EP_TYPE_BULK,
+				USB_EP_TYPE_BULK, // changing this to INTR seems to be option B from this post https://community.st.com/s/question/0D50X00009XkYz2SAF/hal-usb-midi-host-code-midi-stays-in-idle-mode-no-data-received
 				MIDI_Handle->InEpSize);
 
 		//USB_MIDI_ChangeConnectionState(1);
@@ -246,31 +246,32 @@ static USBH_StatusTypeDef USBH_MIDI_Process (USBH_HandleTypeDef *phost)
 	switch(MIDI_Handle->state)
 	{
 
-	case MIDI_IDLE_STATE:
-		status = USBH_OK;
-		break;
+		case MIDI_IDLE_STATE:
+			status = USBH_OK;
+			break;
 
-	case MIDI_TRANSFER_DATA:
+		case MIDI_TRANSFER_DATA:
 
-		MIDI_ProcessTransmission(phost);
+			//MIDI_ProcessTransmission(phost);
 
-		MIDI_ProcessReception(phost);
+			MIDI_ProcessReception(phost);
 
-		status = USBH_OK;
-		break;
+			status = USBH_OK;
+			break;
 
-	case MIDI_ERROR_STATE:
-		req_status = USBH_ClrFeature(phost, 0x00);
+		case MIDI_ERROR_STATE:
+			//req_status = USBH_ClrFeature(phost, 0x03);
 
-		if(req_status == USBH_OK )
-		{
-			/*Change the state to waiting*/
-			MIDI_Handle->state = MIDI_IDLE_STATE ;
-		}
-		break;
+			//if(req_status == USBH_OK )
+			{
+				/*Change the state to waiting*/
+				MIDI_Handle->state = MIDI_TRANSFER_DATA ;
+				USBH_MIDI_Receive(phost, MIDI_RX_Buffer, RX_BUFF_SIZE);
+			}
+			break;
 
-	default:
-		break;
+		default:
+			break;
 
 	}
 
@@ -343,7 +344,7 @@ USBH_StatusTypeDef  USBH_MIDI_Transmit(USBH_HandleTypeDef *phost, uint8_t *pbuff
  * @param  None
  * @retval None
  */
-uint8_t tempArray[32];
+
 USBH_StatusTypeDef  USBH_MIDI_Receive(USBH_HandleTypeDef *phost, uint8_t *pbuff, uint16_t length)
 {
 	USBH_StatusTypeDef Status = USBH_BUSY;
@@ -451,45 +452,35 @@ static void MIDI_ProcessTransmission(USBH_HandleTypeDef *phost)
  * @retval None
  */
 
-uint32_t usbFailCounter = 0;
-uint8_t fakeThing1 = 0;
-uint32_t callbackCounter = 0;
-uint32_t callbackFailCounter = 0;
-uint8_t prevTestData[8] = {0};
-uint8_t doTheThing = 0;
+
 static void MIDI_ProcessReception(USBH_HandleTypeDef *phost)
 {
 	MIDI_HandleTypeDef *MIDI_Handle =  phost->pActiveClass->pData;
 	USBH_URBStateTypeDef URB_Status = USBH_URB_IDLE;
 	uint32_t length;
-
-	switch(MIDI_Handle->data_rx_state)
-	{
-
+	HCD_HandleTypeDef *hostHandle = phost->pData;
+	//switch(MIDI_Handle->data_rx_state)
+	//{
+/*
 	case MIDI_RECEIVE_DATA:
 
-		//should this happen first? use to be after the receive data command was issued
-		MIDI_Handle->data_rx_state = MIDI_RECEIVE_DATA_WAIT;
-		//
 		USBH_BulkReceiveData (phost,
 				MIDI_Handle->pRxData,
 				MIDI_Handle->InEpSize,
 				MIDI_Handle->InPipe);
 
-
-		//BSP_LED_On(LED_Red); //ok only here
+		MIDI_Handle->data_rx_state = MIDI_RECEIVE_DATA_WAIT;
 
 		break;
+		*/
 
-	case MIDI_RECEIVE_DATA_WAIT:
+	//case MIDI_RECEIVE_DATA_WAIT:
 
 		URB_Status = USBH_LL_GetURBState(phost, MIDI_Handle->InPipe);
 
 		/*Check the status done for reception*/
-		if((URB_Status == USBH_URB_DONE ) )
+		if(URB_Status == USBH_URB_DONE )
 		{
-
-			usbFailCounter = 0;
 			length = USBH_LL_GetLastXferSize(phost, MIDI_Handle->InPipe);
 
 			if(((MIDI_Handle->RxDataLength - length) > 0) && (length > MIDI_Handle->InEpSize))
@@ -508,11 +499,19 @@ static void MIDI_ProcessReception(USBH_HandleTypeDef *phost)
 			osMessagePut ( phost->os_event, USBH_CLASS_EVENT, 0);
 #endif
 		}
+
+		else if((URB_Status == USBH_URB_NOTREADY) && (hostHandle->hc[(MIDI_Handle->InPipe)].state == HC_DATATGLERR))
+		{
+			MIDI_Handle->state = MIDI_ERROR_STATE;
+			setLED_USB(1);
+			//USBH_MIDI_Receive(phost, MIDI_RX_Buffer, RX_BUFF_SIZE);
+		}
+
 		break;
 
-	default:
-		break;
-	}
+	//default:
+		//break;
+	//}
 }
 
 

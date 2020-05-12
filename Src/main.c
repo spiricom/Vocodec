@@ -36,6 +36,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ui.h"
+#include "oled.h"
 #include "leaf.h"
 #include "audiostream.h"
 #include "eeprom.h"
@@ -92,7 +93,6 @@ int main(void)
   /* USER CODE BEGIN 1 */
   MPU_Conf();
   /* USER CODE END 1 */
-  
 
   /* Enable I-Cache---------------------------------------------------------*/
   SCB_EnableICache();
@@ -209,8 +209,6 @@ int main(void)
   OLED_writePreset();
 
   /* USER CODE END 2 */
- 
- 
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -513,6 +511,28 @@ void MPU_Conf(void)
 
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+
+
+
+
+  /*
+   // Maybe configure the MPU attributes as WT for SDRAM? (from H7 hid example...)
+  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+  MPU_InitStruct.BaseAddress = 0xD0000000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_32MB;
+  MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.Number = MPU_REGION_NUMBER0;
+  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
+  MPU_InitStruct.SubRegionDisable = 0x00;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+  */
+
 
 
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
