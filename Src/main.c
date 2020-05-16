@@ -77,6 +77,7 @@ void MX_USB_HOST_Process(void);
 /* USER CODE BEGIN PFP */
 void MPU_Conf(void);
 void SDRAM_Initialization_sequence(void);
+static void CycleCounterInit( void );
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -586,6 +587,33 @@ void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress )
 
 	// When the following line is hit, the variables contain the register values.
 	for( ;; );
+}
+
+
+
+uint8_t LEAF_error(uint8_t errorCode)
+{
+	setLED_C(1);
+	return 0;
+}
+
+uint64_t PrevCycCnt = 0;
+/* helper function to initialize measuring unit (cycle counter) */
+static void CycleCounterInit( void )
+{
+  /* Enable TRC */
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+
+  /* Unlock DWT registers */
+  if ((*(uint32_t*)0xE0001FB4) & 1)
+    *(uint32_t*)0xE0001FB0 = 0xC5ACCE55;
+
+  /* clear the cycle counter */
+  DWT->CYCCNT = 0;
+
+  /* start the cycle counter */
+  DWT->CTRL = 0x40000001;
+
 }
 
 /* USER CODE END 4 */

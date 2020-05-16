@@ -25,7 +25,7 @@ tRetune retune2;
 tRamp pitchshiftRamp;
 tRamp nearWetRamp;
 tRamp nearDryRamp;
-tPoly poly;
+tSimplePoly poly;
 tRamp polyRamp[NUM_VOC_VOICES];
 
 tRamp comp;
@@ -91,13 +91,10 @@ void initGlobalSFXObjects()
 {
 	calculateNoteArray();
 
-	tPoly_init(&poly, NUM_VOC_VOICES);
-	tPoly_setPitchGlideActive(&poly, FALSE);
-	tPoly_setBendSamplesPerTick(&poly, 128);
-	tPoly_setBendGlideTime(&poly, 1.0f);
+	tSimplePoly_initToPool(&poly, NUM_VOC_VOICES, &smallPool);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
-		tRamp_init(&polyRamp[i], 10.0f, 1);
+		tRamp_initToPool(&polyRamp[i], 10.0f, 1, &smallPool);
 	}
 
 	tRamp_init(&nearWetRamp, 10.0f, 1);
@@ -299,7 +296,7 @@ void initGlobalSFXObjects()
 tTalkbox vocoder;
 tNoise vocoderNoise;
 tZeroCrossing zerox;
-tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
+tPhasor osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
 tRosenbergGlottalPulse glottal[NUM_VOC_VOICES];
 uint8_t numVoices = NUM_VOC_VOICES;
 uint8_t internalExternal = 0;
@@ -311,12 +308,12 @@ void SFXVocoderAlloc()
 	tTalkbox_setWarpOn(&vocoder, 1);
 	tNoise_initToPool(&vocoderNoise, WhiteNoise, &smallPool);
 	tZeroCrossing_initToPool(&zerox, 64, &smallPool);
-	tPoly_setNumVoices(&poly, numVoices);
+	tSimplePoly_setNumVoices(&poly, numVoices);
 	tRamp_initToPool(&noiseRamp, 10, 1, &smallPool);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 
-		tSawtooth_initToPool(&osc[i], &smallPool);
+		tPhasor_initToPool(&osc[i], &smallPool);
 
 		tRosenbergGlottalPulse_initToPool(&glottal[i], &smallPool);
 		tRosenbergGlottalPulse_setOpenLength(&glottal[i], 0.3f);
@@ -328,12 +325,10 @@ void SFXVocoderAlloc()
 
 void SFXVocoderFrame()
 {
-	//glideTimeVoc = 5.0f;
-	//tPoly_setPitchGlideTime(&poly, glideTimeVoc);
 	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
 	{
 		numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
-		tPoly_setNumVoices(&poly, numVoices);
+		tSimplePoly_setNumVoices(&poly, numVoices);
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(numVoices == 1);
 	}
@@ -344,17 +339,17 @@ void SFXVocoderFrame()
 		setLED_B(internalExternal);
 	}
 
-	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
-		tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
+		tRamp_setDest(&polyRamp[i], (tSimplePoly_getVelocity(&poly, i) > 0));
 		calculateFreq(i);
-		tSawtooth_setFreq(&osc[i], freq[i]);
+		tPhasor_setFreq(&osc[i], freq[i]);
 		tRosenbergGlottalPulse_setFreq(&glottal[i], freq[i]);
 	}
 
-	if (tPoly_getNumActiveVoices(&poly) != 0)
+	if (tSimplePoly_getNumActiveVoices(&poly) != 0)
 	{
-		tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
+		tRamp_setDest(&comp, 1.0f / tSimplePoly_getNumActiveVoices(&poly));
 	}
 	else
 	{
@@ -402,11 +397,9 @@ void SFXVocoderTick(float audioIn)
 
 		float noiseSample = tNoise_tick(&vocoderNoise) * 0.8f * noiseRampVal;
 
-		tPoly_tickPitch(&poly);
-
-		for (int i = 0; i < tPoly_getNumActiveVoices(&poly); i++)
+		for (int i = 0; i < tSimplePoly_getNumActiveVoices(&poly); i++)
 		{
-			sample += tSawtooth_tick(&osc[i]) * tRamp_tick(&polyRamp[i]) * (1.0f-params[4]);
+			sample += tPhasor_tick(&osc[i]) * tRamp_tick(&polyRamp[i]) * (1.0f-params[4]);
 
 			tRosenbergGlottalPulse_setPulseLength(&glottal[i], params[3] );
 
@@ -439,7 +432,7 @@ void SFXVocoderFree(void)
 	tRamp_freeFromPool(&noiseRamp, &smallPool);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
-		tSawtooth_freeFromPool(&osc[i], &smallPool);
+		tPhasor_freeFromPool(&osc[i], &smallPool);
 		tRosenbergGlottalPulse_freeFromPool(&glottal[i], &smallPool);
 	}
 }
@@ -517,13 +510,13 @@ void SFXVocoderChAlloc()
 	tNoise_initToPool(&breathNoise, WhiteNoise, &smallPool);
 	tNoise_initToPool(&vocoderNoise, WhiteNoise, &smallPool);
 	tZeroCrossing_initToPool(&zerox, 16, &smallPool);
-	tPoly_setNumVoices(&poly, numVoices);
+	tSimplePoly_setNumVoices(&poly, numVoices);
 	tRamp_initToPool(&noiseRamp, 10, 1, &smallPool);
 	tHighpass_initToPool(&noiseHP, 5000.0f, &smallPool);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 
-		tSawtooth_initToPool(&osc[i], &smallPool);
+		tPhasor_initToPool(&osc[i], &smallPool);
 
 		tRosenbergGlottalPulse_initToPool(&glottal[i], &smallPool);
 		tRosenbergGlottalPulse_setOpenLength(&glottal[i], 0.3f);
@@ -537,12 +530,11 @@ void SFXVocoderChAlloc()
 
 void SFXVocoderChFrame()
 {
-	//glideTimeVoc = 5.0f;
-	//tPoly_setPitchGlideTime(&poly, glideTimeVoc);
+
 	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
 	{
 		numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
-		tPoly_setNumVoices(&poly, numVoices);
+		tSimplePoly_setNumVoices(&poly, numVoices);
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(numVoices == 1);
 	}
@@ -553,11 +545,11 @@ void SFXVocoderChFrame()
 		setLED_B(internalExternal);
 	}
 
-	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
-		tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
+		tRamp_setDest(&polyRamp[i], (tSimplePoly_getVelocity(&poly, i) > 0));
 		calculateFreq(i);
-		tSawtooth_setFreq(&osc[i], freq[i]);
+		tPhasor_setFreq(&osc[i], freq[i]);
 		tRosenbergGlottalPulse_setFreq(&glottal[i], freq[i]);
 	}
 
@@ -667,9 +659,9 @@ void SFXVocoderChFrame()
 		tPowerFollower_setFactor(&envFollowers[i], (displayValues[9] * 0.0012f) + 0.0001f);
 	}
 
-	if (tPoly_getNumActiveVoices(&poly) != 0)
+	if (tSimplePoly_getNumActiveVoices(&poly) != 0)
 	{
-		tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
+		tRamp_setDest(&comp, 1.0f / tSimplePoly_getNumActiveVoices(&poly));
 	}
 	else
 	{
@@ -712,13 +704,12 @@ void SFXVocoderChTick(float audioIn)
 
 		float noiseSample = tNoise_tick(&vocoderNoise) * 0.8f * noiseRampVal;
 
-		tPoly_tickPitch(&poly);
-		for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+		for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 		{
 			float tempRamp = tRamp_tick(&polyRamp[i]);
 			if (tempRamp > 0.001f)
 			{
-				sample += tSawtooth_tick(&osc[i]) * tempRamp *  (1.0f-displayValues[5]);
+				sample += tPhasor_tick(&osc[i]) * tempRamp *  (1.0f-displayValues[5]);
 
 				tRosenbergGlottalPulse_setPulseLength(&glottal[i], displayValues[6] );
 
@@ -783,7 +774,7 @@ void SFXVocoderChFree(void)
 	tHighpass_freeFromPool(&noiseHP, &smallPool);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
-		tSawtooth_freeFromPool(&osc[i], &smallPool);
+		tPhasor_freeFromPool(&osc[i], &smallPool);
 		tRosenbergGlottalPulse_freeFromPool(&glottal[i], &smallPool);
 	}
 }
@@ -898,7 +889,7 @@ void SFXNeartuneAlloc()
 void SFXNeartuneFrame()
 {
 
-	if ((tPoly_getNumActiveVoices(&poly) != 0) || (autotuneChromatic == 1))
+	if ((tSimplePoly_getNumActiveVoices(&poly) != 0) || (autotuneChromatic == 1))
 	{
 		tRamp_setDest(&nearWetRamp, 1.0f);
 		tRamp_setDest(&nearDryRamp, 0.0f);
@@ -959,23 +950,20 @@ void SFXNeartuneFree(void)
 void SFXAutotuneAlloc()
 {
 	tAutotune_init(&autotunePoly, NUM_AUTOTUNE, 1024, 512);
-	tPoly_setNumVoices(&poly, NUM_AUTOTUNE);
+	tSimplePoly_setNumVoices(&poly, NUM_AUTOTUNE);
 
 	//tAutotune_init(&autotunePoly, NUM_AUTOTUNE, 2048, 1024); //old settings
 }
 
 void SFXAutotuneFrame()
 {
-	for (int i = 0; i < tPoly_getNumVoices(&poly); ++i)
+	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); ++i)
 	{
 		calculateFreq(i);
+		tRamp_setDest(&polyRamp[i], (tSimplePoly_getVelocity(&poly, i) > 0));
 	}
-	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
-	{
-		tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
-	}
-
-	if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
+	int tempNumVoices = tSimplePoly_getNumActiveVoices(&poly);
+	if (tempNumVoices != 0) tRamp_setDest(&comp, 1.0f / (float)tempNumVoices);
 }
 
 void SFXAutotuneTick(float audioIn)
@@ -987,18 +975,18 @@ void SFXAutotuneTick(float audioIn)
 	displayValues[2] = presetKnobValues[AutotunePoly][2];
 
 	tAutotune_setFidelityThreshold(&autotunePoly, displayValues[0]);
-	//tAutotune_setAlpha(&autotunePoly, knobParams[1]);
-	//tAutotune_setTolerance(&autotunePoly, knobParams[2]);
-	tPoly_tickPitch(&poly);
+	tAutotune_setAlpha(&autotunePoly, displayValues[1]);
+	tAutotune_setTolerance(&autotunePoly, displayValues[2]);
 
-	for (int i = 0; i < tPoly_getNumVoices(&poly); ++i)
+
+	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); ++i)
 	{
 		tAutotune_setFreq(&autotunePoly, freq[i], i);
 	}
 
 	float* samples = tAutotune_tick(&autotunePoly, audioIn);
 
-	for (int i = 0; i < tPoly_getNumVoices(&poly); ++i)
+	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); ++i)
 	{
 		sample += samples[i] * tRamp_tick(&polyRamp[i]);
 	}
@@ -1118,7 +1106,7 @@ void SFXSamplerKAlloc()
 		}
 		samplerKeyHeld[i] = 0;
 	}
-	tPoly_setNumVoices(&poly, NUM_SAMPLER_VOICES);
+	tSimplePoly_setNumVoices(&poly, NUM_SAMPLER_VOICES);
 }
 
 void SFXSamplerKFrame()
@@ -1177,7 +1165,7 @@ void SFXSamplerKTick(float audioIn)
 
 	float* knobs = presetKnobValues[SamplerKeyboard];
 
-	for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+	for (int i = 0; i < KNOB_PAGE_SIZE; i++)
 	{
 		keyKnobValues[currentSamplerKey][i] = knobs[i];
 	}
@@ -1197,13 +1185,11 @@ void SFXSamplerKTick(float audioIn)
 	tSampler_setRate(&keySampler[currentSamplerKey], samplerRate);
 	tSampler_setCrossfadeLength(&keySampler[currentSamplerKey], crossfadeLength);
 
-
-	tPoly_tickPitch(&poly);
-	for (int i = 0; i < tPoly_getNumVoices(&poly); ++i)
+	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); ++i)
 	{
-		if (tPoly_isOn(&poly, i) > 0)
+		if (tSimplePoly_isOn(&poly, i) > 0)
 		{
-			int key = (int)tPoly_getPitch(&poly, i) - LOWEST_SAMPLER_KEY;
+			int key = tSimplePoly_getPitch(&poly, i) - LOWEST_SAMPLER_KEY;
 			if (0 <= key && key < NUM_SAMPLER_KEYS)
 			{
 				tBuffer_tick(&keyBuff[key], audioIn);
@@ -1886,7 +1872,7 @@ void SFXLivingStringFree(void)
 //Living String
 void SFXLivingStringSynthAlloc()
 {
-	tPoly_setNumVoices(&poly, NUM_STRINGS);
+	tSimplePoly_setNumVoices(&poly, NUM_STRINGS);
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 		tLivingString_init(&theString[i], 440.f, 0.2f, 0.f, 9000.f, 1.0f, 0.0f, 0.01f, 0.125f, 1);
@@ -1898,7 +1884,7 @@ void SFXLivingStringSynthFrame()
 	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
 	{
 		numVoices = (numVoices > 1) ? 1 : NUM_STRINGS;
-		tPoly_setNumVoices(&poly, numVoices);
+		tSimplePoly_setNumVoices(&poly, numVoices);
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(numVoices == 1);
 	}
@@ -1915,12 +1901,12 @@ void SFXLivingStringSynthFrame()
 		tLivingString_setPickPos(&theString[i], displayValues[4]);
 	}
 
-	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
 		//tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
 		calculateFreq(i);
 		tLivingString_setFreq(&theString[i], freq[i]);
-		tLivingString_setTargetLev(&theString[i],(tPoly_getVelocity(&poly, i) > 0));
+		tLivingString_setTargetLev(&theString[i],(tSimplePoly_getVelocity(&poly, i) > 0));
 	}
 
 }
@@ -1955,12 +1941,12 @@ tADSR polyEnvs[NUM_VOC_VOICES];
 
 void SFXClassicSynthAlloc()
 {
-	tPoly_setNumVoices(&poly, numVoices);
+	tSimplePoly_setNumVoices(&poly, numVoices);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSawtooth_initToPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
+			tPhasor_initToPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 			synthDetune[i][j] = ((leaf.random() * 0.5f) - 0.25f);
 		}
 
@@ -1977,7 +1963,7 @@ void SFXClassicSynthFrame()
 	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
 	{
 		numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
-		tPoly_setNumVoices(&poly, numVoices);
+		tSimplePoly_setNumVoices(&poly, numVoices);
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(numVoices == 1);
 	}
@@ -2009,13 +1995,13 @@ void SFXClassicSynthFrame()
     displayValues[4] = params[4 + (knobPage * KNOB_PAGE_SIZE)];
 	if (knobPage == 1) displayValues[4] = knobs[9];
 
-	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
-		float myMidiNote = calculateTunedMidiNote(tPoly_getPitch(&poly, i));
+		float myMidiNote = calculateTunedMidiNote((float)tSimplePoly_getPitch(&poly, i));
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSawtooth_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * params[3])));
+			tPhasor_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * params[3])));
 		}
 		float keyFollowFilt = myMidiNote * params[2] * 64.0f;
 		float tempFreq = params[1] +  keyFollowFilt;
@@ -2037,17 +2023,16 @@ void SFXClassicSynthFrame()
 void SFXClassicSynthTick(float audioIn)
 {
 
-	tPoly_tickPitch(&poly);
 	//if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
 
-	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
 		float tempSample = 0.0f;
 		float env = tADSR_tick(&polyEnvs[i]);
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tempSample += tSawtooth_tick(&osc[(i * NUM_OSC_PER_VOICE) + j]) * env;
+			tempSample += tPhasor_tick(&osc[(i * NUM_OSC_PER_VOICE) + j]) * env;
 		}
 //		tempSample += tSawtooth_tick(&osc[i]) * amplitudeTemp;
 //		tempSample += tSawtooth_tick(&osc[i + NUM_VOC_VOICES]) * amplitudeTemp;
@@ -2067,7 +2052,7 @@ void SFXClassicSynthFree(void)
 	{
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSawtooth_freeFromPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
+			tPhasor_freeFromPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 		}
 		tEfficientSVF_freeFromPool(&synthLP[i], &smallPool);
 		tADSR_freeFromPool(&polyEnvs[i], &smallPool);
@@ -2112,7 +2097,7 @@ void SFXRhodesAlloc()
 	}
 	tCycle_initToPool(&tremolo, &smallPool);
 	tCycle_setFreq(&tremolo, 3.0f);
-	tPoly_setNumVoices(&poly, NUM_VOC_VOICES);
+	tSimplePoly_setNumVoices(&poly, NUM_VOC_VOICES);
 	setLED_A(numVoices == 1);
 	OLEDclearLine(SecondLine);
 	OLEDwriteString(soundNames[Rsound], 6, 0, SecondLine);
@@ -2123,7 +2108,7 @@ void SFXRhodesFrame()
 	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
 	{
 		numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
-		tPoly_setNumVoices(&poly, numVoices);
+		tSimplePoly_setNumVoices(&poly, numVoices);
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(numVoices == 1);
 	}
@@ -2193,7 +2178,7 @@ void SFXRhodesFrame()
 		}
 	}
 
-	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
 		calculateFreq(i);
 	}
@@ -2241,13 +2226,10 @@ void SFXRhodesFrame()
 
 void SFXRhodesTick(float audioIn)
 {
-
-	tPoly_tickPitch(&poly);
-
 	tCycle_setFreq(&tremolo, params[2]);
 
 	//if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
-	for (int i = 0; i < tPoly_getNumVoices(&poly); i++)
+	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
 		//float amplitudeTemp = tRamp_tick(&polyRamp[i]);
 		//amplitudeTemp = 1.0f;
@@ -2296,7 +2278,7 @@ void SFXRhodesFree(void)
 
 void calculateFreq(int voice)
 {
-	float tempNote = tPoly_getPitch(&poly, voice);
+	float tempNote = (float)tSimplePoly_getPitch(&poly, voice);
 	float tempPitchClass = ((((int)tempNote) - keyCenter) % 12 );
 	float tunedNote = tempNote + centsDeviation[(int)tempPitchClass];
 	freq[voice] = LEAF_midiToFrequency(tunedNote);
@@ -2366,6 +2348,7 @@ void noteOn(int key, int velocity)
 
 	else
 	{
+
 		chordArray[key%12]++;
 		if (currentPreset == SamplerKeyboard)
 		{
@@ -2383,7 +2366,7 @@ void noteOn(int key, int velocity)
 		}
 
 
-		int whichVoice = tPoly_noteOn(&poly, key, velocity);
+		int whichVoice = tSimplePoly_noteOn(&poly, key, velocity);
 		if (whichVoice >= 0)
 		{
 			if (currentPreset == Rhodes)
@@ -2399,7 +2382,6 @@ void noteOn(int key, int velocity)
 				tADSR_on(&polyEnvs[whichVoice], velocity * 0.0078125f);
 			}
 		}
-
 		setLED_2(1);
 	}
 
@@ -2407,7 +2389,6 @@ void noteOn(int key, int velocity)
 
 void noteOff(int key, int velocity)
 {
-
 
 	if (chordArray[key%12] > 0) chordArray[key%12]--;
 
@@ -2426,7 +2407,7 @@ void noteOff(int key, int velocity)
 		}
 	}
 
-	int voice = tPoly_noteOff(&poly, key);
+	int voice = tSimplePoly_noteOff(&poly, key);
 	if (voice >= 0)
 	{
 		//tRamp_setDest(&polyRamp[voice], 0.0f);
@@ -2443,8 +2424,7 @@ void noteOff(int key, int velocity)
 		}
 	}
 
-
-	if (tPoly_getNumActiveVoices(&poly) < 1)
+	if (tSimplePoly_getNumActiveVoices(&poly) < 1)
 	{
 		setLED_2(0);
 	}
@@ -2454,7 +2434,7 @@ void noteOff(int key, int velocity)
 
 void pitchBend(int data)
 {
-	tPoly_setPitchBend(&poly, (data - 8192) * 0.000244140625f);
+	//tPoly_setPitchBend(&poly, (data - 8192) * 0.000244140625f);
 }
 
 

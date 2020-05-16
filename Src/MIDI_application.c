@@ -17,12 +17,14 @@
 #include "usbh_MIDI.h"
 #include "usb_host.h"
 #include "sfx.h"
+#include "oled.h"
 
 MIDI_ApplicationTypeDef MIDI_Appli_state = MIDI_APPLICATION_READY;
 extern ApplicationTypeDef Appli_state;
-extern USBH_HandleTypeDef hUsbHostFS;
-uint8_t MIDI_RX_Buffer[RX_BUFF_SIZE]; // MIDI reception buffer
-
+extern USBH_HandleTypeDef hUsbHostFS __ATTR_RAM_D2;
+uint8_t MIDI_RX_Buffer[2][RX_BUFF_SIZE] __ATTR_RAM_D2; // MIDI reception buffer
+uint8_t MIDI_read_buffer = 0;
+uint8_t MIDI_write_buffer = 1;
 uint8_t key, velocity, ctrl, data, sustainInverted;
 
 uint8_t CCs[128];
@@ -41,12 +43,11 @@ uint8_t CCs[128];
  */
 void MIDI_Application(void)
 {
+
 	if(Appli_state == APPLICATION_READY)
 	{
 		if(MIDI_Appli_state == MIDI_APPLICATION_READY)
 		{
-
-			USBH_MIDI_Receive(&hUsbHostFS, MIDI_RX_Buffer, RX_BUFF_SIZE); // just once at the beginning, start the first reception
 			MIDI_Appli_state = MIDI_APPLICATION_RUNNING;
 		}
 	}
@@ -56,13 +57,14 @@ void MIDI_Application(void)
 		USBH_MIDI_Stop(&hUsbHostFS);
 	}
 }
-volatile midi_package_t pack;
+
+uint32_t lengthSizeTest = 0;
 /*-----------------------------------------------------------------------------*/
 void ProcessReceivedMidiDatas(uint32_t myLength)
 {
 	uint16_t numberOfPackets;
-	uint8_t *ptr = MIDI_RX_Buffer;
-
+	lengthSizeTest = myLength;
+	uint8_t whichPacket = 0;
 
 	numberOfPackets = myLength >> 2; //each USB midi package is 4 bytes long
 
@@ -70,24 +72,19 @@ void ProcessReceivedMidiDatas(uint32_t myLength)
 	{
 		while(numberOfPackets--)
 		{
-			pack.cin_cable = *ptr ; ptr++ ;
-			pack.evnt0 = *ptr ; ptr++ ;
-			pack.evnt1 = *ptr ; ptr++ ;
-			pack.evnt2 = *ptr ; ptr++ ;
-
 			// Handle MIDI messages
-			switch(pack.evnt0)
+			switch(MIDI_RX_Buffer[MIDI_read_buffer][whichPacket+1])
 			{
 				case (0x80): // Note Off
-					key = pack.evnt1;
-					velocity = pack.evnt2;
+					key = MIDI_RX_Buffer[MIDI_read_buffer][whichPacket+2];
+					velocity = MIDI_RX_Buffer[MIDI_read_buffer][whichPacket+3];
 
 					noteOff(key, velocity);
 
 					break;
 				case (0x90): // Note On
-					key = pack.evnt1;
-					velocity = pack.evnt2;
+					key = MIDI_RX_Buffer[MIDI_read_buffer][whichPacket+2];
+					velocity = MIDI_RX_Buffer[MIDI_read_buffer][whichPacket+3];
 
 					noteOn(key, velocity);
 
@@ -95,8 +92,8 @@ void ProcessReceivedMidiDatas(uint32_t myLength)
 				case (0xA0):
 					break;
 				case (0xB0):
-					ctrl = pack.evnt1;
-					data = pack.evnt2;
+					ctrl = MIDI_RX_Buffer[MIDI_read_buffer][whichPacket+2];
+					data = MIDI_RX_Buffer[MIDI_read_buffer][whichPacket+3];
 					CCs[ctrl] = data;
 					switch(ctrl)
 					{
@@ -167,11 +164,13 @@ void ProcessReceivedMidiDatas(uint32_t myLength)
 				case (0xD0): // Mono Aftertouch
 					break;
 				case (0xE0): // Pitch Bend
-					pitchBend((pack.evnt1) + (pack.evnt2 << 7));
+					pitchBend((MIDI_RX_Buffer[MIDI_read_buffer][whichPacket+2]) + (MIDI_RX_Buffer[MIDI_read_buffer][whichPacket+3] << 7));
 					break;
 				case (0xF0):
 					break;
 			}
+			whichPacket = (whichPacket + 4);
+
 		}
 	}
 }
@@ -186,7 +185,7 @@ void ProcessReceivedMidiDatas(uint32_t myLength)
  */
 void USBH_MIDI_ReceiveCallback(USBH_HandleTypeDef *phost, uint32_t myLength)
 {
-	ProcessReceivedMidiDatas(myLength);
-	USBH_MIDI_Receive(&hUsbHostFS, MIDI_RX_Buffer, RX_BUFF_SIZE); // start a new reception
+	//ProcessReceivedMidiDatas(myLength);
+	//USBH_MIDI_Receive(&hUsbHostFS, MIDI_RX_Buffer, RX_BUFF_SIZE); // start a new reception
 }
 

@@ -23,7 +23,7 @@
 int32_t audioOutBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
 int32_t audioInBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
 
-#define SMALL_MEM_SIZE 8192
+#define SMALL_MEM_SIZE 16328
 #define MED_MEM_SIZE 500000
 #define LARGE_MEM_SIZE 33554432 //32 MBytes - size of SDRAM IC
 char small_memory[SMALL_MEM_SIZE];
@@ -484,10 +484,7 @@ void initFunctionPointers(void)
 
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai)
 {
-	if (!frameCompleted)
-	{
-		setLED_C(1);
-	}
+	setLED_Edit(1);
 }
 
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)

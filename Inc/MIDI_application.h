@@ -36,9 +36,11 @@ MIDI_ApplicationTypeDef;
 
 
 #define RX_BUFF_SIZE   64  /* Max Received data 64 bytes */ // trying something larger...
-extern uint8_t MIDI_RX_Buffer[RX_BUFF_SIZE];// __ATTR_RAM_D2; // MIDI reception buffer
+extern uint8_t MIDI_RX_Buffer[2][RX_BUFF_SIZE];// __ATTR_RAM_D2; // MIDI reception buffer
+extern uint8_t MIDI_read_buffer;
+extern uint8_t MIDI_write_buffer;
 extern uint8_t CCs[128];
-
+extern MIDI_ApplicationTypeDef MIDI_Appli_state;
 extern uint8_t MIDIStartOfFrame;
 
 /* Exported functions ------------------------------------------------------- */

@@ -554,17 +554,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
       HCD_Port_IRQHandler(hhcd);
     }
 
-    /* Handle Host SOF Interrupt */
-    if (__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_SOF))
-    {
-#if (USE_HAL_HCD_REGISTER_CALLBACKS == 1U)
-      hhcd->SOFCallback(hhcd);
-#else
-      HAL_HCD_SOF_Callback(hhcd);
-#endif /* USE_HAL_HCD_REGISTER_CALLBACKS */
 
-      __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_SOF);
-    }
 
     /* Handle Host channel Interrupt */
     if (__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_HCINT))
@@ -595,6 +585,18 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
       HCD_RXQLVL_IRQHandler(hhcd);
 
       USB_UNMASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_RXFLVL);
+    }
+
+    /* Handle Host SOF Interrupt */
+    if (__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_SOF))
+    {
+#if (USE_HAL_HCD_REGISTER_CALLBACKS == 1U)
+      hhcd->SOFCallback(hhcd);
+#else
+      HAL_HCD_SOF_Callback(hhcd);
+#endif /* USE_HAL_HCD_REGISTER_CALLBACKS */
+
+      __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_SOF);
     }
   }
 }
@@ -1308,12 +1310,15 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
   {
     if (hhcd->hc[ch_num].ep_type == EP_TYPE_INTR)
     {
-      hhcd->hc[ch_num].ErrCnt = 0U;
+
+
+    	hhcd->hc[ch_num].state = HC_NAK;
+    	hhcd->hc[ch_num].ErrCnt = 0U;
       __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
       (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
     }
-    else if (hhcd->hc[ch_num].ep_type == EP_TYPE_CTRL)
-
+    else if ((hhcd->hc[ch_num].ep_type == EP_TYPE_CTRL) ||
+             (hhcd->hc[ch_num].ep_type == EP_TYPE_BULK))
     {
       hhcd->hc[ch_num].ErrCnt = 0U;
 
@@ -1324,18 +1329,6 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
         (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
       }
     }
-    else if (hhcd->hc[ch_num].ep_type == EP_TYPE_BULK)
-    {
-      hhcd->hc[ch_num].ErrCnt = 0U;
-
-      if (hhcd->Init.dma_enable == 0U)
-      {
-        hhcd->hc[ch_num].state = HC_XFRC;
-        __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
-        (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
-      }
-    }
-
     else
     {
       /* ... */
