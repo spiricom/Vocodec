@@ -500,35 +500,6 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
   /* Ensure that we are in device mode */
   if (USB_GetMode(hhcd->Instance) == USB_OTG_MODE_HOST)
   {
-    /* Avoid spurious interrupt */
-    if (__HAL_HCD_IS_INVALID_INTERRUPT(hhcd))
-    {
-      return;
-    }
-
-    if (__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_PXFR_INCOMPISOOUT))
-    {
-      /* Incorrect mode, acknowledge the interrupt */
-      __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_PXFR_INCOMPISOOUT);
-    }
-
-    if (__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_IISOIXFR))
-    {
-      /* Incorrect mode, acknowledge the interrupt */
-      __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_IISOIXFR);
-    }
-
-    if (__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_PTXFE))
-    {
-      /* Incorrect mode, acknowledge the interrupt */
-      __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_PTXFE);
-    }
-
-    if (__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_MMIS))
-    {
-      /* Incorrect mode, acknowledge the interrupt */
-      __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_MMIS);
-    }
 
     /* Handle Host Disconnect Interrupts */
     if (__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_DISCINT))
@@ -593,7 +564,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
 #if (USE_HAL_HCD_REGISTER_CALLBACKS == 1U)
       hhcd->SOFCallback(hhcd);
 #else
-      HAL_HCD_SOF_Callback(hhcd);
+      //HAL_HCD_SOF_Callback(hhcd);
 #endif /* USE_HAL_HCD_REGISTER_CALLBACKS */
 
       __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_SOF);
@@ -1189,15 +1160,13 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
     (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_NAK);
+
     hhcd->hc[ch_num].state = HC_DATATGLERR;
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_DTERR);
   }
-  else
-  {
-    /* ... */
-  }
 
-  if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_FRMOR) == USB_OTG_HCINT_FRMOR)
+
+  else if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_FRMOR) == USB_OTG_HCINT_FRMOR)
   {
     __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
     (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
@@ -1334,10 +1303,6 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
       /* ... */
     }
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_NAK);
-  }
-  else
-  {
-    /* ... */
   }
 }
 
@@ -1601,7 +1566,7 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd)
       {
         if (hhcd->Init.speed == HCD_SPEED_FULL)
         {
-          USBx_HOST->HFIR = 60000U;
+          USBx_HOST->HFIR = 48000U; //TODO:
         }
       }
 #if (USE_HAL_HCD_REGISTER_CALLBACKS == 1U)

@@ -303,6 +303,7 @@ static USBH_StatusTypeDef USBH_MIDI_Process (USBH_HandleTypeDef *phost)
 				setLED_USB(1);
 				//repeat the toggle value to tell the device that the transmission failed
 				//hostHandle->hc[(MIDI_Handle->InPipe)].toggle_in = !hostHandle->hc[(MIDI_Handle->InPipe)].toggle_in;
+				USBH_ClrFeature(phost, MIDI_Handle->InPipe);
 				USB_status_waiting = 0;
 
 			}

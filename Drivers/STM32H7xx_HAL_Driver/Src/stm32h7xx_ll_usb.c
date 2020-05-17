@@ -1341,6 +1341,8 @@ HAL_StatusTypeDef USB_HostInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
     USBx_HOST->HCFG &= ~(USB_OTG_HCFG_FSLSS);
   }
 
+
+
   /* Make sure the FIFOs are flushed. */
   (void)USB_FlushTxFifo(USBx, 0x10U); /* all Tx FIFOs */
   (void)USB_FlushRxFifo(USBx);
@@ -1365,7 +1367,7 @@ HAL_StatusTypeDef USB_HostInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
 
   if ((USBx->CID & (0x1U << 8)) != 0U)
   {
-    /* set Rx FIFO size */
+    /* set Rx FIFO size */ //
     USBx->GRXFSIZ  = 0x200U;
     USBx->DIEPTXF0_HNPTXFSIZ = (uint32_t)(((0x100U << 16) & USB_OTG_NPTXFD) | 0x200U);
     USBx->HPTXFSIZ = (uint32_t)(((0xE0U << 16) & USB_OTG_HPTXFSIZ_PTXFD) | 0x300U);
@@ -1412,10 +1414,12 @@ HAL_StatusTypeDef USB_InitFSLSPClkSel(USB_OTG_GlobalTypeDef *USBx, uint8_t freq)
   if (freq == HCFG_48_MHZ)
   {
     USBx_HOST->HFIR = 48000U;
+
   }
   else if (freq == HCFG_6_MHZ)
   {
     USBx_HOST->HFIR = 6000U;
+
   }
   else
   {
