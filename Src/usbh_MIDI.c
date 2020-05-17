@@ -248,79 +248,6 @@ USBH_StatusTypeDef  USBH_MIDI_Stop(USBH_HandleTypeDef *phost)
 
 static USBH_StatusTypeDef USBH_MIDI_Process (USBH_HandleTypeDef *phost)
 {
-	MIDI_HandleTypeDef *MIDI_Handle =  phost->pActiveClass->pData;
-	uint32_t length = 0;
-	USBH_URBStateTypeDef URB_Status = USBH_URB_IDLE;
-	HCD_HandleTypeDef *hostHandle = phost->pData;
-
-
-	if (MIDI_Appli_state == MIDI_APPLICATION_RUNNING)
-	{
-
-		if (USB_status_waiting == 1)
-		{
-
-			//if successful transaction happened
-			URB_Status = USBH_LL_GetURBState(phost, MIDI_Handle->InPipe);
-
-			if(URB_Status == USBH_URB_DONE )
-			{
-				length = USBH_LL_GetLastXferSize(phost, MIDI_Handle->InPipe);
-
-/*
-				if(((MIDI_Handle->RxDataLength - length) > 0) && (length > MIDI_Handle->InEpSize))
-				{
-					setLED_Edit(1);
-					MIDI_Handle->RxDataLength -= length ;
-					MIDI_Handle->pRxData += length;
-					USBH_BulkReceiveData(phost,
-														MIDI_Handle->pRxData,
-														MIDI_Handle->InEpSize,
-														MIDI_Handle->InPipe);
-				}
-*/
-				//else
-				{
-					if (length > 0)
-					{
-						//switch buffers so that we read the one we just wrote and prepare to write to the other one
-						MIDI_read_buffer = !MIDI_read_buffer;
-						MIDI_write_buffer = !MIDI_write_buffer;
-
-					}
-					USB_status_waiting = 0;
-					ProcessReceivedMidiDatas(length);
-				}
-			}
-			if((URB_Status == USBH_URB_NOTREADY )) //|| (URB_Status == USBH_URB_IDLE ) || (URB_Status == USBH_URB_ERROR))
-			{
-				setLED_C(1);
-				USB_status_waiting = 0;
-			}
-			else if(hostHandle->hc[(MIDI_Handle->InPipe)].state == HC_DATATGLERR)
-			{
-
-				setLED_USB(1);
-				//repeat the toggle value to tell the device that the transmission failed
-				//hostHandle->hc[(MIDI_Handle->InPipe)].toggle_in = !hostHandle->hc[(MIDI_Handle->InPipe)].toggle_in;
-				USBH_ClrFeature(phost, MIDI_Handle->InPipe);
-				USB_status_waiting = 0;
-
-			}
-		}
-		else if (USB_status_waiting == 0)
-		{
-			USB_status_waiting = 1;
-			MIDI_Handle->RxDataLength = 64;
-			MIDI_Handle->pRxData = &MIDI_RX_Buffer[MIDI_write_buffer][0];
-			MIDI_Handle->data_rx_state = MIDI_RECEIVE_DATA_WAIT,
-			USBH_BulkReceiveData(phost,
-							&MIDI_RX_Buffer[MIDI_write_buffer][0],
-							MIDI_Handle->InEpSize,
-							MIDI_Handle->InPipe);
-
-		}//wait status
-	} //application running
 
 	return USBH_OK;
 }
@@ -335,8 +262,83 @@ static USBH_StatusTypeDef USBH_MIDI_Process (USBH_HandleTypeDef *phost)
 
 static USBH_StatusTypeDef USBH_MIDI_SOFProcess (USBH_HandleTypeDef *phost)
 {
+	MIDI_HandleTypeDef *MIDI_Handle =  phost->pActiveClass->pData;
+		uint32_t length = 0;
+		USBH_URBStateTypeDef URB_Status = USBH_URB_IDLE;
+		HCD_HandleTypeDef *hostHandle = phost->pData;
 
-	return USBH_OK;
+
+		if (MIDI_Appli_state == MIDI_APPLICATION_RUNNING)
+		{
+
+			if (USB_status_waiting == 1)
+			{
+
+				//if successful transaction happened
+				URB_Status = USBH_LL_GetURBState(phost, MIDI_Handle->InPipe);
+
+				if(URB_Status == USBH_URB_DONE )
+				{
+					length = USBH_LL_GetLastXferSize(phost, MIDI_Handle->InPipe);
+
+	/*
+					if(((MIDI_Handle->RxDataLength - length) > 0) && (length > MIDI_Handle->InEpSize))
+					{
+						setLED_Edit(1);
+						MIDI_Handle->RxDataLength -= length ;
+						MIDI_Handle->pRxData += length;
+						USBH_BulkReceiveData(phost,
+															MIDI_Handle->pRxData,
+															MIDI_Handle->InEpSize,
+															MIDI_Handle->InPipe);
+					}
+	*/
+					//else
+					{
+						if (length > 0)
+						{
+							//switch buffers so that we read the one we just wrote and prepare to write to the other one
+							MIDI_read_buffer = !MIDI_read_buffer;
+							MIDI_write_buffer = !MIDI_write_buffer;
+
+						}
+						USB_status_waiting = 0;
+						ProcessReceivedMidiDatas(length);
+					}
+				}
+				if((URB_Status == USBH_URB_NOTREADY )) //|| (URB_Status == USBH_URB_IDLE ) || (URB_Status == USBH_URB_ERROR))
+				{
+					//setLED_C(1);
+					//USB_status_waiting = 0;
+				}
+				else if(hostHandle->hc[(MIDI_Handle->InPipe)].state == HC_DATATGLERR)
+				{
+
+					setLED_USB(1);
+					//repeat the toggle value to tell the device that the transmission failed
+					//hostHandle->hc[(MIDI_Handle->InPipe)].toggle_in = !hostHandle->hc[(MIDI_Handle->InPipe)].toggle_in;
+					//USBH_ClrFeature(phost, MIDI_Handle->InPipe);
+					HAL_HCD_ResetPort(hostHandle);
+					USB_status_waiting = 0;
+
+				}
+			}
+			else if (USB_status_waiting == 0)
+			{
+				USB_status_waiting = 1;
+				MIDI_Handle->RxDataLength = 64;
+				MIDI_Handle->pRxData = &MIDI_RX_Buffer[MIDI_write_buffer][0];
+				MIDI_Handle->data_rx_state = MIDI_RECEIVE_DATA_WAIT,
+				USBH_BulkReceiveData(phost,
+								&MIDI_RX_Buffer[MIDI_write_buffer][0],
+								MIDI_Handle->InEpSize,
+								MIDI_Handle->InPipe);
+
+			}//wait status
+		} //application running
+
+
+		return USBH_OK;
 }
   
 /*------------------------------------------------------------------------------------------------------------------------------*/

@@ -491,11 +491,26 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
   * @param  hhcd HCD handle
   * @retval None
   */
+
+uint32_t cycCnt = 0;
+uint32_t cycCntPrev = 0;
+uint32_t cycCntDiff = 0;
+float msValues[128][2];
+uint8_t msValuesCounter = 0;
+uint32_t msCounter = 0;
+///////////////////////////////////////////////THE IRQQQQQQQ//////////////TODO::
+
 void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
 {
   USB_OTG_GlobalTypeDef *USBx = hhcd->Instance;
   uint32_t USBx_BASE = (uint32_t)USBx;
   uint32_t i, interrupt;
+
+  cycCnt = DWT->CYCCNT;
+  cycCntDiff = cycCnt - cycCntPrev;
+  cycCntPrev = cycCnt;
+
+  msValues[msValuesCounter % 128][0] = cycCntDiff * 0.000002083333333f;
 
   /* Ensure that we are in device mode */
   if (USB_GetMode(hhcd->Instance) == USB_OTG_MODE_HOST)
@@ -514,7 +529,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
 #else
         HAL_HCD_Disconnect_Callback(hhcd);
 #endif /* USE_HAL_HCD_REGISTER_CALLBACKS */
-
+        msValues[msValuesCounter % 128][1] = 1;
         (void)USB_InitFSLSPClkSel(hhcd->Instance, HCFG_48_MHZ);
       }
     }
@@ -523,6 +538,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
     if (__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_HPRTINT))
     {
       HCD_Port_IRQHandler(hhcd);
+      //msValues[msValuesCounter % 128][1] = 2;
     }
 
 
@@ -538,6 +554,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
           if ((USBx_HC(i)->HCCHAR & USB_OTG_HCCHAR_EPDIR) == USB_OTG_HCCHAR_EPDIR)
           {
             HCD_HC_IN_IRQHandler(hhcd, (uint8_t)i);
+
           }
           else
           {
@@ -551,6 +568,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
     /* Handle Rx Queue Level Interrupts */
     if ((__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_RXFLVL)) != 0U)
     {
+      msValues[msValuesCounter % 128][1] = 18;
       USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_RXFLVL);
 
       HCD_RXQLVL_IRQHandler(hhcd);
@@ -564,12 +582,14 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
 #if (USE_HAL_HCD_REGISTER_CALLBACKS == 1U)
       hhcd->SOFCallback(hhcd);
 #else
-      //HAL_HCD_SOF_Callback(hhcd);
+      msValues[msValuesCounter % 128][1] = 19;
+      HAL_HCD_SOF_Callback(hhcd);
 #endif /* USE_HAL_HCD_REGISTER_CALLBACKS */
 
       __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_SOF);
     }
   }
+  msValuesCounter++;
 }
 
 /**
@@ -1142,11 +1162,9 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
   {
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_AHBERR);
     __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
+    msValues[msValuesCounter % 128][1] = 4;
   }
-  else if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_ACK) == USB_OTG_HCINT_ACK)
-  {
-    __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_ACK);
-  }
+
   else if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_STALL) == USB_OTG_HCINT_STALL)
   {
     __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
@@ -1154,12 +1172,14 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_NAK);
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_STALL);
     (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
+    msValues[msValuesCounter % 128][1] = 6;
   }
   else if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_DTERR) == USB_OTG_HCINT_DTERR)
   {
     __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
     (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_NAK);
+    msValues[msValuesCounter % 128][1] = 7;
 
     hhcd->hc[ch_num].state = HC_DATATGLERR;
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_DTERR);
@@ -1170,6 +1190,7 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
   {
     __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
     (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
+    msValues[msValuesCounter % 128][1] = 8;
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_FRMOR);
   }
   else if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_XFRC) == USB_OTG_HCINT_XFRC)
@@ -1179,7 +1200,7 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
       hhcd->hc[ch_num].xfer_count = hhcd->hc[ch_num].xfer_len - \
                                     (USBx_HC(ch_num)->HCTSIZ & USB_OTG_HCTSIZ_XFRSIZ);
     }
-
+    msValues[msValuesCounter % 128][1] = 9;
     hhcd->hc[ch_num].state = HC_XFRC;
     hhcd->hc[ch_num].ErrCnt = 0U;
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_XFRC);
@@ -1189,7 +1210,7 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     {
       __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
       (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
-      __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_NAK);
+      __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_XFRC);
     }
     else if (hhcd->hc[ch_num].ep_type == EP_TYPE_INTR)
     {
@@ -1226,19 +1247,23 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     if (hhcd->hc[ch_num].state == HC_XFRC)
     {
       hhcd->hc[ch_num].urb_state  = URB_DONE;
+      msValues[msValuesCounter % 128][1] = 10;
     }
     else if (hhcd->hc[ch_num].state == HC_STALL)
     {
       hhcd->hc[ch_num].urb_state  = URB_STALL;
+      msValues[msValuesCounter % 128][1] = 11;
     }
     else if ((hhcd->hc[ch_num].state == HC_XACTERR) ||
              (hhcd->hc[ch_num].state == HC_DATATGLERR))
     {
       hhcd->hc[ch_num].ErrCnt++;
+      msValues[msValuesCounter % 128][1] = 12;
       if (hhcd->hc[ch_num].ErrCnt > 3U)
       {
         hhcd->hc[ch_num].ErrCnt = 0U;
         hhcd->hc[ch_num].urb_state = URB_ERROR;
+
       }
       else
       {
@@ -1259,6 +1284,7 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
       tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
       tmpreg |= USB_OTG_HCCHAR_CHENA;
       USBx_HC(ch_num)->HCCHAR = tmpreg;
+      msValues[msValuesCounter % 128][1] = 13;
     }
     else
     {
@@ -1274,10 +1300,13 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     hhcd->hc[ch_num].state = HC_XACTERR;
     (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_TXERR);
+    msValues[msValuesCounter % 128][1] = 14;
   }
   else if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_NAK) == USB_OTG_HCINT_NAK)
   {
-    if (hhcd->hc[ch_num].ep_type == EP_TYPE_INTR)
+    msValues[msValuesCounter % 128][1] = 15;
+    __HAL_HCD_MASK_NACK_HC_INT(chnum);
+	if (hhcd->hc[ch_num].ep_type == EP_TYPE_INTR)
     {
 
 
@@ -1285,6 +1314,7 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     	hhcd->hc[ch_num].ErrCnt = 0U;
       __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
       (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
+
     }
     else if ((hhcd->hc[ch_num].ep_type == EP_TYPE_CTRL) ||
              (hhcd->hc[ch_num].ep_type == EP_TYPE_BULK))
@@ -1301,8 +1331,15 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     else
     {
       /* ... */
+    	msValues[msValuesCounter % 128][1] = 16;
     }
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_NAK);
+  }
+
+  else if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_ACK) == USB_OTG_HCINT_ACK)
+  {
+    __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_ACK);
+    msValues[msValuesCounter % 128][1] = 5;
   }
 }
 
@@ -1319,7 +1356,7 @@ static void HCD_HC_OUT_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
   uint32_t USBx_BASE = (uint32_t)USBx;
   uint32_t ch_num = (uint32_t)chnum;
   uint32_t tmpreg;
-
+  msValues[msValuesCounter % 128][1] = 17;
   if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_AHBERR) == USB_OTG_HCINT_AHBERR)
   {
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_AHBERR);
@@ -1522,7 +1559,7 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd)
   USB_OTG_GlobalTypeDef *USBx = hhcd->Instance;
   uint32_t USBx_BASE = (uint32_t)USBx;
   __IO uint32_t hprt0, hprt0_dup;
-
+  msValues[msValuesCounter % 128][1] = 26;
   /* Handle Host Port Interrupts */
   hprt0 = USBx_HPRT0;
   hprt0_dup = USBx_HPRT0;
@@ -1538,9 +1575,11 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd)
 #if (USE_HAL_HCD_REGISTER_CALLBACKS == 1U)
       hhcd->ConnectCallback(hhcd);
 #else
+      msValues[msValuesCounter % 128][1] = 20;
       HAL_HCD_Connect_Callback(hhcd);
 #endif /* USE_HAL_HCD_REGISTER_CALLBACKS */
     }
+    msValues[msValuesCounter % 128][1] = 25;
     hprt0_dup  |= USB_OTG_HPRT_PCDET;
   }
 
@@ -1548,7 +1587,7 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd)
   if ((hprt0 & USB_OTG_HPRT_PENCHNG) == USB_OTG_HPRT_PENCHNG)
   {
     hprt0_dup |= USB_OTG_HPRT_PENCHNG;
-
+    msValues[msValuesCounter % 128][1] = 21;
     if ((hprt0 & USB_OTG_HPRT_PENA) == USB_OTG_HPRT_PENA)
     {
       if (hhcd->Init.phy_itface  == USB_OTG_EMBEDDED_PHY)
@@ -1573,6 +1612,7 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd)
       hhcd->PortEnabledCallback(hhcd);
 #else
       HAL_HCD_PortEnabled_Callback(hhcd);
+
 #endif /* USE_HAL_HCD_REGISTER_CALLBACKS */
 
     }
@@ -1582,6 +1622,7 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd)
       hhcd->PortDisabledCallback(hhcd);
 #else
       HAL_HCD_PortDisabled_Callback(hhcd);
+      msValues[msValuesCounter % 128][1] = 22;
 #endif /* USE_HAL_HCD_REGISTER_CALLBACKS */
     }
   }
@@ -1590,10 +1631,12 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd)
   if ((hprt0 & USB_OTG_HPRT_POCCHNG) == USB_OTG_HPRT_POCCHNG)
   {
     hprt0_dup |= USB_OTG_HPRT_POCCHNG;
+    msValues[msValuesCounter % 128][1] = 23;
   }
 
   /* Clear Port Interrupts */
   USBx_HPRT0 = hprt0_dup;
+  msValues[msValuesCounter % 128][1] = 24;
 }
 
 /**

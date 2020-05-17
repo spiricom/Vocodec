@@ -178,7 +178,7 @@ int main(void)
   }
 
 
-
+  CycleCounterInit();
 
 
   //pull reset pin on audio codec low to make sure it's stable
