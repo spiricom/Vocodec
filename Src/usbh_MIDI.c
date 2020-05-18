@@ -31,6 +31,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_MIDI.h"
+#include "usb_host.h"
 #include "oled.h"
 #include "MIDI_Application.h"
 
@@ -68,6 +69,9 @@ USBH_ClassTypeDef  MIDI_Class =
 		NULL // MIDI handle structure
 };
 
+
+uint8_t USB_status_waiting = 0;
+
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
@@ -85,6 +89,7 @@ static USBH_StatusTypeDef USBH_MIDI_InterfaceInit (USBH_HandleTypeDef *phost)
 
 	//USB_MIDI_ChangeConnectionState(0);
 
+	HAL_Delay(100);
 	interface = USBH_FindInterface(phost, USB_AUDIO_CLASS, USB_MIDISTREAMING_SubCLASS, 0xFF);
 
 	if(interface == 0xFF) /* No Valid Interface */
@@ -149,7 +154,7 @@ static USBH_StatusTypeDef USBH_MIDI_InterfaceInit (USBH_HandleTypeDef *phost)
 		USBH_LL_SetToggle  (phost, MIDI_Handle->InPipe,0);
 		USBH_LL_SetToggle  (phost, MIDI_Handle->OutPipe,0);
 
-
+		USB_status_waiting = 0;
 
 
 		status = USBH_OK;
@@ -169,7 +174,7 @@ static USBH_StatusTypeDef USBH_MIDI_InterfaceInit (USBH_HandleTypeDef *phost)
 USBH_StatusTypeDef USBH_MIDI_InterfaceDeInit (USBH_HandleTypeDef *phost)
 {
 	MIDI_HandleTypeDef *MIDI_Handle =  phost->pActiveClass->pData;
-
+	HAL_Delay(100);
 	if ( MIDI_Handle->OutPipe)
 	{
 		USBH_ClosePipe(phost, MIDI_Handle->OutPipe);
@@ -189,6 +194,7 @@ USBH_StatusTypeDef USBH_MIDI_InterfaceDeInit (USBH_HandleTypeDef *phost)
 		USBH_free (phost->pActiveClass->pData);
 		phost->pActiveClass->pData = 0;
 	}
+
 
 	return USBH_OK;
 }
@@ -229,6 +235,8 @@ USBH_StatusTypeDef  USBH_MIDI_Stop(USBH_HandleTypeDef *phost)
     USBH_ClosePipe(phost, MIDI_Handle->InPipe);
     USBH_ClosePipe(phost, MIDI_Handle->OutPipe);
   }
+  //MX_USB_HOST_DeInit();
+  HAL_HCD_MspInit(phost->pData);
   return USBH_OK;
 }
 
@@ -241,10 +249,7 @@ USBH_StatusTypeDef  USBH_MIDI_Stop(USBH_HandleTypeDef *phost)
  * @param  phost: Host handle
  * @retval USBH Status
  */
- uint32_t SOF_count = 0;
- uint32_t finishedLastTransaction = 1;
- uint8_t firstTimeSOF = 1;
- uint8_t USB_status_waiting = 0;
+
 
 static USBH_StatusTypeDef USBH_MIDI_Process (USBH_HandleTypeDef *phost)
 {

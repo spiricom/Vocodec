@@ -84,7 +84,7 @@ void HAL_HCD_MspInit(HCD_HandleTypeDef* hcdHandle)
     __HAL_RCC_USB_OTG_FS_CLK_ENABLE();
 
     /* Peripheral interrupt init */
-    HAL_NVIC_SetPriority(OTG_FS_IRQn, 1, 0);
+    HAL_NVIC_SetPriority(OTG_FS_IRQn, 2, 0);
     HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
   /* USER CODE BEGIN USB_OTG_FS_MspInit 1 */
 //
@@ -134,7 +134,8 @@ void HAL_HCD_SOF_Callback(HCD_HandleTypeDef *hhcd)
   */
 void HAL_HCD_Connect_Callback(HCD_HandleTypeDef *hhcd)
 {
-  USBH_LL_Connect(hhcd->pData);
+	//HAL_Delay(1000);
+	USBH_LL_Connect(hhcd->pData);
 }
 
 /**
@@ -144,7 +145,8 @@ void HAL_HCD_Connect_Callback(HCD_HandleTypeDef *hhcd)
   */
 void HAL_HCD_Disconnect_Callback(HCD_HandleTypeDef *hhcd)
 {
-  USBH_LL_Disconnect(hhcd->pData);
+  HAL_Delay(10);
+	USBH_LL_Disconnect(hhcd->pData);
 }
 
 /**
