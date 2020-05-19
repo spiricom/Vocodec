@@ -34,7 +34,7 @@
 
 #include "stm32h7xx.h"
 #include "stm32h7xx_hal.h"
-
+#include "leaf.h"
 /* USER CODE BEGIN INCLUDE */
 
 /* USER CODE END INCLUDE */
@@ -63,7 +63,7 @@
   */
 
 /*----------   -----------*/
-#define USBH_MAX_NUM_ENDPOINTS      10U
+#define USBH_MAX_NUM_ENDPOINTS      4U
  
 /*----------   -----------*/
 #define USBH_MAX_NUM_INTERFACES      10U
@@ -72,7 +72,7 @@
 #define USBH_MAX_NUM_CONFIGURATION      1U
  
 /*----------   -----------*/
-#define USBH_KEEP_CFG_DESCRIPTOR      0U
+#define USBH_KEEP_CFG_DESCRIPTOR      1U
  
 /*----------   -----------*/
 #define USBH_MAX_NUM_SUPPORTED_CLASS      1U
@@ -81,7 +81,7 @@
 #define USBH_MAX_SIZE_CONFIGURATION      256U
  
 /*----------   -----------*/
-#define USBH_MAX_DATA_BUFFER      256U
+#define USBH_MAX_DATA_BUFFER      512U
  
 /*----------   -----------*/
 #define USBH_DEBUG_LEVEL      0U
@@ -115,10 +115,10 @@
 /* Memory management macros */
 
 /** Alias for memory allocation. */
-#define USBH_malloc         malloc
+#define USBH_malloc         leaf_calloc
 
 /** Alias for memory release. */
-#define USBH_free           free
+#define USBH_free           leaf_free
 
 /** Alias for memory set. */
 #define USBH_memset         memset

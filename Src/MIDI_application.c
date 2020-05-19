@@ -11,17 +11,9 @@
  */
 
 /* Includes ------------------------------------------------------------------*/
-#include "audiostream.h"
 #include "MIDI_application.h"
-#include "usbh_core.h"
-#include "usbh_MIDI.h"
 #include "usb_host.h"
-#include "sfx.h"
-#include "oled.h"
 
-MIDI_ApplicationTypeDef MIDI_Appli_state = MIDI_APPLICATION_READY;
-extern ApplicationTypeDef Appli_state;
-extern USBH_HandleTypeDef hUsbHostFS __ATTR_RAM_D2;
 uint8_t MIDI_RX_Buffer[2][RX_BUFF_SIZE] __ATTR_RAM_D2; // MIDI reception buffer
 uint8_t MIDI_read_buffer = 0;
 uint8_t MIDI_write_buffer = 1;
@@ -43,30 +35,37 @@ uint8_t CCs[128];
  */
 void MIDI_Application(void)
 {
-
 	if(Appli_state == APPLICATION_READY)
 	{
-		if(MIDI_Appli_state == MIDI_APPLICATION_READY)
-		{
-			MIDI_Appli_state = MIDI_APPLICATION_RUNNING;
-		}
+		USBH_MIDI_Receive(&hUsbHostFS, MIDI_RX_Buffer[MIDI_write_buffer], RX_BUFF_SIZE); // just once at the beginning, start the first reception
+		Appli_state = APPLICATION_RUNNING;
 	}
+	if(Appli_state == APPLICATION_RUNNING)
+	{
+			//....pffff......grrrrr......
+	}
+
 	if(Appli_state == APPLICATION_DISCONNECT)
 	{
-		MIDI_Appli_state = MIDI_APPLICATION_READY;
+		Appli_state = APPLICATION_IDLE;
 		USBH_MIDI_Stop(&hUsbHostFS);
+		HAL_Delay(100);
+		MX_USB_HOST_DeInit();
+		HAL_Delay(100);
+		MX_USB_HOST_Init();
+
 	}
+
 }
 
-uint32_t lengthSizeTest = 0;
 /*-----------------------------------------------------------------------------*/
-void ProcessReceivedMidiDatas(uint32_t myLength)
+void ProcessReceivedMidiDatas(void)
 {
 	uint16_t numberOfPackets;
-	lengthSizeTest = myLength;
+
 	uint8_t whichPacket = 0;
 
-	numberOfPackets = myLength >> 2; //each USB midi package is 4 bytes long
+	numberOfPackets = USBH_MIDI_GetLastReceivedDataSize(&hUsbHostFS) >> 2; //each USB midi package is 4 bytes long
 
 	if (numberOfPackets != 0)
 	{
@@ -173,6 +172,7 @@ void ProcessReceivedMidiDatas(uint32_t myLength)
 
 		}
 	}
+
 }
 
 
@@ -183,9 +183,11 @@ void ProcessReceivedMidiDatas(uint32_t myLength)
  * @param  phost: Host handle
  * @retval None
  */
-void USBH_MIDI_ReceiveCallback(USBH_HandleTypeDef *phost, uint32_t myLength)
+void USBH_MIDI_ReceiveCallback(USBH_HandleTypeDef *phost)
 {
-	//ProcessReceivedMidiDatas(myLength);
-	//USBH_MIDI_Receive(&hUsbHostFS, MIDI_RX_Buffer, RX_BUFF_SIZE); // start a new reception
+	MIDI_write_buffer = !MIDI_write_buffer;
+	MIDI_read_buffer = !MIDI_read_buffer; //switch buffers for double buffer fun
+	ProcessReceivedMidiDatas();
+	USBH_MIDI_Receive(&hUsbHostFS, &MIDI_RX_Buffer[MIDI_write_buffer], RX_BUFF_SIZE); // start a new reception
 }
 

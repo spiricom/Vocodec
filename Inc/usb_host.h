@@ -31,6 +31,7 @@
 #include "stm32h7xx.h"
 #include "stm32h7xx_hal.h"
 
+
 /* USER CODE BEGIN INCLUDE */
 
 /* USER CODE END INCLUDE */
@@ -54,12 +55,6 @@
   */
 
 /** Status of the application. */
-typedef enum {
-  APPLICATION_IDLE = 0,
-  APPLICATION_START,
-  APPLICATION_READY,
-  APPLICATION_DISCONNECT
-}ApplicationTypeDef;
 
 /** @defgroup USBH_HOST_Exported_FunctionsPrototype USBH_HOST_Exported_FunctionsPrototype
   * @brief Declaration of public functions for Usb host.
@@ -69,8 +64,9 @@ typedef enum {
 /* Exported functions -------------------------------------------------------*/
 
 /** @brief USB Host initialization function. */
-void MX_USB_HOST_Init(void);
 
+void MX_USB_HOST_Init(void);
+void MX_USB_HOST_DeInit(void);
 void MX_USB_HOST_Process(void);
 
 /**

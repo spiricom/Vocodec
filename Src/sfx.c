@@ -1414,7 +1414,7 @@ void SFXWaveFolderAlloc()
 	tLockhartWavefolder_initToPool(&wavefolder1, &smallPool);
 	tLockhartWavefolder_initToPool(&wavefolder2, &smallPool);
 	tHighpass_initToPool(&wfHP, 10.0f, &smallPool);
-	tOversampler_init(&oversampler, 2, FALSE);
+	tOversampler_init(&oversampler, 2, 0);
 	setLED_A(foldMode);
 	leaf.clearOnAllocation = 0;
 }
@@ -2181,45 +2181,6 @@ void SFXRhodesFrame()
 	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
 		calculateFreq(i);
-	}
-
-	if (CCs[24] > 0)
-	{
-		for (int i = 0; i < NUM_VOC_VOICES; i++)
-		{
-			for (int j = 0; j < 6; j++)
-			{
-				FM_decays[Rsound][j] = (CCs[j+1] * 8.0f);
-				tADSR_setDecay(&FM_envs[i][j], FM_decays[Rsound][j] * params[6]);
-			}
-		}
-	}
-	else if (CCs[25] > 0)
-	{
-		for (int i = 0; i < 6; i++)
-		{
-			FM_freqRatios[Rsound][i] = (float) ((uint8_t) (CCs[i+1] * 0.094488188976378f) + 1);
-		}
-	}
-
-	else if (CCs[26] > 0)
-	{
-		for (int i = 0; i < 6; i++)
-		{
-			FM_indices[Rsound][i] = (CCs[i+1] * 8.0f);
-		}
-	}
-
-	else if (CCs[27] > 0)
-	{
-		for (int i = 0; i < NUM_VOC_VOICES; i++)
-		{
-			for (int j = 0; j < 6; j++)
-			{
-				FM_sustains[Rsound][j] = (CCs[j+1] * 0.007874015748031f );
-				tADSR_setSustain(&FM_envs[i][j], FM_sustains[Rsound][j] * params[7]);
-			}
-		}
 	}
 
 }

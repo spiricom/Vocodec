@@ -174,7 +174,7 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 
 void audioFrame(uint16_t buffer_offset)
 {
-	frameCompleted = FALSE;
+	frameCompleted = 0;
 
 	int i;
 	int32_t current_sample;
@@ -263,7 +263,7 @@ float audioTickL(float audioIn)
 
 	if (loadingPreset) return sample;
 
-	bufferCleared = FALSE;
+	bufferCleared = 0;
 
 	for (int i = 0; i < KNOB_PAGE_SIZE; i++)
 	{

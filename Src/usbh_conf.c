@@ -84,7 +84,7 @@ void HAL_HCD_MspInit(HCD_HandleTypeDef* hcdHandle)
     __HAL_RCC_USB_OTG_FS_CLK_ENABLE();
 
     /* Peripheral interrupt init */
-    HAL_NVIC_SetPriority(OTG_FS_IRQn, 2, 0);
+    HAL_NVIC_SetPriority(OTG_FS_IRQn, 1, 0);
     HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
   /* USER CODE BEGIN USB_OTG_FS_MspInit 1 */
 //
@@ -134,8 +134,7 @@ void HAL_HCD_SOF_Callback(HCD_HandleTypeDef *hhcd)
   */
 void HAL_HCD_Connect_Callback(HCD_HandleTypeDef *hhcd)
 {
-	//HAL_Delay(1000);
-	USBH_LL_Connect(hhcd->pData);
+  USBH_LL_Connect(hhcd->pData);
 }
 
 /**
@@ -145,8 +144,7 @@ void HAL_HCD_Connect_Callback(HCD_HandleTypeDef *hhcd)
   */
 void HAL_HCD_Disconnect_Callback(HCD_HandleTypeDef *hhcd)
 {
-  HAL_Delay(10);
-	USBH_LL_Disconnect(hhcd->pData);
+  USBH_LL_Disconnect(hhcd->pData);
 }
 
 /**
@@ -196,16 +194,20 @@ USBH_StatusTypeDef USBH_LL_Init(USBH_HandleTypeDef *phost)
 {
   /* Init USB_IP */
   if (phost->id == HOST_FS) {
-  /* Link the driver to the stack. */
-  hhcd_USB_OTG_FS.pData = phost;
-  phost->pData = &hhcd_USB_OTG_FS;
+
 
   hhcd_USB_OTG_FS.Instance = USB_OTG_FS;
-  hhcd_USB_OTG_FS.Init.Host_channels = 4;
+  hhcd_USB_OTG_FS.Init.Host_channels = 16;
   hhcd_USB_OTG_FS.Init.speed = HCD_SPEED_FULL;
   hhcd_USB_OTG_FS.Init.dma_enable = ENABLE;
   hhcd_USB_OTG_FS.Init.phy_itface = HCD_PHY_EMBEDDED;
   hhcd_USB_OTG_FS.Init.Sof_enable = DISABLE;
+
+  /* Link the driver to the stack. */
+  hhcd_USB_OTG_FS.pData = phost;
+  phost->pData = &hhcd_USB_OTG_FS;
+
+
   if (HAL_HCD_Init(&hhcd_USB_OTG_FS) != HAL_OK)
   {
     Error_Handler( );

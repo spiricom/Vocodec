@@ -28,14 +28,9 @@
 #ifndef __USBH_MIDI_CORE_H
 #define __USBH_MIDI_CORE_H
 
-#ifdef __cplusplus
- extern "C" {
-#endif
-
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_core.h"
-#include "MIDI_application.h"
-//#include "stm32f7xx_nucleo_144.h"
+
 
 /*-------------------------------------------------------------------------------*/
 // buffer size (should be at least >= MIOS32_USB_MIDI_DESC_DATA_*_SIZE/4)
@@ -60,6 +55,7 @@
 /*-------------------------------------------------------------------------------*/
 
 extern USBH_ClassTypeDef  MIDI_Class;
+
 /* -------------------- Exported_Types ------------------------------------------*/
 
 typedef enum {
@@ -92,7 +88,6 @@ typedef enum {
 	Chn16
 } midi_chn_t;
 
-#pragma anon_unions
 
 typedef union {
 	struct {
@@ -195,17 +190,16 @@ USBH_StatusTypeDef  USBH_MIDI_Receive(USBH_HandleTypeDef *phost,
                                      uint16_t length);
 
 
-uint32_t            USBH_MIDI_GetLastReceivedDataSize(USBH_HandleTypeDef *phost);
+uint16_t            USBH_MIDI_GetLastReceivedDataSize(USBH_HandleTypeDef *phost);
 
 USBH_StatusTypeDef  USBH_MIDI_Stop(USBH_HandleTypeDef *phost);
 
 void USBH_MIDI_TransmitCallback(USBH_HandleTypeDef *phost);
 
-void USBH_MIDI_ReceiveCallback(USBH_HandleTypeDef *phost, uint32_t myLength);
+void USBH_MIDI_ReceiveCallback(USBH_HandleTypeDef *phost);
 
 /*-------------------------------------------------------------------------------------------*/
 #endif /* __USBH_MIDI_CORE_H */
 
 
 /*****************************END OF FILE*************************************************************/
-

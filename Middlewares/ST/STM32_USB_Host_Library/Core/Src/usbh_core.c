@@ -389,7 +389,7 @@ USBH_StatusTypeDef  USBH_Start(USBH_HandleTypeDef *phost)
   USBH_LL_Start(phost);
 
   /* Activate VBUS on the port */
-  USBH_LL_DriverVBUS(phost, TRUE);
+  USBH_LL_DriverVBUS(phost, OTRUE);
 
   return USBH_OK;
 }
@@ -404,7 +404,7 @@ USBH_StatusTypeDef  USBH_Start(USBH_HandleTypeDef *phost)
 USBH_StatusTypeDef  USBH_Stop(USBH_HandleTypeDef *phost)
 {
   /* DeActivate VBUS on the port */
-  USBH_LL_DriverVBUS(phost, FALSE);
+  USBH_LL_DriverVBUS(phost, 0);
 
   /* Stop and cleanup the low level driver  */
   USBH_LL_Stop(phost);
@@ -677,10 +677,10 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
         {
           for (int j = 0; j < 10; j++)
           {
-        	  if (phost->pClass[idx]->ClassCode == phost->device.CfgDesc.Itf_Desc[j].bInterfaceClass)
+			  if (phost->pClass[idx]->ClassCode == phost->device.CfgDesc.Itf_Desc[j].bInterfaceClass)
 			  {
-        		  phost->pActiveClass = phost->pClass[idx];
-        		  break;
+				phost->pActiveClass = phost->pClass[idx];
+				break;
 			  }
           }
         }
