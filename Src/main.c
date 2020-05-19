@@ -594,6 +594,11 @@ void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress )
 uint8_t LEAF_error(uint8_t errorCode)
 {
 	setLED_C(1);
+	while(1)
+		{
+			;
+		}
+
 	return 0;
 }
 

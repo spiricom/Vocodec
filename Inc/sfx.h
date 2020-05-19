@@ -33,7 +33,7 @@ extern uint8_t knobActive[NUM_ADC_CHANNELS];
 
 extern tSimplePoly poly;
 extern tRamp polyRamp[NUM_VOC_VOICES];
-extern tPhasor osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
+extern tSaw osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
 
 extern PlayMode samplerMode;
 extern float sampleLength;

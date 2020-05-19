@@ -856,18 +856,13 @@ char* UIRhodesButtons(VocodecButton button, ButtonAction action)
 		writeString = (numVoices > 1) ? "POLY" : "MONO";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
-	if (buttonActionsUI[ButtonUp][ActionPress] || buttonActionsUI[ButtonDown][ActionPress])
+	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
 	{
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
+		Rsound = (Rsound + 1 ) % 4; // switch to another rhodes preset sound
 		OLEDclearLine(SecondLine);
 		OLEDwriteString(soundNames[Rsound], 6, 0, SecondLine);
-		buttonActionsUI[ButtonUp][ActionPress] = 0;
-		buttonActionsUI[ButtonDown][ActionPress] = 0;
+	}
 
-	}
-	if (buttonActionsUI[ButtonB][ActionPress])
-	{
-		writeString = knobPage == 0 ? "SETTINGS" : "ADSR";
-		buttonActionsUI[ButtonB][ActionPress] = 0;
-	}
 	return writeString;
 }
