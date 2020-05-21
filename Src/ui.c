@@ -17,7 +17,7 @@ uint16_t ADC_values[NUM_ADC_CHANNELS] __ATTR_RAM_D2;
 float floatADC[NUM_ADC_CHANNELS];
 float lastFloatADC[NUM_ADC_CHANNELS];
 float floatADCUI[NUM_ADC_CHANNELS];
-float adcHysteresisThreshold = 0.001f;
+float adcHysteresisThreshold = 0.004f;
 
 uint8_t knobPage = 0;
 uint8_t numPages[PresetNil];
@@ -284,7 +284,7 @@ void initModeNames(void)
 	knobParamNames[Rhodes][0] = "BRIGHTNESS";
 	knobParamNames[Rhodes][1] = "TREM DEPTH";
 	knobParamNames[Rhodes][2] = "TREM RATE";
-	knobParamNames[Rhodes][3] = "";
+	knobParamNames[Rhodes][3] = "DRIVE";
 	knobParamNames[Rhodes][4] = "";
 	knobParamNames[Rhodes][5] = "ATK MULT";
 	knobParamNames[Rhodes][6] = "DEC MULT";
@@ -445,11 +445,15 @@ void buttonCheck(void)
 		{
 
 			decrementPage();
+			OLEDwriteString("P", 1, 110, FirstLine);
+			OLEDwriteInt(knobPage, 1, 120, FirstLine);
 			buttonActionsUI[ButtonDown][ActionPress] = 0;
 		}
 		if (buttonActionsUI[ButtonUp][ActionPress] == 1)
 		{
 			incrementPage();
+			OLEDwriteString("P", 1, 110, FirstLine);
+			OLEDwriteInt(knobPage, 1, 120, FirstLine);
 			buttonActionsUI[ButtonUp][ActionPress] = 0;
 		}
 

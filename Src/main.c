@@ -68,6 +68,11 @@ uint16_t VarDataTab = 0;
 uint16_t VarValue = 0;
 
 
+
+int stackCheck __attribute__((section(".mySection"))) = 0x20020000;
+
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,6 +83,8 @@ void MX_USB_HOST_Process(void);
 void MPU_Conf(void);
 void SDRAM_Initialization_sequence(void);
 static void CycleCounterInit( void );
+uint8_t stackChecker(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -148,6 +155,8 @@ int main(void)
   /* Enable D-Cache---------------------------------------------------------*/
   SCB_EnableDCache();
 
+
+  stackCheck = 1234;
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
@@ -224,6 +233,8 @@ int main(void)
 	{
 	  OLED_draw();
 	}
+
+	stackChecker();
 
   }
   /* USER CODE END 3 */
@@ -590,6 +601,20 @@ void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress )
 }
 
 
+uint8_t stackChecker()
+{
+	int status = 1;
+	if (stackCheck != 1234)
+	{
+		status = 0;
+		//stack overflowed
+		while(true)
+		{
+			;
+		}
+	}
+	return status;
+}
 
 uint8_t LEAF_error(uint8_t errorCode)
 {
