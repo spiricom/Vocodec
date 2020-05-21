@@ -66,6 +66,10 @@ void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress );
 void writeIntToFlash(uint32_t data, uint32_t location);
 uint32_t readIntFromFlash (uint32_t location);
 uint8_t LEAF_error(uint8_t errorCode);
+void CycleCounterStart( uint8_t );
+void CycleCounterEnd( uint8_t );
+void CycleCounterEndAndAddToAverage( uint8_t);
+void CycleCounterAverage( uint8_t );
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

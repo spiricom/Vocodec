@@ -34,10 +34,13 @@ MIDI_ApplicationTypeDef;
 /*------------------------------------------------------------------------------*/
 extern USBH_HandleTypeDef hUsbHostFS;
 extern MIDI_ApplicationTypeDef Appli_state;
-
+extern uint8_t MIDI_RX_Buffer[2][RX_BUFF_SIZE] __ATTR_RAM_D2; // MIDI reception buffer
+extern uint8_t MIDI_read_buffer;
+extern uint8_t MIDI_write_buffer;
 /* Exported functions ------------------------------------------------------- */
 
 void MIDI_Application(void);
+void ProcessReceivedMidiDatas(void);
 
 /*------------------------------------------------------------------------------*/
 #endif /* MIDI_APPLICATION_H_ */

@@ -17,7 +17,9 @@
 
 
 // Standard ASCII 5x7 font
+#define USE_STANDARD_GFX_FONT 1
 
+#if USE_STANDARD_GFX_FONT
 static const unsigned char standardGFXfont[] = {
 	0x00, 0x00, 0x00, 0x00, 0x00,
 	0x3E, 0x5B, 0x4F, 0x5B, 0x3E,
@@ -276,6 +278,6 @@ static const unsigned char standardGFXfont[] = {
 	0x00, 0x3C, 0x3C, 0x3C, 0x3C,
 	0x00, 0x00, 0x00, 0x00, 0x00  // #255 NBSP
 };
-
+#endif
 
 #endif // FONT5X7_H

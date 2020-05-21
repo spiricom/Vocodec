@@ -27,6 +27,9 @@ typedef struct _GFX
     uint16_t wrap;
     uint16_t _cp437;
     GFXfont *gfxFont;
+    uint16_t fontHeight;
+    uint16_t fontDesc;
+    uint16_t autoscroll;
 } GFX;
 
 void GFXinit(GFX* myGfx, int16_t w, int16_t h); // Constructor

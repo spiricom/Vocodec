@@ -30,7 +30,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_MIDI.h"
 #include "usb_host.h"
+#include "MIDI_application.h"
 /*------------------------------------------------------------------------------------------------------------------------------*/
+
+
+uint8_t myUSB_FIFO[256];
+uint16_t myUSB_FIFO_readPointer = 0;
+uint16_t myUSB_FIFO_writePointer = 0;
+uint8_t myUSB_FIFO_overflowBit = 0;
 
 
 /** @defgroup USBH_MIDI_CORE_Private_FunctionPrototypes
@@ -252,7 +259,7 @@ static USBH_StatusTypeDef USBH_MIDI_Process (USBH_HandleTypeDef *phost)
 	case MIDI_TRANSFER_DATA:
 
 		//MIDI_ProcessTransmission(phost);
-		MIDI_ProcessReception(phost);
+		//MIDI_ProcessReception(phost);
 		break;
 
 	case MIDI_ERROR_STATE:
@@ -282,7 +289,106 @@ static USBH_StatusTypeDef USBH_MIDI_Process (USBH_HandleTypeDef *phost)
   */
 static USBH_StatusTypeDef USBH_MIDI_SOFProcess (USBH_HandleTypeDef *phost)
 {
-  return USBH_OK;
+	USBH_StatusTypeDef status = USBH_BUSY;
+	USBH_StatusTypeDef req_status = USBH_OK;
+	MIDI_HandleTypeDef *MIDI_Handle =  phost->pActiveClass->pData;
+	USBH_URBStateTypeDef URB_Status = USBH_URB_IDLE;
+	uint16_t length;
+	switch(MIDI_Handle->state)
+	{
+
+	case MIDI_IDLE_STATE:
+		status = USBH_OK;
+		break;
+
+	case MIDI_TRANSFER_DATA:
+
+
+
+		switch(MIDI_Handle->data_rx_state)
+		{
+
+			case MIDI_RECEIVE_DATA:
+
+				USBH_BulkReceiveData (phost,
+						MIDI_Handle->pRxData,
+						MIDI_Handle->InEpSize,
+						MIDI_Handle->InPipe);
+
+				MIDI_Handle->data_rx_state = MIDI_RECEIVE_DATA_WAIT;
+				//BSP_LED_On(LED_Red); //ok only here
+
+				break;
+
+			case MIDI_RECEIVE_DATA_WAIT:
+
+				URB_Status = USBH_LL_GetURBState(phost, MIDI_Handle->InPipe);
+
+
+
+				/*Check the status done for reception*/
+				if(URB_Status == USBH_URB_DONE )
+				{
+
+
+					length = USBH_LL_GetLastXferSize(phost, MIDI_Handle->InPipe);
+
+					if(((MIDI_Handle->RxDataLength - length) > 0) && (length > MIDI_Handle->InEpSize))
+					{
+						MIDI_Handle->RxDataLength -= length ;
+						MIDI_Handle->pRxData += length;
+						MIDI_Handle->data_rx_state = MIDI_RECEIVE_DATA;
+					}
+					else
+					{
+						MIDI_Handle->data_rx_state = MIDI_IDLE;
+
+						MIDI_write_buffer = !MIDI_write_buffer;
+						MIDI_read_buffer = !MIDI_read_buffer; //switch buffers for double buffer fun
+
+						//stuff the data into my little FIFO
+						for (int i = 0; i < length; i++)
+						{
+							myUSB_FIFO[myUSB_FIFO_writePointer] = MIDI_RX_Buffer[MIDI_read_buffer][i];
+							myUSB_FIFO_writePointer++;
+							//handle wrapping of the array index and turn on the overflow bit to notify the reader when that happens
+							if (myUSB_FIFO_writePointer >= 256)
+							{
+								myUSB_FIFO_writePointer = 0;
+								myUSB_FIFO_overflowBit = 1;
+							}
+						}
+						MIDI_Handle->data_rx_state = MIDI_RECEIVE_DATA_WAIT;
+						USBH_MIDI_Receive(phost, &MIDI_RX_Buffer[MIDI_write_buffer][0], RX_BUFF_SIZE); // start a new reception
+						//USBH_MIDI_ReceiveCallback(phost);
+					}
+		#if (USBH_USE_OS == 1)
+					osMessagePut ( phost->os_event, USBH_CLASS_EVENT, 0);
+		#endif
+				}
+				break;
+
+			default:
+				break;
+		}
+		break;
+
+	case MIDI_ERROR_STATE:
+		req_status = USBH_ClrFeature(phost, 0x00);
+
+		if(req_status == USBH_OK )
+		{
+			/*Change the state to waiting*/
+			MIDI_Handle->state = MIDI_IDLE_STATE ;
+		}
+		break;
+
+	default:
+		break;
+
+	}
+
+	return USBH_OK;
 }
   
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -448,58 +554,7 @@ static void MIDI_ProcessTransmission(USBH_HandleTypeDef *phost)
 
 static void MIDI_ProcessReception(USBH_HandleTypeDef *phost)
 {
-	MIDI_HandleTypeDef *MIDI_Handle =  phost->pActiveClass->pData;
-	USBH_URBStateTypeDef URB_Status = USBH_URB_IDLE;
-	uint16_t length;
 
-	switch(MIDI_Handle->data_rx_state)
-	{
-
-	case MIDI_RECEIVE_DATA:
-
-		USBH_BulkReceiveData (phost,
-				MIDI_Handle->pRxData,
-				MIDI_Handle->InEpSize,
-				MIDI_Handle->InPipe);
-
-		MIDI_Handle->data_rx_state = MIDI_RECEIVE_DATA_WAIT;
-		//BSP_LED_On(LED_Red); //ok only here
-
-		break;
-
-	case MIDI_RECEIVE_DATA_WAIT:
-
-		URB_Status = USBH_LL_GetURBState(phost, MIDI_Handle->InPipe);
-
-
-
-		/*Check the status done for reception*/
-		if(URB_Status == USBH_URB_DONE )
-		{
-
-
-			length = USBH_LL_GetLastXferSize(phost, MIDI_Handle->InPipe);
-
-			if(((MIDI_Handle->RxDataLength - length) > 0) && (length > MIDI_Handle->InEpSize))
-			{
-				MIDI_Handle->RxDataLength -= length ;
-				MIDI_Handle->pRxData += length;
-				MIDI_Handle->data_rx_state = MIDI_RECEIVE_DATA;
-			}
-			else
-			{
-				MIDI_Handle->data_rx_state = MIDI_IDLE;
-				USBH_MIDI_ReceiveCallback(phost);
-			}
-#if (USBH_USE_OS == 1)
-			osMessagePut ( phost->os_event, USBH_CLASS_EVENT, 0);
-#endif
-		}
-		break;
-
-	default:
-		break;
-	}
 }
 
 

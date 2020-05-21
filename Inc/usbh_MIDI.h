@@ -179,6 +179,15 @@ typedef struct _MIDI_Process
 }
 MIDI_HandleTypeDef;
 
+
+
+extern uint8_t myUSB_FIFO[256];
+extern uint16_t myUSB_FIFO_readPointer;
+extern uint16_t myUSB_FIFO_writePointer;
+extern uint8_t myUSB_FIFO_overflowBit;
+
+
+
 /*---------------------------Exported_FunctionsPrototype-------------------------------------*/
 
 USBH_StatusTypeDef  USBH_MIDI_Transmit(USBH_HandleTypeDef *phost,

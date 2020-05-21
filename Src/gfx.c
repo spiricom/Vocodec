@@ -42,7 +42,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "gfx.h"
 #include "gfx_font.c"
 #include "main.h"
-
+#include "stdint.h"
 // Many (but maybe not all) non-AVR board installs define macros
 // for compatibility with existing PROGMEM-reading AVR code.
 // Do our own checks and defines here for good measure...
@@ -87,6 +87,9 @@ void GFXinit(GFX* myGfx, int16_t w, int16_t h)
 	myGfx->wrap      = 1;
 	myGfx->_cp437    = 0;
 	myGfx->gfxFont   = NULL;
+	myGfx->rotation = 0;
+	myGfx->fontDesc = 0;
+	myGfx->fontHeight = 8;
 }
 
 // Bresenham's algorithm - thx wikpedia
@@ -523,28 +526,28 @@ void GFXdrawChar(GFX* myGFX, int16_t x, int16_t y, unsigned char c,
 
         if(!myGFX->_cp437 && (c >= 176)) c++; // Handle 'classic' charset behavior
 
-
+        //startWrite();
         for(int8_t i=0; i<5; i++ ) { // Char bitmap = 5 columns
-            uint8_t line = pgm_read_byte(&standardGFXfont[c * 5 + i]);
+            uint8_t line = pgm_read_byte(&myGFX->gfxFont[c * 5 + i]);
             for(int8_t j=0; j<8; j++, line >>= 1) {
                 if(line & 1) {
                     if(size == 1)
-                        GFXwritePixel(myGFX, x+i, y+j, color);
+                        GFXwritePixel(myGFX,x+i, y+j, color);
                     else
-                        GFXwriteFillRect(myGFX, x+i*size, y+j*size, size, size, color);
+                    	GFXwriteFillRect(myGFX,x+i*size, y+j*size, size, size, color);
                 } else if(bg != color) {
                     if(size == 1)
-                        GFXwritePixel(myGFX, x+i, y+j, bg);
+                    	GFXwritePixel(myGFX,x+i, y+j, bg);
                     else
-                        GFXwriteFillRect(myGFX, x+i*size, y+j*size, size, size, bg);
+                    	GFXwriteFillRect(myGFX,x+i*size, y+j*size, size, size, bg);
                 }
             }
         }
         if(bg != color) { // If opaque, draw vertical line for last column
-            if(size == 1) GFXwriteFastVLine(myGFX, x+5, y, 8, bg);
-            else          GFXwriteFillRect(myGFX, x+5*size, y, size, 8*size, bg);
+            if(size == 1) GFXwriteFastVLine(myGFX,x+5, y, 8, bg);
+            else          GFXwriteFillRect(myGFX,x+5*size, y, size, 8*size, bg);
         }
-
+        //endWrite();
 
     } else { // Custom font
 
@@ -587,7 +590,7 @@ void GFXdrawChar(GFX* myGFX, int16_t x, int16_t y, unsigned char c,
         // displays supporting setAddrWindow() and pushColors()), but haven't
         // implemented this yet.
 
-
+        //startWrite();
         for(yy=0; yy<h; yy++) {
             for(xx=0; xx<w; xx++) {
                 if(!(bit++ & 7)) {
@@ -595,65 +598,94 @@ void GFXdrawChar(GFX* myGFX, int16_t x, int16_t y, unsigned char c,
                 }
                 if(bits & 0x80) {
                     if(size == 1) {
-                        GFXwritePixel(myGFX, x+xo+xx, y+yo+yy, color);
+                        GFXwritePixel(myGFX,x+xo+xx, y+yo+yy, color);
                     } else {
-                        GFXwriteFillRect(myGFX, x+(xo16+xx)*size, y+(yo16+yy)*size,
+                    	GFXwriteFillRect(myGFX,x+(xo16+xx)*size, y+(yo16+yy)*size,
                           size, size, color);
                     }
                 }
                 bits <<= 1;
             }
         }
-
+        //endWrite();
 
     } // End classic vs custom font
 }
 
 
-void GFXwrite(GFX* myGFX, uint8_t c) {
-
-    if(!myGFX->gfxFont) { // 'Classic' built-in font
-
-        if(c == '\n') {                        // Newline?
-        	myGFX->cursor_x  = 0;                     // Reset x to zero,
-        	myGFX->cursor_y += myGFX->textsize * 8;          // advance y one line
-        } else if(c != '\r') {                 // Ignore carriage returns
-            if(myGFX->wrap && ((myGFX->cursor_x + myGFX->textsize * 6) > myGFX->_width)) { // Off right?
-            	myGFX->cursor_x  = 0;                 // Reset x to zero,
-            	myGFX->cursor_y += myGFX->textsize * 8;      // advance y one line
-            }
-            GFXdrawChar(myGFX, myGFX->cursor_x, myGFX->cursor_y, c, myGFX->textcolor, myGFX->textbgcolor, myGFX->textsize);
-            myGFX->cursor_x += myGFX->textsize * 6;          // Advance x one char
-        }
-
-    } else { // Custom font
-
-        if(c == '\n') {
-        	myGFX->cursor_x  = 0;
-        	myGFX->cursor_y += (int16_t)myGFX->textsize *
-                        (uint8_t)pgm_read_byte(&myGFX->gfxFont->yAdvance);
-        } else if(c != '\r') {
-            uint8_t first = pgm_read_byte(&myGFX->gfxFont->first);
-            if((c >= first) && (c <= (uint8_t)pgm_read_byte(&myGFX->gfxFont->last))) {
-                GFXglyph *glyph = &(((GFXglyph *)pgm_read_pointer(
-                  &myGFX->gfxFont->glyph))[c - first]);
-                uint8_t   w     = pgm_read_byte(&glyph->width),
-                          h     = pgm_read_byte(&glyph->height);
-                if((w > 0) && (h > 0)) { // Is there an associated bitmap?
-                    int16_t xo = (int8_t)pgm_read_byte(&glyph->xOffset); // sic
-                    if(myGFX->wrap && ((myGFX->cursor_x + myGFX->textsize * (xo + w)) > myGFX->_width)) {
-                    	myGFX->cursor_x  = 0;
-                    	myGFX->cursor_y += (int16_t)myGFX->textsize *
-                          (uint8_t)pgm_read_byte(&myGFX->gfxFont->yAdvance);
-                    }
-                    GFXdrawChar(myGFX, myGFX->cursor_x, myGFX->cursor_y, c, myGFX->textcolor, myGFX->textbgcolor, myGFX->textsize);
-                }
-                myGFX->cursor_x += (uint8_t)pgm_read_byte(&glyph->xAdvance) * (int16_t)myGFX->textsize;
-            }
-        }
-
+void GFXcheckScrollWrap(GFX* myGFX, int16_t fontWidth) {
+    if(myGFX->wrap && ((myGFX->cursor_x + fontWidth) >= myGFX->_width)) { // Heading off edge?
+    	myGFX->cursor_x  = 0;            // Reset x to zero
+    	myGFX->cursor_y += myGFX->fontHeight * myGFX->textsize; // Advance y one line
     }
 
+    if (myGFX->autoscroll) {
+        int16_t fontOffset;
+
+        if(!myGFX->gfxFont) { // 'Classic' built-in font
+            fontOffset = (myGFX->fontHeight * myGFX->textsize)-1; // cursor defines upper left corner of char
+        } else {       // Custom font
+            fontOffset = 0;                         // cursor defines lower left corner of char
+        }
+
+        // lower unified border of character
+        // these does not apply to charachters like "g" oder "j" which will be cut off
+        uint16_t cursor = myGFX->cursor_y + fontOffset + myGFX->fontDesc * myGFX->textsize;
+
+        if (cursor >= myGFX->_height) {
+            GFXscrollUp(myGFX, cursor - myGFX->_height+1, myGFX->textcolor != myGFX->textbgcolor ? myGFX->textbgcolor : 0);
+
+            myGFX->cursor_x  = 0;
+            myGFX->cursor_y = myGFX->_height - fontOffset-1 - myGFX->fontDesc * myGFX->textsize;
+        }
+  }
+}
+
+
+void GFXwrite(GFX* myGFX, uint8_t c) {
+	if(!myGFX->gfxFont) { // 'Classic' built-in font
+		if(c == '\n') {                        // Newline?
+			myGFX->cursor_y += myGFX->fontHeight * myGFX->textsize;
+			myGFX->cursor_x  = 0;                     // Reset x to zero,
+			//cursor_y += textsize * 8;          // advance y one line
+		} else if(c != '\r') {                 // Ignore carriage returns
+			// if(wrap && ((cursor_x + textsize * 6) > _width)) { // Off right?
+			//     cursor_x  = 0;                 // Reset x to zero,
+			//     cursor_y += textsize * 8;      // advance y one line
+			// }
+			GFXcheckScrollWrap(myGFX, myGFX->textsize * 6 - myGFX->textsize * 2);
+			GFXdrawChar(myGFX, myGFX->cursor_x, myGFX->cursor_y, c, myGFX->textcolor, myGFX->textbgcolor, myGFX->textsize);
+			myGFX->cursor_x += myGFX->textsize * 6;          // Advance x one char
+		}
+
+	} else { // Custom font
+
+		if(c == '\n') {
+			myGFX->cursor_x  = 0;
+			myGFX->cursor_y += (int16_t)myGFX->textsize *
+						(uint8_t)pgm_read_byte(&myGFX->gfxFont->yAdvance);
+		} else if(c != '\r') {
+			uint8_t first = pgm_read_byte(&myGFX->gfxFont->first);
+			if((c >= first) && (c <= (uint8_t)pgm_read_byte(&myGFX->gfxFont->last))) {
+				GFXglyph *glyph = &(((GFXglyph *)pgm_read_pointer(
+				  &myGFX->gfxFont->glyph))[c - first]);
+				uint8_t   w     = pgm_read_byte(&glyph->width),
+						  h     = pgm_read_byte(&glyph->height);
+				if((w > 0) && (h > 0)) { // Is there an associated bitmap?
+					int16_t xo = (int8_t)pgm_read_byte(&glyph->xOffset); // sic
+					GFXcheckScrollWrap(myGFX, myGFX->textsize * (xo + w));
+					// if(wrap && ((cursor_x + textsize * (xo + w)) > _width)) {
+					//     cursor_x  = 0;
+					//     cursor_y += (int16_t)textsize *
+					//       (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
+					// }
+					GFXdrawChar(myGFX, myGFX->cursor_x, myGFX->cursor_y, c, myGFX->textcolor, myGFX->textbgcolor, myGFX->textsize);
+				}
+				myGFX->cursor_x += (uint8_t)pgm_read_byte(&glyph->xAdvance) * (int16_t)myGFX->textsize;
+			}
+		}
+
+	}
 }
 
 void GFXsetCursor(GFX* myGFX, int16_t x, int16_t y) {
@@ -716,19 +748,63 @@ void GFXcp437(GFX* myGFX, uint8_t x) {
 }
 
 void GFXsetFont(GFX* myGFX, const GFXfont *f) {
-    if(f) {            // Font struct pointer passed in?
+    if(f)
+    {            // Font struct pointer passed in?
         if(!myGFX->gfxFont) { // And no current font struct?
             // Switching from classic to new font behavior.
             // Move cursor pos down 6 pixels so it's on baseline.
         	myGFX->cursor_y += 6;
         }
-    } else if(myGFX->gfxFont) { // NULL passed.  Current font struct defined?
-        // Switching from new to classic font behavior.
-        // Move cursor pos up 6 pixels so it's at top-left of char.
-    	myGFX->cursor_y -= 6;
     }
-    myGFX->gfxFont = (GFXfont *)f;
+	else if(myGFX->gfxFont)
+	{ // NULL passed.  Current font struct defined?
+			// Switching from new to classic font behavior.
+			// Move cursor pos up 6 pixels so it's at top-left of char.
+			//cursor_y -= 6;
+			// calculate max descender ("j" or "g")
+		myGFX->fontDesc = 0;
+
+			uint8_t first  = (uint8_t) pgm_read_byte(&f->first);
+			uint8_t last  = (uint8_t) pgm_read_byte(&f->last);
+			for (uint8_t i = first; i <= last; i++)
+			{
+				GFXglyph *glyph;
+				uint8_t gh;
+				int8_t  yo;
+
+				glyph = &(((GFXglyph *)pgm_read_pointer(&f->glyph))[i-first]);
+
+				gh = (uint8_t) pgm_read_byte(&glyph->height);
+				yo = (int8_t) pgm_read_byte(&glyph->yOffset);
+
+				if (gh + yo > myGFX->fontDesc)
+				{
+					myGFX->fontDesc = gh + yo;
+				}
+			}
+
+			myGFX->fontHeight = (int16_t) pgm_read_byte(&f->yAdvance);
+		  }
+		  else
+		  {
+			if(myGFX->gfxFont)
+			{ // NULL passed.  Current font struct defined?
+			  // Switching from new to classic font behavior.
+			  // Move cursor pos up 6 pixels so it's at top-left of char.
+				myGFX->cursor_y -= 6;
+			}
+
+			myGFX->fontHeight = 8;
+			myGFX->fontDesc = 0;
+		}
+    	myGFX->gfxFont = (GFXfont *)f;
 }
+
+
+
+
+
+
 
 // Broke this out as it's used by both the PROGMEM- and RAM-resident
 // getTextBounds() functions.
@@ -789,6 +865,7 @@ void GFXcharBounds(GFX* myGFX, char c, int16_t *x, int16_t *y,
         }
     }
 }
+
 
 // Pass string and a cursor position, returns UL corner and W,H.
 void GFXgetTextBounds(GFX* myGFX, char *str, int16_t x, int16_t y,
@@ -985,3 +1062,27 @@ int OLEDparseFixedFloat(char* buffer, float input, uint8_t numDigits, uint8_t nu
 
 	return idx;
 }
+
+
+
+void GFXscrollUp(GFX* myGFX, uint8_t c, uint16_t color) {
+   // map to logical orientation
+;
+}
+
+void GFXscrollDown(GFX* myGFX, uint8_t c, uint16_t color) {
+  // map to logical orientation
+;
+}
+
+void GFXscrollLeft(GFX* myGFX, uint8_t c, uint16_t color) {
+  // map to logical orientation
+;
+}
+
+void GFXscrollRight(GFX* myGFX, uint8_t c, uint16_t color) {
+  // map to logical orientation
+;
+ }
+
+

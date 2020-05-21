@@ -21,7 +21,7 @@ void OLED_init(I2C_HandleTypeDef* hi2c)
 	  //start up that OLED display
 	  ssd1306_begin(hi2c, SSD1306_SWITCHCAPVCC, SSD1306_I2C_ADDRESS);
 
-	  HAL_Delay(5);
+	  //HAL_Delay(5);
 
 	  //clear the OLED display buffer
 	  for (int i = 0; i < 512; i++)
@@ -41,7 +41,7 @@ void OLED_init(I2C_HandleTypeDef* hi2c)
 	  //GFXsetFont(&theGFX, &C649pt7b); //funny c64 text monospaced but very large
 	  //GFXsetFont(&theGFX, &DINAlternateBold9pt7b); //very serious and looks good - definitely not monospaced can fit 9 Ms
 	  //GFXsetFont(&theGFX, &DINCondensedBold9pt7b); // very condensed and looks good - definitely not monospaced can fit 9 Ms
-	  GFXsetFont(&theGFX, &EuphemiaCAS9pt7b); //this one is elegant but definitely not monospaced can fit 9 Ms
+	  GFXsetFont(&theGFX, &EuphemiaCAS8pt7b); //this one is elegant but definitely not monospaced can fit 9 Ms
 	  //GFXsetFont(&theGFX, &GillSans9pt7b); //not monospaced can fit 9 Ms
 	  //GFXsetFont(&theGFX, &Futura9pt7b); //not monospaced can fit only 7 Ms
 	  //GFXsetFont(&theGFX, &FUTRFW8pt7b); // monospaced, pretty, (my old score font) fits 8 Ms
@@ -242,7 +242,7 @@ void OLED_process(void)
 
 void OLED_writePreset()
 {
-	GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
+	GFXsetFont(&theGFX, &EuphemiaCAS8pt7b);
 	OLEDclear();
 	char tempString[24];
 	itoa((currentPreset+1), tempString, 10);

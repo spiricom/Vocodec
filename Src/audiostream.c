@@ -18,6 +18,8 @@
 #include "gpio.h"
 #include "sfx.h"
 #include "tim.h"
+#include "usbh_MIDI.h"
+#include "MIDI_application.h"
 
 //the audio buffers are put in the D2 RAM area because that is a memory location that the DMA has access to.
 int32_t audioOutBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
@@ -181,6 +183,15 @@ void audioFrame(uint16_t buffer_offset)
 
 	buttonCheck();
 	adcCheck();
+
+	// if the USB write pointer has advanced (indicating unread data is in the buffer),
+	// or the overflow bit is set, meaning that the write pointer wrapped around and the read pointer hasn't caught up to it yet
+	// then process that new data this frame
+	if ((myUSB_FIFO_overflowBit) || (myUSB_FIFO_writePointer > myUSB_FIFO_readPointer))
+	{
+		ProcessReceivedMidiDatas();
+	}
+
 
 	if (!loadingPreset)
 	{

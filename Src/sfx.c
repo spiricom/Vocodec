@@ -12,6 +12,7 @@
 #include "MIDI_application.h"
 
 #define INC_MISC_WT 0
+#define USE_FILTERTAN_TABLE 1
 
 float defaultPresetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
 float presetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
@@ -1937,7 +1938,7 @@ void SFXLivingStringSynthFree(void)
 float synthMidiNotes[NUM_VOC_VOICES];
 tEfficientSVF synthLP[NUM_VOC_VOICES];
 uint16_t filtFreqs[NUM_VOC_VOICES];
-tADSR2 polyEnvs[NUM_VOC_VOICES];
+tADSR polyEnvs[NUM_VOC_VOICES];
 
 void SFXClassicSynthAlloc()
 {
@@ -1951,8 +1952,8 @@ void SFXClassicSynthAlloc()
 		}
 
 		tEfficientSVF_initToPool(&synthLP[i], SVFTypeLowpass, 6000.0f, 0.8f, &smallPool);
-		tADSR2_initToPool(&polyEnvs[i], 7.0f, 64.0f, 0.9f, 100.0f, &smallPool);
-		tADSR2_setLeakFactor(&polyEnvs[i], 0.999987f);
+		tADSR_initToPool(&polyEnvs[i], 7.0f, 64.0f, 0.9f, 100.0f, &smallPool);
+		tADSR_setLeakFactor(&polyEnvs[i], 0.999987f);
 	}
 
 	setLED_A(numVoices == 1);
@@ -2010,11 +2011,11 @@ void SFXClassicSynthFrame()
 		filtFreqs[i] = (uint16_t) tempFreq;
 		tEfficientSVF_setQ(&synthLP[i],params[4]);
 
-		tADSR2_setAttack(&polyEnvs[i], params[5]);
-		tADSR2_setDecay(&polyEnvs[i], params[6]);
-		tADSR2_setSustain(&polyEnvs[i], params[7]);
-		tADSR2_setRelease(&polyEnvs[i], params[8]);
-		tADSR2_setLeakFactor(&polyEnvs[i], params[9]);
+		tADSR_setAttack(&polyEnvs[i], params[5]);
+		tADSR_setDecay(&polyEnvs[i], params[6]);
+		tADSR_setSustain(&polyEnvs[i], params[7]);
+		tADSR_setRelease(&polyEnvs[i], params[8]);
+		tADSR_setLeakFactor(&polyEnvs[i], params[9]);
 	}
 }
 
@@ -2028,7 +2029,7 @@ void SFXClassicSynthTick(float audioIn)
 	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
 		float tempSample = 0.0f;
-		float env = tADSR2_tick(&polyEnvs[i]);
+		float env = tADSR_tick(&polyEnvs[i]);
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
@@ -2057,7 +2058,7 @@ void SFXClassicSynthFree(void)
 			tSaw_freeFromPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 		}
 		tEfficientSVF_freeFromPool(&synthLP[i], &smallPool);
-		tADSR2_freeFromPool(&polyEnvs[i], &smallPool);
+		tADSR_freeFromPool(&polyEnvs[i], &smallPool);
 	}
 
 }
@@ -2072,7 +2073,7 @@ float FM_indices[4][6] = {{1000.0f, 0.0f, 120.0f, 32.0f, 3.0f, 1.0f}, {100.0f, 1
 float FM_decays[4][6] = {{64.0f, 2000.0f, 3000.0f, 3400.0f, 3200.0f, 3100.0f}, {2000.0f, 300.0f, 800.0f, 3000.0f, 340.0f, 50.0f}, {20.0f, 50.0f, 50.0f, 10.0f, 30.0f, 20.0f}, {584.0f, 1016.0f, 1016.0f, 1000.0f, 600.0f, 500.0f}};
 float FM_sustains[4][6] = {{0.9f, 0.9f, 0.9f, 0.8f, 0.7f, 0.7f}, {0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f}, {0.3f, 0.3f, 0.3f, 0.3f, 0.0f, 0.0f},{0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f}};
 float FM_attacks[4][6] = {{7.0f, 7.0f, 7.0f, 7.0f, 7.0f, 7.0f}, {7.0f, 7.0f, 7.0f, 7.0f, 7.0f,7.0f}, {10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f},{1000.0f, 680.0f, 250.0f, 1300.0f, 750.0f, 820.0f}};
-tADSR2 FM_envs[NUM_VOC_VOICES][6];
+tADSR FM_envs[NUM_VOC_VOICES][6];
 float feedback_output = 0.0f;
 float prevDisplayValues[15];
 
@@ -2094,8 +2095,8 @@ void SFXRhodesAlloc()
 		for (int j = 0; j < 6; j++)
 		{
 			tSine_init(&FM_sines[i][j], 2048);
-			tADSR2_initToPool(&FM_envs[i][j], FM_attacks[Rsound][j], FM_decays[Rsound][j], FM_sustains[Rsound][j], 100.0f, &smallPool);
-			tADSR2_setLeakFactor(&FM_envs[i][j], 0.99998f);
+			tADSR_initToPool(&FM_envs[i][j], FM_attacks[Rsound][j], FM_decays[Rsound][j], FM_sustains[Rsound][j], 100.0f, &smallPool);
+			tADSR_setLeakFactor(&FM_envs[i][j], 0.99998f);
 		}
 	}
 	tOversampler_init(&oversampler, 2, 0);
@@ -2149,7 +2150,9 @@ void SFXRhodesFrame()
 					{
 						for (int j = 0; j < 6; j++)
 						{
-							tADSR2_setAttack(&FM_envs[i][j], FM_attacks[Rsound][j] * displayValues[5]);
+							CycleCounterStart(1);
+							tADSR_setAttack(&FM_envs[i][j], FM_attacks[Rsound][j] * displayValues[5]);
+							CycleCounterEnd(1);
 						}
 					}
 					break;
@@ -2158,7 +2161,7 @@ void SFXRhodesFrame()
 					{
 						for (int j = 0; j < 6; j++)
 						{
-							tADSR2_setDecay(&FM_envs[i][j], FM_decays[Rsound][j] * displayValues[6]);
+							tADSR_setDecay(&FM_envs[i][j], FM_decays[Rsound][j] * displayValues[6]);
 						}
 					}
 					break;
@@ -2167,7 +2170,7 @@ void SFXRhodesFrame()
 					{
 						for (int j = 0; j < 6; j++)
 						{
-							tADSR2_setSustain(&FM_envs[i][j], FM_sustains[Rsound][j] * displayValues[7]);
+							tADSR_setSustain(&FM_envs[i][j], FM_sustains[Rsound][j] * displayValues[7]);
 						}
 					}
 					break;
@@ -2176,7 +2179,7 @@ void SFXRhodesFrame()
 					{
 						for (int j = 0; j < 6; j++)
 						{
-							tADSR2_setRelease(&FM_envs[i][j], displayValues[8]);
+							tADSR_setRelease(&FM_envs[i][j], displayValues[8]);
 						}
 					}
 					break;
@@ -2185,7 +2188,7 @@ void SFXRhodesFrame()
 					{
 						for (int j = 0; j < 6; j++)
 						{
-							tADSR2_setLeakFactor(&FM_envs[i][j], displayValues[9]);
+							tADSR_setLeakFactor(&FM_envs[i][j], displayValues[9]);
 						}
 					}
 					break;
@@ -2212,33 +2215,26 @@ void SFXRhodesTick(float audioIn)
 		float myFrequency = freq[i];
 		tSine_setFreq(&FM_sines[i][5], (myFrequency  * FM_freqRatios[Rsound][5]) + (FM_indices[Rsound][5] * feedback_output * displayValues[0]));
 		feedback_output = tSine_tick(&FM_sines[i][5]);
-		tSine_setFreq(&FM_sines[i][4], (myFrequency  * FM_freqRatios[Rsound][4]) + (FM_indices[Rsound][4] * feedback_output * displayValues[0] * tADSR2_tick(&FM_envs[i][5])));
-		tSine_setFreq(&FM_sines[i][3], (myFrequency  * FM_freqRatios[Rsound][3]) + (FM_indices[Rsound][3] * displayValues[0] * tSine_tick(&FM_sines[i][4]) * tADSR2_tick(&FM_envs[i][4])));
-		tSine_setFreq(&FM_sines[i][2], (myFrequency  * FM_freqRatios[Rsound][2]) + (FM_indices[Rsound][2] * displayValues[0] * tSine_tick(&FM_sines[i][3]) * tADSR2_tick(&FM_envs[i][3])));
+		tSine_setFreq(&FM_sines[i][4], (myFrequency  * FM_freqRatios[Rsound][4]) + (FM_indices[Rsound][4] * feedback_output * displayValues[0] * tADSR_tick(&FM_envs[i][5])));
+		tSine_setFreq(&FM_sines[i][3], (myFrequency  * FM_freqRatios[Rsound][3]) + (FM_indices[Rsound][3] * displayValues[0] * tSine_tick(&FM_sines[i][4]) * tADSR_tick(&FM_envs[i][4])));
+		tSine_setFreq(&FM_sines[i][2], (myFrequency  * FM_freqRatios[Rsound][2]) + (FM_indices[Rsound][2] * displayValues[0] * tSine_tick(&FM_sines[i][3]) * tADSR_tick(&FM_envs[i][3])));
 		tSine_setFreq(&FM_sines[i][1], myFrequency  * FM_freqRatios[Rsound][1]);
-		tSine_setFreq(&FM_sines[i][0],( myFrequency  * FM_freqRatios[Rsound][0]) + (FM_indices[Rsound][0] * displayValues[0] * tSine_tick(&FM_sines[i][1]) * tADSR2_tick(&FM_envs[i][1])));
-
-
-		sample += tSine_tick(&FM_sines[i][2]) * tADSR2_tick(&FM_envs[i][2]);
-		sample += tSine_tick(&FM_sines[i][0]) * tADSR2_tick(&FM_envs[i][0]);
+		tSine_setFreq(&FM_sines[i][0],( myFrequency  * FM_freqRatios[Rsound][0]) + (FM_indices[Rsound][0] * displayValues[0] * tSine_tick(&FM_sines[i][1]) * tADSR_tick(&FM_envs[i][1])));
+		CycleCounterStart(0);
+		float tempVal = tADSR_tick(&FM_envs[i][2]);
+		CycleCounterEnd(0);
+		//CycleCounterAverage(0);
+		sample += (tSine_tick(&FM_sines[i][2]) * tempVal);
+		sample += tSine_tick(&FM_sines[i][0]) * tADSR_tick(&FM_envs[i][0]);
 
 	}
 	float tremoloSignal = ((tSine_tick(&tremolo) * 0.5f) + 0.5f) * displayValues[1];
 	sample = sample * (tremoloSignal + (1.0f - displayValues[1]));
 
 	sample *= 0.2f;
-
-
-	tOversampler_upsample(&oversampler, sample, oversamplerArray);
-	for (int i = 0; i < 2; i++)
-	{
-		//oversamplerArray[i] = LEAF_shaper(sample, displayValues[3]);
-		//oversamplerArray[i] = tanhf(oversamplerArray[i]);
-		//oversamplerArray[i] = LEAF_shaper(sample, displayValues[3]);
-		oversamplerArray[i] = LEAF_tanh(oversamplerArray[i]);
-
-	}
-	sample = tOversampler_downsample(&oversampler, oversamplerArray);
+	CycleCounterStart(4);
+	sample = LEAF_tanh(sample);
+	CycleCounterEnd(4);
 	rightOut = sample;
 
 
@@ -2253,7 +2249,7 @@ void SFXRhodesFree(void)
 		for (int j = 0; j < 6; j++)
 		{
 			tSine_free(&FM_sines[i][j]);
-			tADSR2_freeFromPool(&FM_envs[i][j],&smallPool);
+			tADSR_freeFromPool(&FM_envs[i][j],&smallPool);
 		}
 
 	}
@@ -2364,13 +2360,13 @@ void noteOn(int key, int velocity)
 			{
 				for (int j = 0; j < 6; j++)
 				{
-					tADSR2_on(&FM_envs[whichVoice][j], velocity * 0.0078125f);
+					tADSR_on(&FM_envs[whichVoice][j], velocity * 0.0078125f);
 
 				}
 			}
 			else if (currentPreset == ClassicSynth)
 			{
-				tADSR2_on(&polyEnvs[whichVoice], velocity * 0.0078125f);
+				tADSR_on(&polyEnvs[whichVoice], velocity * 0.0078125f);
 			}
 		}
 		setLED_2(1);
@@ -2406,12 +2402,12 @@ void noteOff(int key, int velocity)
 		{
 			for (int j = 0; j < 6; j++)
 			{
-				tADSR2_off(&FM_envs[voice][j]);
+				tADSR_off(&FM_envs[voice][j]);
 			}
 		}
 		else if (currentPreset == ClassicSynth)
 		{
-			tADSR2_off(&polyEnvs[voice]);
+			tADSR_off(&polyEnvs[voice]);
 		}
 	}
 

@@ -493,12 +493,6 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
   */
 
 
-uint32_t cycCnt = 0;
-uint32_t cycCntPrev = 0;
-uint32_t cycCntDiff = 0;
-float msValues[128];
-uint8_t msValuesCounter = 0;
-uint32_t msCounter = 0;
 
 
 void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
@@ -506,12 +500,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
   USB_OTG_GlobalTypeDef *USBx = hhcd->Instance;
   uint32_t USBx_BASE = (uint32_t)USBx;
   uint32_t i, interrupt;
-  cycCnt = DWT->CYCCNT;
-  cycCntDiff = cycCnt - cycCntPrev;
-  cycCntPrev = cycCnt;
 
-  msValues[msValuesCounter % 128] = cycCntDiff * 0.000002083333333f;
-  msValuesCounter++;
   /* Ensure that we are in device mode */
   if (USB_GetMode(hhcd->Instance) == USB_OTG_MODE_HOST)
   {
