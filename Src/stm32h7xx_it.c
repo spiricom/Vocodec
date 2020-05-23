@@ -79,7 +79,10 @@ extern SAI_HandleTypeDef hsai_BlockB1;
 void NMI_Handler(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
 
@@ -92,6 +95,10 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
@@ -106,7 +113,10 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
   {
@@ -121,7 +131,10 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END BusFault_IRQn 0 */
   while (1)
   {
@@ -136,7 +149,10 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END UsageFault_IRQn 0 */
   while (1)
   {
@@ -151,7 +167,10 @@ void UsageFault_Handler(void)
 void SVC_Handler(void)
 {
   /* USER CODE BEGIN SVCall_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END SVCall_IRQn 0 */
   /* USER CODE BEGIN SVCall_IRQn 1 */
 
@@ -164,7 +183,10 @@ void SVC_Handler(void)
 void DebugMon_Handler(void)
 {
   /* USER CODE BEGIN DebugMonitor_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END DebugMonitor_IRQn 0 */
   /* USER CODE BEGIN DebugMonitor_IRQn 1 */
 
@@ -177,7 +199,10 @@ void DebugMon_Handler(void)
 void PendSV_Handler(void)
 {
   /* USER CODE BEGIN PendSV_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END PendSV_IRQn 0 */
   /* USER CODE BEGIN PendSV_IRQn 1 */
 
@@ -190,7 +215,10 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
@@ -211,7 +239,10 @@ void SysTick_Handler(void)
 void DMA1_Stream1_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream1_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END DMA1_Stream1_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_sai1_a);
   /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
@@ -225,7 +256,10 @@ void DMA1_Stream1_IRQHandler(void)
 void DMA1_Stream2_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream2_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END DMA1_Stream2_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_sai1_b);
   /* USER CODE BEGIN DMA1_Stream2_IRQn 1 */
@@ -239,7 +273,10 @@ void DMA1_Stream2_IRQHandler(void)
 void ADC_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END ADC_IRQn 0 */
   HAL_ADC_IRQHandler(&hadc1);
   /* USER CODE BEGIN ADC_IRQn 1 */
@@ -253,7 +290,10 @@ void ADC_IRQHandler(void)
 void DMA2_Stream0_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END DMA2_Stream0_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_adc1);
   /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
@@ -264,10 +304,15 @@ void DMA2_Stream0_IRQHandler(void)
 /**
   * @brief This function handles SAI1 global interrupt.
   */
+uint8_t isItCalled = 0;
 void SAI1_IRQHandler(void)
 {
   /* USER CODE BEGIN SAI1_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
+	isItCalled = 1;
   /* USER CODE END SAI1_IRQn 0 */
   HAL_SAI_IRQHandler(&hsai_BlockA1);
   HAL_SAI_IRQHandler(&hsai_BlockB1);
@@ -282,7 +327,10 @@ void SAI1_IRQHandler(void)
 void I2C4_EV_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C4_EV_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END I2C4_EV_IRQn 0 */
   HAL_I2C_EV_IRQHandler(&hi2c4);
   /* USER CODE BEGIN I2C4_EV_IRQn 1 */
@@ -296,7 +344,10 @@ void I2C4_EV_IRQHandler(void)
 void I2C4_ER_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C4_ER_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END I2C4_ER_IRQn 0 */
   HAL_I2C_ER_IRQHandler(&hi2c4);
   /* USER CODE BEGIN I2C4_ER_IRQn 1 */
@@ -310,7 +361,10 @@ void I2C4_ER_IRQHandler(void)
 void OTG_FS_IRQHandler(void)
 {
   /* USER CODE BEGIN OTG_FS_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END OTG_FS_IRQn 0 */
   HAL_HCD_IRQHandler(&hhcd_USB_OTG_FS);
   /* USER CODE BEGIN OTG_FS_IRQn 1 */
@@ -324,7 +378,10 @@ void OTG_FS_IRQHandler(void)
 void DMAMUX1_OVR_IRQHandler(void)
 {
   /* USER CODE BEGIN DMAMUX1_OVR_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END DMAMUX1_OVR_IRQn 0 */
   // Handle DMA2_Stream0
   HAL_DMAEx_MUX_IRQHandler(&hdma_adc1);
@@ -339,7 +396,10 @@ void DMAMUX1_OVR_IRQHandler(void)
 void BDMA_Channel0_IRQHandler(void)
 {
   /* USER CODE BEGIN BDMA_Channel0_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END BDMA_Channel0_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_i2c4_rx);
   /* USER CODE BEGIN BDMA_Channel0_IRQn 1 */
@@ -353,7 +413,10 @@ void BDMA_Channel0_IRQHandler(void)
 void BDMA_Channel1_IRQHandler(void)
 {
   /* USER CODE BEGIN BDMA_Channel1_IRQn 0 */
-
+	for (int i = 0; i < 4; i++)
+	{
+		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
+	}
   /* USER CODE END BDMA_Channel1_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_i2c4_tx);
   /* USER CODE BEGIN BDMA_Channel1_IRQn 1 */

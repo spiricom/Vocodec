@@ -18,7 +18,7 @@ uint8_t MIDI_RX_Buffer[2][RX_BUFF_SIZE] __ATTR_RAM_D2; // MIDI reception buffer
 uint8_t MIDI_read_buffer = 0;
 uint8_t MIDI_write_buffer = 1;
 uint8_t key, velocity, ctrl, data, sustainInverted;
-
+uint8_t USB_message[4];
 uint8_t CCs[128];
 /* Private define ------------------------------------------------------------*/
 
@@ -49,18 +49,16 @@ void MIDI_Application(void)
 	{
 		Appli_state = APPLICATION_IDLE;
 		USBH_MIDI_Stop(&hUsbHostFS);
-		HAL_Delay(100);
+		HAL_Delay(10);
 		MX_USB_HOST_DeInit();
-		HAL_Delay(100);
+		HAL_Delay(10);
 		MX_USB_HOST_Init();
 
 	}
 
 }
 
-uint8_t USB_byteCounter = 0;
 
-uint8_t USB_message[4];
 
 
 
@@ -91,52 +89,6 @@ void parse_MIDI_Message(void)
 			CCs[ctrl] = data;
 			switch(ctrl)
 			{
-				case (0x01):
-					break;
-				case (0x02):
-					break;
-				case (0x03):
-					break;
-				case (0x04):
-					break;
-				case (0x0D):
-					break;
-				case (0x4B):
-					break;
-				case (0x4C):
-					break;
-				case (0x5C):
-					break;
-				case (0x5F):
-					break;
-				case (0x49):
-					break;
-				case (0x48):
-					break;
-				case (0x5B):
-					break;
-				case (0x5D):
-					break;
-				case (0x4A):
-					break;
-				case (0x47):
-					break;
-				case (0x05):
-					break;
-				case (0x54):
-					break;
-				case (0x10):
-					break;
-				case (0x11):
-					break;
-				case (0x12):
-					break;
-				case (0x07):
-					break;
-				case (0x13):
-					break;
-				case (0x14):
-					break;
 				case (64): // sustain
 					if (data)
 					{
@@ -159,8 +111,6 @@ void parse_MIDI_Message(void)
 			break;
 		case (0xE0): // Pitch Bend
 			pitchBend((USB_message[2]) + (USB_message[3] << 7));
-			break;
-		case (0xF0):
 			break;
 	}
 

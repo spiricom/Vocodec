@@ -55,7 +55,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7xx_hal.h"
-
+#include "main.h"
 /** @addtogroup STM32H7xx_HAL_Driver
   * @{
   */
@@ -500,6 +500,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
   USB_OTG_GlobalTypeDef *USBx = hhcd->Instance;
   uint32_t USBx_BASE = (uint32_t)USBx;
   uint32_t i, interrupt;
+
 
   /* Ensure that we are in device mode */
   if (USB_GetMode(hhcd->Instance) == USB_OTG_MODE_HOST)

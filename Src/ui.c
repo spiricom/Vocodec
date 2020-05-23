@@ -285,7 +285,7 @@ void initModeNames(void)
 	knobParamNames[Rhodes][1] = "TREM DEPTH";
 	knobParamNames[Rhodes][2] = "TREM RATE";
 	knobParamNames[Rhodes][3] = "DRIVE";
-	knobParamNames[Rhodes][4] = "";
+	knobParamNames[Rhodes][4] = "PAN SPREAD";
 	knobParamNames[Rhodes][5] = "ATK MULT";
 	knobParamNames[Rhodes][6] = "DEC MULT";
 	knobParamNames[Rhodes][7] = "SUSTAIN";
@@ -387,8 +387,6 @@ void buttonCheck(void)
 		}
 		if (buttonActionsUI[ButtonC][ActionPress] == 1)
 		{
-			//GFXsetFont(&theGFX, &DINCondensedBold9pt7b);
-
 			if (buttonActionsUI[ButtonEdit][ActionHoldContinuous] == 0) buttonActionsUI[ButtonC][ActionPress] = 0;
 		}
 		if (buttonActionsUI[ButtonD][ActionPress] == 1)
@@ -489,7 +487,7 @@ void adcCheck()
 				buttonActionsUI[ButtonEdit][ActionHoldContinuous] = 0;
 			}
 			lastFloatADC[i] = floatADC[i];
-			if (i == 5) writeKnobFlag = cvAddParam - (knobPage * KNOB_PAGE_SIZE);
+			if (i == 5) writeKnobFlag = cvAddParam[currentPreset] - (knobPage * KNOB_PAGE_SIZE);
 			else writeKnobFlag = i;
 			knobActive[i] = 1;
 		}
@@ -499,11 +497,11 @@ void adcCheck()
 		{
 			if (fastabsf(smoothedADC[i] - floatADCUI[i]) > adcHysteresisThreshold)
 			{
-				if (i == 5) writeKnobFlag = cvAddParam - (knobPage * KNOB_PAGE_SIZE);
+				if (i == 5) writeKnobFlag = cvAddParam[currentPreset] - (knobPage * KNOB_PAGE_SIZE);
 				else writeKnobFlag = i;
 			}
 		}
-		if (knobActive[i]) tRamp_setDest(&adc[i], floatADC[i]);
+		if (knobActive[i]) tExpSmooth_setDest(&adc[i], floatADC[i]);
 	}
 }
 
@@ -572,8 +570,7 @@ void resetKnobValues(void)
 		floatADCUI[i] = -1.0f;
 		float value = 0.0f;
 		if (i != 5) value = presetKnobValues[currentPreset][i + (knobPage * KNOB_PAGE_SIZE)];
-		tRamp_setVal(&adc[i], value);
-		tRamp_setDest(&adc[i], value);
+		tExpSmooth_setValAndDest(&adc[i], value);
 		smoothedADC[i] = value;
 	}
 }
@@ -590,8 +587,8 @@ void setKnobValues(float* values)
 		}
 		knobActive[knob] = 0;
 		floatADCUI[knob] = -1.0f;
-		tRamp_setVal(&adc[knob], values[knob]);
-		tRamp_setDest(&adc[knob], values[knob]);
+		tExpSmooth_setValAndDest(&adc[knob], values[knob]);
+
 		smoothedADC[knob] = values[knob];
 	}
 }
@@ -605,8 +602,7 @@ void setKnobValue(int knob, float value)
 	}
 	knobActive[knob] = 0;
 	floatADCUI[knob] = -1.0f;
-	tRamp_setVal(&adc[knob], value);
-	tRamp_setDest(&adc[knob], value);
+	tExpSmooth_setValAndDest(&adc[knob], value);
 	smoothedADC[knob] = value;
 }
 

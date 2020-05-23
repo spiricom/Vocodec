@@ -60,6 +60,24 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+
+extern  volatile int64_t cycleCountVals[4][3];
+
+
+//simple cycle counter - writes to cycleCountVals: fills one of 16 slots with two numbers - the start count [0] and the time between start and end count [1].
+#define CYCLE_COUNT_START0 {cycleCountVals[0][2] = 0; cycleCountVals[0][0] = DWT->CYCCNT;}
+#define CYCLE_COUNT_START1 	{cycleCountVals[1][2] = 0;cycleCountVals[1][0] = DWT->CYCCNT;}
+#define CYCLE_COUNT_START2 	{cycleCountVals[2][2] = 0;cycleCountVals[2][0] = DWT->CYCCNT;}
+#define CYCLE_COUNT_START3 {cycleCountVals[3][2] = 0;cycleCountVals[3][0] = DWT->CYCCNT;}
+
+#define CYCLE_COUNT_END0 cycleCountVals[0][1] = DWT->CYCCNT - cycleCountVals[0][0];
+#define CYCLE_COUNT_END1 cycleCountVals[1][1] = DWT->CYCCNT - cycleCountVals[1][0];
+#define CYCLE_COUNT_END2 cycleCountVals[2][1] = DWT->CYCCNT - cycleCountVals[2][0];
+#define CYCLE_COUNT_END3 {if (!cycleCountVals[3][2]){cycleCountVals[3][1] = DWT->CYCCNT - cycleCountVals[3][0];} else {cycleCountVals[3][1] = -1;}}
+
+
+
+
 float randomNumber(void);
 static void HardFault_Handler(void) __attribute__ ((naked));
 void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress );
@@ -68,7 +86,7 @@ uint32_t readIntFromFlash (uint32_t location);
 uint8_t LEAF_error(uint8_t errorCode);
 void CycleCounterStart( uint8_t );
 void CycleCounterEnd( uint8_t );
-void CycleCounterEndAndAddToAverage( uint8_t);
+void CycleCounterAddToAverage( uint8_t);
 void CycleCounterAverage( uint8_t );
 /* USER CODE END EFP */
 

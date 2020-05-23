@@ -68,11 +68,11 @@ uint16_t VarDataTab = 0;
 uint16_t VarValue = 0;
 
 
-
-uint64_t cycleCountVals[16][2];
-uint64_t cycleCountValsAverager[16][100];
-uint8_t cycleCountAveragerCounter = 0;
-float cycleCountAverages[16];
+#define NUM_COUNTER_CYCLES_TO_AVERAGE 32
+volatile int64_t cycleCountVals[4][3];
+volatile int64_t cycleCountValsAverager[4][NUM_COUNTER_CYCLES_TO_AVERAGE];
+volatile uint16_t cycleCountAveragerCounter[4] = {0,0,0,0};
+float cycleCountAverages[4][3];
 
 
 
@@ -630,39 +630,74 @@ static void CycleCounterInit( void )
   /* start the cycle counter */
   DWT->CTRL = 0x40000001;
 
-}
-
-//simple cycle counter - writes to cycleCountVals: fills one of 16 slots with two numbers - the start count [0] and the time between start and end count [1].
-void CycleCounterStart( uint8_t whichCount)
-{
-	cycleCountVals[whichCount][0] = DWT->CYCCNT;
-}
-void CycleCounterEnd( uint8_t whichCount)
-{
-	cycleCountVals[whichCount][1] = DWT->CYCCNT - cycleCountVals[whichCount][0];
+  for (int i = 0; i < 4; i++)
+  {
+	  cycleCountAverages[i][0] = 0.0f;
+	  cycleCountAverages[i][1] = 0.0f;
+	  cycleCountAverages[i][2] = 0.0f;
+  }
 }
 
 
 //these are expensive but give an average of several counts
-void CycleCounterEndAndAddToAverage( uint8_t whichCount)
+void CycleCounterAddToAverage( uint8_t whichCount)
 {
-	cycleCountVals[whichCount][1] = DWT->CYCCNT - cycleCountVals[whichCount][0];
-	cycleCountValsAverager[whichCount][cycleCountAveragerCounter] = cycleCountVals[whichCount][1];
-	cycleCountAveragerCounter++;
-	if (cycleCountAveragerCounter > 100)
+	if ((cycleCountVals[whichCount][2] == 0) && (cycleCountVals[whichCount][1] > 0)) //the [2] spot in the array will be set to 1 if an interrupt happened during the cycle count -- need to set that in any higher-priority interrupts to make that true
 	{
-		cycleCountAveragerCounter  = 0;
+		cycleCountValsAverager[whichCount][cycleCountAveragerCounter[whichCount]] = cycleCountVals[whichCount][1];
 	}
+	else
+	{
+		cycleCountValsAverager[whichCount][cycleCountAveragerCounter[whichCount]] = -1;
+	}
+	cycleCountAveragerCounter[whichCount]++;
+	if (cycleCountAveragerCounter[whichCount] >= NUM_COUNTER_CYCLES_TO_AVERAGE)
+	{
+		cycleCountAveragerCounter[whichCount]  = 0;
+	}
+
 }
+
 //these are expensive but give an average of several counts
 void CycleCounterAverage( uint8_t whichCount)
 {
 	float totalCycles = 0.0f;
-	for (int i = 0; i < 100; i++)
+	float numberOfCountedSamples = 0.0f;
+	for (int i = 0; i < NUM_COUNTER_CYCLES_TO_AVERAGE; i++)
 	{
-		totalCycles += cycleCountValsAverager[whichCount][i];
+		if (cycleCountValsAverager[whichCount][i] >= 0) //check if the count is valid (not interrupted by an interrupt)
+		{
+			totalCycles += cycleCountValsAverager[whichCount][i];
+
+			//update min value ([1])
+			if ((cycleCountValsAverager[whichCount][i] < cycleCountAverages[whichCount][1]) || (cycleCountAverages[whichCount][1] == 0))
+			{
+				cycleCountAverages[whichCount][1] = cycleCountValsAverager[whichCount][i];
+				if (cycleCountAverages[whichCount][1] == -1)
+
+				{
+					setLED_USB(1);
+				}
+			}
+			//update max value ([2])
+			if (cycleCountValsAverager[whichCount][i] > cycleCountAverages[whichCount][2])
+			{
+				cycleCountAverages[whichCount][2] = cycleCountValsAverager[whichCount][i];
+			}
+			numberOfCountedSamples++;
+		}
+
+
 	}
-	cycleCountAverages[whichCount] = totalCycles / 100.0f;
+	if (numberOfCountedSamples > 0.0f)
+	{
+		cycleCountAverages[whichCount][0] = totalCycles / numberOfCountedSamples;
+	}
+	else
+	{
+		cycleCountAverages[whichCount][0] = 0.0f;
+	}
+
 }
 
 
