@@ -2113,7 +2113,9 @@ uint8_t tremoloStereo = 0;
 int Rsound = 0;
 
 char* soundNames[4];
-
+#define EXP_BUFFER_SIZE 256
+float expBuffer[EXP_BUFFER_SIZE];
+float expBufferSizeMinusOne = EXP_BUFFER_SIZE - 1;
 //FM Rhodes
 void SFXRhodesAlloc()
 {
@@ -2133,10 +2135,12 @@ void SFXRhodesAlloc()
 	tCycle_initToPool(&tremolo, &smallPool);
 	tCycle_setFreq(&tremolo, 3.0f);
 	tSimplePoly_setNumVoices(&poly, NUM_VOC_VOICES);
+	LEAF_generate_exp(expBuffer, 1000.0f, -1.0f, 0.0f, -0.0008f, EXP_BUFFER_SIZE);
 	setLED_A(numVoices == 1);
 	setLED_C(tremoloStereo == 1);
 	OLEDclearLine(SecondLine);
 	OLEDwriteString(soundNames[Rsound], 6, 0, SecondLine);
+
 }
 
 
@@ -2173,10 +2177,10 @@ void SFXRhodesFrame()
 	displayValues[2] = presetKnobValues[Rhodes][2] * 8.0f; //tremelo rate
 	displayValues[3] = presetKnobValues[Rhodes][3] * 1.3f; //drive
 	displayValues[4] = presetKnobValues[Rhodes][4]; //pan spread
-	displayValues[5] = (presetKnobValues[Rhodes][5] * 19.9f) + 0.1f;
-	displayValues[6] = (presetKnobValues[Rhodes][6] * 19.9f) + 0.1f;
+	displayValues[5] = expBuffer[(int)(presetKnobValues[Rhodes][5] * expBufferSizeMinusOne)] * 8192.0f;
+	displayValues[6] = expBuffer[(int)(presetKnobValues[Rhodes][6] * expBufferSizeMinusOne)] * 8192.0f;
 	displayValues[7] = presetKnobValues[Rhodes][7] * 1.111f;
-	displayValues[8] = (presetKnobValues[Rhodes][8] * 993.0f) + 7.0f;
+	displayValues[8] = expBuffer[(int)(presetKnobValues[Rhodes][8] * expBufferSizeMinusOne)] * 8192.0f;
 	displayValues[9] = presetKnobValues[Rhodes][9];
 
 	for (int k = 5; k < 10; k++)
@@ -2191,7 +2195,8 @@ void SFXRhodesFrame()
 					{
 						for (int j = 0; j < 6; j++)
 						{
-							tADSR_setAttack(&FM_envs[i][j], FM_attacks[Rsound][j] * displayValues[5]);
+							//tADSR_setAttack(&FM_envs[i][j], FM_attacks[Rsound][j] * displayValues[5]);
+							tADSR_setAttack(&FM_envs[i][j], displayValues[5] );
 						}
 					}
 					break;
