@@ -179,9 +179,9 @@ typedef struct _MIDI_Process
 }
 MIDI_HandleTypeDef;
 
+#define USB_FIFO_SIZE 256
 
-
-extern volatile uint8_t myUSB_FIFO[256];
+extern volatile uint8_t myUSB_FIFO[USB_FIFO_SIZE];
 extern volatile uint16_t myUSB_FIFO_readPointer;
 extern volatile uint16_t myUSB_FIFO_writePointer;
 extern volatile uint8_t myUSB_FIFO_overflowBit;

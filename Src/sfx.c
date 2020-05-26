@@ -1984,6 +1984,7 @@ tADSR4 polyEnvs[NUM_VOC_VOICES];
 
 void SFXClassicSynthAlloc()
 {
+	leaf.clearOnAllocation = 1;
 	tSimplePoly_setNumVoices(&poly, numVoices);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
@@ -1999,6 +2000,7 @@ void SFXClassicSynthAlloc()
 	}
 
 	setLED_A(numVoices == 1);
+	leaf.clearOnAllocation = 0;
 }
 
 void SFXClassicSynthFrame()
@@ -2135,6 +2137,7 @@ char* soundNames[4];
 //FM Rhodes
 void SFXRhodesAlloc()
 {
+	leaf.clearOnAllocation = 1;
 	soundNames[0] = "DARK  ";
 	soundNames[1] = "LIGHT ";
 	soundNames[2] = "BASS  ";
@@ -2157,6 +2160,7 @@ void SFXRhodesAlloc()
 	setLED_C(tremoloStereo == 1);
 	OLEDclearLine(SecondLine);
 	OLEDwriteString(soundNames[Rsound], 6, 0, SecondLine);
+	leaf.clearOnAllocation = 0;
 
 }
 
