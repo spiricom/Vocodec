@@ -639,6 +639,26 @@ static void CycleCounterInit( void )
 }
 
 
+
+
+
+//this keeps min and max, but doesn't do the array for averaging - a bit less expensive
+void CycleCounterTrackMinAndMax( uint8_t whichCount)
+{
+	if ((cycleCountVals[whichCount][2] == 0) && (cycleCountVals[whichCount][1] > 0)) //the [2] spot in the array will be set to 1 if an interrupt happened during the cycle count -- need to set that in any higher-priority interrupts to make that true
+	{
+		if ((cycleCountVals[whichCount][1] < cycleCountAverages[whichCount][1]) || (cycleCountAverages[whichCount][1] == 0))
+		{
+			cycleCountAverages[whichCount][1] = cycleCountVals[whichCount][1];
+		}
+		//update max value ([2])
+		if (cycleCountVals[whichCount][1] > cycleCountAverages[whichCount][2])
+		{
+			cycleCountAverages[whichCount][2] = cycleCountVals[whichCount][1];
+		}
+	}
+}
+
 //these are expensive but give an average of several counts
 void CycleCounterAddToAverage( uint8_t whichCount)
 {
@@ -655,7 +675,6 @@ void CycleCounterAddToAverage( uint8_t whichCount)
 	{
 		cycleCountAveragerCounter[whichCount]  = 0;
 	}
-
 }
 
 //these are expensive but give an average of several counts
@@ -673,11 +692,6 @@ void CycleCounterAverage( uint8_t whichCount)
 			if ((cycleCountValsAverager[whichCount][i] < cycleCountAverages[whichCount][1]) || (cycleCountAverages[whichCount][1] == 0))
 			{
 				cycleCountAverages[whichCount][1] = cycleCountValsAverager[whichCount][i];
-				if (cycleCountAverages[whichCount][1] == -1)
-
-				{
-					setLED_USB(1);
-				}
 			}
 			//update max value ([2])
 			if (cycleCountValsAverager[whichCount][i] > cycleCountAverages[whichCount][2])
@@ -686,8 +700,6 @@ void CycleCounterAverage( uint8_t whichCount)
 			}
 			numberOfCountedSamples++;
 		}
-
-
 	}
 	if (numberOfCountedSamples > 0.0f)
 	{

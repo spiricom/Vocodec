@@ -86,6 +86,7 @@ uint32_t readIntFromFlash (uint32_t location);
 uint8_t LEAF_error(uint8_t errorCode);
 void CycleCounterStart( uint8_t );
 void CycleCounterEnd( uint8_t );
+void CycleCounterTrackMinAndMax( uint8_t whichCount);
 void CycleCounterAddToAverage( uint8_t);
 void CycleCounterAverage( uint8_t );
 /* USER CODE END EFP */

@@ -123,7 +123,7 @@
                                 								
                                 <option id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.fdata.1165467477" name="Place the data in their own section (-fdata-sections)" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.fdata" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                 								
-                                <option id="gnu.c.compiler.option.warnings.extrawarn.1504788385" superClass="gnu.c.compiler.option.warnings.extrawarn" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+                                <option id="gnu.c.compiler.option.warnings.extrawarn.1504788385" name="Extra warnings (-Wextra)" superClass="gnu.c.compiler.option.warnings.extrawarn" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                 								
                                 <inputType id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.c.1200332349" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.c"/>
                                 								

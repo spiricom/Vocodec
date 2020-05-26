@@ -14,6 +14,7 @@
 #define INC_MISC_WT 0
 #define USE_FILTERTAN_TABLE 1
 
+
 float defaultPresetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
 float presetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
 float params[NUM_PRESET_KNOB_VALUES];
@@ -2211,7 +2212,12 @@ void SFXRhodesFrame()
 						for (int j = 0; j < 6; j++)
 						{
 							//tADSR_setAttack(&FM_envs[i][j], FM_attacks[Rsound][j] * displayValues[5]);
+							cycleCountVals[1][2] = 0;
+							uint64_t tempCount1 = DWT->CYCCNT;
 							tADSR4_setAttack(&FM_envs[i][j], displayValues[5] );
+							uint64_t tempCount2 = DWT->CYCCNT;
+							cycleCountVals[1][1] = tempCount2-tempCount1;
+							CycleCounterTrackMinAndMax(1);
 						}
 					}
 					break;
@@ -2286,19 +2292,7 @@ void SFXRhodesTick(float audioIn)
 		tCycle_setFreq(&FM_sines[i][2], (myFrequency  * FM_freqRatios[Rsound][2]) + (FM_indices[Rsound][2] * displayValues[0] * tCycle_tick(&FM_sines[i][3]) * tADSR4_tickNoInterp(&FM_envs[i][3])));
 		tCycle_setFreq(&FM_sines[i][1], myFrequency  * FM_freqRatios[Rsound][1]);
 		tCycle_setFreq(&FM_sines[i][0],( myFrequency  * FM_freqRatios[Rsound][0]) + (FM_indices[Rsound][0] * displayValues[0] * tCycle_tick(&FM_sines[i][1]) * tADSR4_tickNoInterp(&FM_envs[i][1])));
-
-
-		//cycleCountVals[1][2] = 0;
-		//uint64_t tempCount1 = DWT->CYCCNT;
-		float tempFloat1 = tADSR4_tickNoInterp(&FM_envs[i][2]);
-		//uint64_t tempCount2 = DWT->CYCCNT;
-		//cycleCountVals[1][1] = tempCount2-tempCount1;
-
-		//CycleCounterAddToAverage(1);
-
-
-
-		sample += (tCycle_tick(&FM_sines[i][2]) * tempFloat1);
+		sample += (tCycle_tick(&FM_sines[i][2]) * tADSR4_tickNoInterp(&FM_envs[i][2]));
 		sample += tCycle_tick(&FM_sines[i][0]) * tADSR4_tickNoInterp(&FM_envs[i][0]);
 		leftSample += sample*((0.5f * (1.0f - displayValues[4])) + (displayValues[4] * (1.0f - panValues[i])));
 		rightSample += sample*((0.5f * (1.0f - displayValues[4])) + (displayValues[4] * (panValues[i])));

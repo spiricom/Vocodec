@@ -157,18 +157,9 @@ void audioFrame(uint16_t buffer_offset)
 	tempCount5 = DWT->CYCCNT;
 
 	buttonCheck();
-	//cycleCountVals[3][2] = 0;
-	//tempCount3 = DWT->CYCCNT;
-	adcCheck();
-	//tempCount4 = DWT->CYCCNT;
-	//cycleCountVals[3][1] = tempCount4-tempCount3;
-	//if (cycleCountVals[3][1] > 1280000)
-	//{
-		//setLED_Edit(1);
-		//overflow
-	//}
 
-	//CycleCounterAddToAverage(3);
+	adcCheck();
+
 	// if the USB write pointer has advanced (indicating unread data is in the buffer),
 	// or the overflow bit is set, meaning that the write pointer wrapped around and the read pointer hasn't caught up to it yet
 	// then process that new data this frame
@@ -262,12 +253,7 @@ void audioFrame(uint16_t buffer_offset)
 		setLED_Edit(1);
 		//overflow
 	}
-	CycleCounterAddToAverage(0);
-
-    //CycleCounterAverage(0);
-    //CycleCounterAverage(1);
-    //CycleCounterAverage(3);
-
+	CycleCounterTrackMinAndMax(0);
 }
 
 
