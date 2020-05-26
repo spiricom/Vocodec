@@ -116,14 +116,13 @@ void parse_MIDI_Message(void)
 
 }
 
-
-
 /*-----------------------------------------------------------------------------*/
 void ProcessReceivedMidiDatas(void)
 {
 	uint8_t miniBufferPosition = 0;
-
-	while ((myUSB_FIFO_writePointer > myUSB_FIFO_readPointer) || (myUSB_FIFO_overflowBit))
+	uint8_t processed = 0;
+	while (((myUSB_FIFO_writePointer > myUSB_FIFO_readPointer) || (myUSB_FIFO_overflowBit)) &&
+			(processed < 32)) // maximum notes to process in a frame * 4
 	{
 
 		miniBufferPosition = (myUSB_FIFO_readPointer % 4);
@@ -133,11 +132,12 @@ void ProcessReceivedMidiDatas(void)
 		{
 			parse_MIDI_Message();
 		}
-		if (myUSB_FIFO_readPointer >= 256)
+		if (myUSB_FIFO_readPointer >= USB_FIFO_SIZE)
 		{
 			myUSB_FIFO_overflowBit = 0;
 			myUSB_FIFO_readPointer = 0;
 		}
+		processed++;
 	}
 }
 

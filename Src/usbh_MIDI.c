@@ -33,8 +33,7 @@
 #include "MIDI_application.h"
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-
-volatile uint8_t myUSB_FIFO[256];
+volatile uint8_t myUSB_FIFO[USB_FIFO_SIZE];
 volatile uint16_t myUSB_FIFO_readPointer = 0;
 volatile uint16_t myUSB_FIFO_writePointer = 0;
 volatile uint8_t myUSB_FIFO_overflowBit = 0;
