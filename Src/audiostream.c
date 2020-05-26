@@ -146,8 +146,8 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 
 void audioFrame(uint16_t buffer_offset)
 {
-	volatile uint32_t tempCount3 = 0;
-	volatile uint32_t tempCount4 = 0;
+	//volatile uint32_t tempCount3 = 0;
+	//volatile uint32_t tempCount4 = 0;
 	volatile uint32_t tempCount5 = 0;
 	volatile uint32_t tempCount6 = 0;
 	int i;
@@ -157,18 +157,18 @@ void audioFrame(uint16_t buffer_offset)
 	tempCount5 = DWT->CYCCNT;
 
 	buttonCheck();
-	cycleCountVals[3][2] = 0;
-	tempCount3 = DWT->CYCCNT;
+	//cycleCountVals[3][2] = 0;
+	//tempCount3 = DWT->CYCCNT;
 	adcCheck();
-	tempCount4 = DWT->CYCCNT;
-	cycleCountVals[3][1] = tempCount4-tempCount3;
+	//tempCount4 = DWT->CYCCNT;
+	//cycleCountVals[3][1] = tempCount4-tempCount3;
 	//if (cycleCountVals[3][1] > 1280000)
 	//{
 		//setLED_Edit(1);
 		//overflow
 	//}
 
-	CycleCounterAddToAverage(3);
+	//CycleCounterAddToAverage(3);
 	// if the USB write pointer has advanced (indicating unread data is in the buffer),
 	// or the overflow bit is set, meaning that the write pointer wrapped around and the read pointer hasn't caught up to it yet
 	// then process that new data this frame
@@ -264,8 +264,9 @@ void audioFrame(uint16_t buffer_offset)
 	}
 	CycleCounterAddToAverage(0);
 
-    CycleCounterAverage(0);
-    CycleCounterAverage(3);
+    //CycleCounterAverage(0);
+    //CycleCounterAverage(1);
+    //CycleCounterAverage(3);
 
 }
 

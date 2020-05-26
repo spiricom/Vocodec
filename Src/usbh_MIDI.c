@@ -34,10 +34,10 @@
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 
-uint8_t myUSB_FIFO[256];
-uint16_t myUSB_FIFO_readPointer = 0;
-uint16_t myUSB_FIFO_writePointer = 0;
-uint8_t myUSB_FIFO_overflowBit = 0;
+volatile uint8_t myUSB_FIFO[256];
+volatile uint16_t myUSB_FIFO_readPointer = 0;
+volatile uint16_t myUSB_FIFO_writePointer = 0;
+volatile uint8_t myUSB_FIFO_overflowBit = 0;
 
 
 /** @defgroup USBH_MIDI_CORE_Private_FunctionPrototypes

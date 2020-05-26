@@ -72,9 +72,9 @@ void initModeNames(void)
 		cvAddParam[i] = -1;
 	}
 
-	modeNames[Vocoder] = "VOCODER LPC";
+	modeNames[Vocoder] = "VOCODER1";
 	shortModeNames[Vocoder] = "VL";
-	modeNamesDetails[Vocoder] = "";
+	modeNamesDetails[Vocoder] = "LPC";
 	numPages[Vocoder] = 2;
 	knobParamNames[Vocoder][0] = "VOLUME";
 	knobParamNames[Vocoder][1] = "WARP";
@@ -88,9 +88,9 @@ void initModeNames(void)
 	knobParamNames[Vocoder][9] = "";
 
 
-	modeNames[VocoderCh] = "VOCODER CH";
+	modeNames[VocoderCh] = "VOCODER2";
 	shortModeNames[VocoderCh] = "VC";
-	modeNamesDetails[VocoderCh] = "";
+	modeNamesDetails[VocoderCh] = "CHANNEL";
 	numPages[VocoderCh] = 3;
 	knobParamNames[VocoderCh][0] = "VOLUME";
 	knobParamNames[VocoderCh][1] = "WARP";
@@ -163,9 +163,9 @@ void initModeNames(void)
 	knobParamNames[SamplerKeyboard][4] = "";
 	knobParamNames[SamplerKeyboard][5] = "";
 
-	modeNames[SamplerAutoGrab] = "AUTOSAMPLER";
+	modeNames[SamplerAutoGrab] = "AUTOSAMP";
 	shortModeNames[SamplerAutoGrab] = "AS";
-	modeNamesDetails[SamplerAutoGrab] = "";
+	modeNamesDetails[SamplerAutoGrab] = "AUDIO TRIG'D";
 	numPages[SamplerAutoGrab] = 1;
 	knobParamNames[SamplerAutoGrab][0] = "THRESHOLD";
 	knobParamNames[SamplerAutoGrab][1] = "WINDOW";
@@ -174,9 +174,9 @@ void initModeNames(void)
 	knobParamNames[SamplerAutoGrab][4] = "";
 	knobParamNames[SamplerAutoGrab][5] = "";
 
-	modeNames[Distortion] = "DISTORTION";
+	modeNames[Distortion] = "DISTORT";
 	shortModeNames[Distortion] = "DT";
-	modeNamesDetails[Distortion] = "";
+	modeNamesDetails[Distortion] = "WITH EQ";
 	numPages[Distortion] = 1;
 	knobParamNames[Distortion][0] = "PRE GAIN";
 	knobParamNames[Distortion][1] = "TILT";
@@ -185,7 +185,7 @@ void initModeNames(void)
 	knobParamNames[Distortion][4] = "POST GAIN";
 	knobParamNames[Distortion][5] = "";
 
-	modeNames[Wavefolder] = "WAVEFOLDER";
+	modeNames[Wavefolder] = "WAVEFOLD";
 	shortModeNames[Wavefolder] = "WF";
 	modeNamesDetails[Wavefolder] = "SERGE STYLE";
 	numPages[Wavefolder] = 1;
@@ -196,7 +196,7 @@ void initModeNames(void)
 	knobParamNames[Wavefolder][4] = "";
 	knobParamNames[Wavefolder][5] = "";
 
-	modeNames[BitCrusher] = "BITCRUSHER";
+	modeNames[BitCrusher] = "BITCRUSH";
 	shortModeNames[BitCrusher] = "BC";
 	modeNamesDetails[BitCrusher] = "AHH HALP ME";
 	numPages[BitCrusher] = 1;
@@ -209,7 +209,7 @@ void initModeNames(void)
 
 	modeNames[Delay] = "DELAY";
 	shortModeNames[Delay] = "DL";
-	modeNamesDetails[Delay] = "";
+	modeNamesDetails[Delay] = "STEREO";
 	numPages[Delay] = 1;
 	knobParamNames[Delay][0] = "DELAY_L";
 	knobParamNames[Delay][1] = "DELAY_R";
@@ -218,7 +218,7 @@ void initModeNames(void)
 	knobParamNames[Delay][4] = "HIGHPASS";
 	knobParamNames[Delay][5] = "";
 
-	modeNames[Reverb] = "REVERB";
+	modeNames[Reverb] = "REVERB1";
 	shortModeNames[Reverb] = "RV";
 	modeNamesDetails[Reverb] = "DATTORRO ALG";
 	numPages[Reverb] = 1;
@@ -240,9 +240,9 @@ void initModeNames(void)
 	knobParamNames[Reverb2][4] = "PEAK_GAIN";
 	knobParamNames[Reverb2][5] = "";
 
-	modeNames[LivingString] = "STRING";
+	modeNames[LivingString] = "STRING1";
 	shortModeNames[LivingString] = "LS";
-	modeNamesDetails[LivingString] = "LIVING STRING";
+	modeNamesDetails[LivingString] = "SYMP STRING";
 	numPages[LivingString] = 1;
 	knobParamNames[LivingString][0] = "FREQ";
 	knobParamNames[LivingString][1] = "DETUNE";
@@ -251,9 +251,9 @@ void initModeNames(void)
 	knobParamNames[LivingString][4] = "PICK_POS";
 	knobParamNames[LivingString][5] = "";
 
-	modeNames[LivingStringSynth] = "STRING SYNTH";
+	modeNames[LivingStringSynth] = "STRING2";
 	shortModeNames[LivingStringSynth] = "SS";
-	modeNamesDetails[LivingStringSynth] = "LIVING STRING";
+	modeNamesDetails[LivingStringSynth] = "STRING SYNTH";
 	numPages[LivingStringSynth] = 1;
 	knobParamNames[LivingStringSynth][0] = "";
 	knobParamNames[LivingStringSynth][1] = "";
@@ -262,7 +262,7 @@ void initModeNames(void)
 	knobParamNames[LivingStringSynth][4] = "PICK_POS";
 	knobParamNames[LivingStringSynth][5] = "";
 
-	modeNames[ClassicSynth] = "CLASSIC SYNTH";
+	modeNames[ClassicSynth] = "POLYSYNTH";
 	shortModeNames[ClassicSynth] = "CS";
 	modeNamesDetails[ClassicSynth] = "VCO+VCF";
 	numPages[ClassicSynth] = 2;
@@ -291,6 +291,16 @@ void initModeNames(void)
 	knobParamNames[Rhodes][7] = "SUSTAIN";
 	knobParamNames[Rhodes][8] = "RELEASE";
 	knobParamNames[Rhodes][9] = "LEAK";
+	knobParamNames[Rhodes][10] = "INDEX1";
+	knobParamNames[Rhodes][11] = "INDEX2";
+	knobParamNames[Rhodes][12] = "INDEX3";
+	knobParamNames[Rhodes][13] = "INDEX4";
+	knobParamNames[Rhodes][14] = "INDEX5";
+	knobParamNames[Rhodes][15] = "FEEDBACK";
+	knobParamNames[Rhodes][16] = "RATIO1";
+	knobParamNames[Rhodes][17] = "RATIO2";
+	knobParamNames[Rhodes][18] = "RATIO3";
+	knobParamNames[Rhodes][19] = "RATIO4";
 }
 
 void buttonCheck(void)

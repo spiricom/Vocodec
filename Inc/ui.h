@@ -9,7 +9,7 @@
 
 #define NUM_ADC_CHANNELS 6
 #define NUM_BUTTONS 10
-#define NUM_PRESET_KNOB_VALUES 15
+#define NUM_PRESET_KNOB_VALUES 25
 #define KNOB_PAGE_SIZE 5
 
 //PresetNil is used as a counter for the size of the enum

@@ -181,10 +181,10 @@ MIDI_HandleTypeDef;
 
 
 
-extern uint8_t myUSB_FIFO[256];
-extern uint16_t myUSB_FIFO_readPointer;
-extern uint16_t myUSB_FIFO_writePointer;
-extern uint8_t myUSB_FIFO_overflowBit;
+extern volatile uint8_t myUSB_FIFO[256];
+extern volatile uint16_t myUSB_FIFO_readPointer;
+extern volatile uint16_t myUSB_FIFO_writePointer;
+extern volatile uint8_t myUSB_FIFO_overflowBit;
 
 
 
