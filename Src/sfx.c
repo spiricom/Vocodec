@@ -17,7 +17,6 @@
 
 float defaultPresetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
 float presetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
-float params[NUM_PRESET_KNOB_VALUES];
 uint8_t knobActive[NUM_ADC_CHANNELS];
 
 //audio objects
@@ -382,17 +381,18 @@ void SFXVocoderTick(float audioIn)
 	// presetKnobValues are ALL the 0-1 values for each preset (numpresets*15), set from smoothedADC
 	// in audiostream frame before sfx frame function are called, and in audiostream tick before sfx ticks are called
 
-	// params are the presetKnobValues (15) after adjusting the range and should be used for setting objects
-
 	// displayValues (5) are the values to be written to the screen and should depend on knobPage,
 	// usually equal to params but sometimes different
 
 	// ** we could replace params with local variables in each function, but the other two need to be global
-	displayValues[3] = params[3] = presetKnobValues[Vocoder][3]; //pulse length
+	displayValues[3] = presetKnobValues[Vocoder][3]; //pulse length
 
-	displayValues[4] = params[4] = presetKnobValues[Vocoder][4]; //crossfade between sawtooth and glottal pulse
+	displayValues[4] = presetKnobValues[Vocoder][4]; //crossfade between sawtooth and glottal pulse
 
-	if (internalExternal == 1) sample = rightIn;
+	if (internalExternal == 1)
+	{
+		sample = rightIn;
+	}
 
 
 	else
@@ -400,7 +400,7 @@ void SFXVocoderTick(float audioIn)
 		zerocross = tZeroCrossing_tick(&zerox, audioIn);
 
 		//currently reusing the sawtooth/pulse fade knob for noise amount but need to separate these -JS
-		if (zerocross > ((params[4])-0.1f))
+		if (zerocross > ((displayValues[4])-0.1f))
 		{
 			tRamp_setDest(&noiseRamp, 1.0f);
 		}
@@ -415,27 +415,27 @@ void SFXVocoderTick(float audioIn)
 
 		for (int i = 0; i < tSimplePoly_getNumActiveVoices(&poly); i++)
 		{
-			sample += tSaw_tick(&osc[i]) * tRamp_tick(&polyRamp[i]) * (1.0f-params[4]);
+			sample += tSaw_tick(&osc[i]) * tRamp_tick(&polyRamp[i]) * (1.0f-displayValues[4]);
 
-			tRosenbergGlottalPulse_setPulseLength(&glottal[i], params[3] );
+			tRosenbergGlottalPulse_setPulseLength(&glottal[i], displayValues[3] );
 
 			//tRosenbergGlottalPulse_setOpenLength(&glottal[i], smoothedADC[2] * smoothedADC[1]);
-			sample += tRosenbergGlottalPulse_tick(&glottal[i]) * tRamp_tick(&polyRamp[i]) * params[4];
+			sample += tRosenbergGlottalPulse_tick(&glottal[i]) * tRamp_tick(&polyRamp[i]) * displayValues[4];
 		}
 
 		sample = (sample * (1.0f-noiseRampVal)) + noiseSample;
 		sample *= tRamp_tick(&comp);
 	}
-	displayValues[0] = params[0] = presetKnobValues[Vocoder][0]; //vocoder volume
+	displayValues[0] = presetKnobValues[Vocoder][0]; //vocoder volume
 
-	displayValues[1] = params[1] = (presetKnobValues[Vocoder][1] * 0.4f) - 0.2f; //warp factor
-	tTalkbox_setWarpFactor(&vocoder, params[1]);
+	displayValues[1] = (presetKnobValues[Vocoder][1] * 0.4f) - 0.2f; //warp factor
+	tTalkbox_setWarpFactor(&vocoder, displayValues[1]);
 
-	displayValues[2] = params[2] = (presetKnobValues[Vocoder][2] * 1.3f); //quality
-	tTalkbox_setQuality(&vocoder, params[2]);
+	displayValues[2] = (presetKnobValues[Vocoder][2] * 1.3f); //quality
+	tTalkbox_setQuality(&vocoder, displayValues[2]);
 
 	sample = tTalkbox_tick(&vocoder, sample, audioIn);
-	sample *= params[0] * 0.5f;
+	sample *= displayValues[0] * 0.5f;
 	sample = tanhf(sample);
 	leftOut = sample;
 	rightOut = sample;
@@ -2021,24 +2021,18 @@ void SFXClassicSynthFrame()
 
 	float* knobs = presetKnobValues[ClassicSynth];
 
-	params[0] = knobs[0]; //synth volume
-	params[1] = knobs[1] * 4096.0f; //lowpass cutoff
-	params[2] = knobs[2]; //keyfollow filter cutoff
-	params[3] = knobs[3]; //detune
-	params[4] = (knobs[4] * 2.0f) + 0.4f; //filter Q
+	displayValues[0] = knobs[0]; //synth volume
+	displayValues[1] = knobs[1] * 4096.0f; //lowpass cutoff
+	displayValues[2] = knobs[2]; //keyfollow filter cutoff
+	displayValues[3] = knobs[3]; //detune
+	displayValues[4] = (knobs[4] * 2.0f) + 0.4f; //filter Q
 
-	params[5] = (knobs[5] * 993.0f) + 7.0f; //att
-	params[6] = (knobs[6] * 993.0f) + 7.0f; //dec
-    params[7] = knobs[7]; //sus
-    params[8] = (knobs[8] * 993.0f) + 7.0f; //rel
-    params[9] = (knobs[9] > 0.98) ? 0.9985f : (((1.0f - knobs[9]*knobs[9]) * 0.0015f) + 0.9985f); //leak
+	displayValues[5] = (knobs[5] * 8000.0f) + 7.0f; //att
+	displayValues[6] = (knobs[6] * 8000.0f) + 7.0f; //dec
+	displayValues[7] = knobs[7]; //sus
+	displayValues[8] = (knobs[8] * 8000.0f) + 7.0f; //rel
+	displayValues[9] = (knobs[9] > 0.98) ? 0.9985f : (((1.0f - knobs[9]*knobs[9]) * 0.0015f) + 0.9985f); //leak
 
-    displayValues[0] = params[knobPage * KNOB_PAGE_SIZE];
-    displayValues[1] = params[1 + (knobPage * KNOB_PAGE_SIZE)];
-    displayValues[2] = params[2 + (knobPage * KNOB_PAGE_SIZE)];
-    displayValues[3] = params[3 + (knobPage * KNOB_PAGE_SIZE)];
-    displayValues[4] = params[4 + (knobPage * KNOB_PAGE_SIZE)];
-	if (knobPage == 1) displayValues[4] = knobs[9];
 
 	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
@@ -2046,20 +2040,20 @@ void SFXClassicSynthFrame()
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSaw_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * params[3])));
+			tSaw_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * displayValues[3])));
 		}
-		float keyFollowFilt = myMidiNote * params[2] * 64.0f;
-		float tempFreq = params[1] +  keyFollowFilt;
+		float keyFollowFilt = myMidiNote * displayValues[2] * 64.0f;
+		float tempFreq = displayValues[1] +  keyFollowFilt;
 		tempFreq = LEAF_clip(0.0f, tempFreq, 4095.0f);
 
 		filtFreqs[i] = (uint16_t) tempFreq;
-		tEfficientSVF_setQ(&synthLP[i],params[4]);
+		tEfficientSVF_setQ(&synthLP[i],displayValues[4]);
 
-		tADSR4_setAttack(&polyEnvs[i], params[5]);
-		tADSR4_setDecay(&polyEnvs[i], params[6]);
-		tADSR4_setSustain(&polyEnvs[i], params[7]);
-		tADSR4_setRelease(&polyEnvs[i], params[8]);
-		tADSR4_setLeakFactor(&polyEnvs[i], params[9]);
+		tADSR4_setAttack(&polyEnvs[i], displayValues[5]);
+		tADSR4_setDecay(&polyEnvs[i], displayValues[6]);
+		tADSR4_setSustain(&polyEnvs[i], displayValues[7]);
+		tADSR4_setRelease(&polyEnvs[i], displayValues[8]);
+		tADSR4_setLeakFactor(&polyEnvs[i], displayValues[9]);
 	}
 }
 
@@ -2085,7 +2079,7 @@ void SFXClassicSynthTick(float audioIn)
 		tEfficientSVF_setFreq(&synthLP[i], filtFreqs[i]);
 		sample += tEfficientSVF_tick(&synthLP[i], tempSample);
 	}
-	sample *= INV_NUM_OSC_PER_VOICE * params[0];
+	sample *= INV_NUM_OSC_PER_VOICE * displayValues[0];
 
 
 	sample = tanhf(sample);
