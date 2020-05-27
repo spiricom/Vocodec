@@ -285,6 +285,16 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[ClassicSynth][7] = 0.9f;
 	defaultPresetKnobValues[ClassicSynth][8] = 0.1f;
 	defaultPresetKnobValues[ClassicSynth][9] = 0.1f;
+	defaultPresetKnobValues[ClassicSynth][10] = 0.0f;
+	defaultPresetKnobValues[ClassicSynth][11] = 0.06f;
+	defaultPresetKnobValues[ClassicSynth][12] = 0.9f;
+	defaultPresetKnobValues[ClassicSynth][13] = 0.1f;
+	defaultPresetKnobValues[ClassicSynth][14] = 0.1f;
+	defaultPresetKnobValues[ClassicSynth][15] = 0.0f;
+	defaultPresetKnobValues[ClassicSynth][16] = 0.06f;
+	defaultPresetKnobValues[ClassicSynth][17] = 0.9f;
+	defaultPresetKnobValues[ClassicSynth][18] = 0.1f;
+	defaultPresetKnobValues[ClassicSynth][19] = 0.1f;
 
 	defaultPresetKnobValues[Rhodes][0] = 0.25f;
 	defaultPresetKnobValues[Rhodes][1] = 0.25f;
@@ -1985,7 +1995,9 @@ float synthMidiNotes[NUM_VOC_VOICES];
 tEfficientSVF synthLP[NUM_VOC_VOICES];
 uint16_t filtFreqs[NUM_VOC_VOICES];
 tADSR4 polyEnvs[NUM_VOC_VOICES];
-
+tADSR4 polyFiltEnvs[NUM_VOC_VOICES];
+tCycle pwmLFO1;
+tCycle pwmLFO2;
 void SFXClassicSynthAlloc()
 {
 	leaf.clearOnAllocation = 1;
@@ -1996,16 +2008,26 @@ void SFXClassicSynthAlloc()
 		{
 			tSaw_initToPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 			synthDetune[i][j] = ((leaf.random() * 0.5f) - 0.25f);
+			tRosenbergGlottalPulse_initToPool(&glottal[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
+			tRosenbergGlottalPulse_setOpenLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], 0.3f);
+			tRosenbergGlottalPulse_setPulseLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], 0.4f);
 		}
-
+		tCycle_initToPool(&pwmLFO1, &smallPool);
+		tCycle_initToPool(&pwmLFO2, &smallPool);
+		tCycle_setFreq(&pwmLFO1, 63.0f);
+		tCycle_setFreq(&pwmLFO2, 72.11f);
 		tEfficientSVF_initToPool(&synthLP[i], SVFTypeLowpass, 6000.0f, 0.8f, &smallPool);
 		tADSR4_initToPool(&polyEnvs[i], 7.0f, 64.0f, 0.9f, 100.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
 		tADSR4_setLeakFactor(&polyEnvs[i], 0.999987f);
+		tADSR4_initToPool(&polyFiltEnvs[i], 7.0f, 64.0f, 0.9f, 100.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
+		tADSR4_setLeakFactor(&polyFiltEnvs[i], 0.999987f);
 	}
 
 	setLED_A(numVoices == 1);
 	leaf.clearOnAllocation = 0;
 }
+
+float filtEnvAmount = 0.0f;
 
 void SFXClassicSynthFrame()
 {
@@ -2037,14 +2059,27 @@ void SFXClassicSynthFrame()
 	displayValues[8] = (knobs[8] * 8000.0f) + 7.0f; //rel
 	displayValues[9] = (knobs[9] > 0.98) ? 0.9985f : (((1.0f - knobs[9]*knobs[9]) * 0.0015f) + 0.9985f); //leak
 
+	displayValues[10] = (knobs[10] * 8000.0f) + 7.0f; //att
+	displayValues[11] = (knobs[11] * 8000.0f) + 7.0f; //dec
+	displayValues[12] = knobs[12]; //sus
+	displayValues[13] = (knobs[13] * 8000.0f) + 7.0f; //rel
+	displayValues[14] = (knobs[14] > 0.98) ? 0.9985f : (((1.0f - knobs[9]*knobs[9]) * 0.0002f) + 0.9998f); //leak
 
+	displayValues[15] = knobs[15] * 4095.0f;
+	displayValues[16] = knobs[16];
+	float tempLFO1 = (tCycle_tick(&pwmLFO1) * 0.25f) + 0.5f;
+	float tempLFO2 = ((tCycle_tick(&pwmLFO2) * 0.25f) + 0.5f)* tempLFO1;
 	for (int i = 0; i < numVoices; i++)
 	{
 		float myMidiNote = calculateTunedMidiNote((float)tSimplePoly_getPitch(&poly, i));
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSaw_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * displayValues[3])));
+			float tempFreq = LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * displayValues[3]));
+			tSaw_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], tempFreq);
+			tRosenbergGlottalPulse_setFreq(&glottal[(i * NUM_OSC_PER_VOICE) + j], tempFreq);
+			tRosenbergGlottalPulse_setPulseLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], tempLFO1);
+			tRosenbergGlottalPulse_setOpenLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], tempLFO2);
 		}
 		float keyFollowFilt = myMidiNote * displayValues[2] * 64.0f;
 		float tempFreq = displayValues[1] +  keyFollowFilt;
@@ -2058,6 +2093,13 @@ void SFXClassicSynthFrame()
 		tADSR4_setSustain(&polyEnvs[i], displayValues[7]);
 		tADSR4_setRelease(&polyEnvs[i], displayValues[8]);
 		tADSR4_setLeakFactor(&polyEnvs[i], displayValues[9]);
+
+
+		tADSR4_setAttack(&polyFiltEnvs[i], displayValues[10]);
+		tADSR4_setDecay(&polyFiltEnvs[i], displayValues[11]);
+		tADSR4_setSustain(&polyFiltEnvs[i], displayValues[12]);
+		tADSR4_setRelease(&polyFiltEnvs[i], displayValues[13]);
+		tADSR4_setLeakFactor(&polyFiltEnvs[i], displayValues[14]);
 
 
 
@@ -2091,12 +2133,15 @@ void SFXClassicSynthTick(float audioIn)
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tempSample += tSaw_tick(&osc[(i * NUM_OSC_PER_VOICE) + j]) * env;
+			tempSample += tSaw_tick(&osc[(i * NUM_OSC_PER_VOICE) + j]) * env * (1.0f-displayValues[16]);
+			tempSample += tRosenbergGlottalPulse_tick(&glottal[(i * NUM_OSC_PER_VOICE) + j]) * env * (displayValues[16]);
+			//tRosenbergGlottalPulse_setPulseLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], tCycle_tick(&pwmLFO1));
+			//tRosenbergGlottalPulse_setOpenLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], tCycle_tick(&pwmLFO2));
 		}
 //		tempSample += tSawtooth_tick(&osc[i]) * amplitudeTemp;
 //		tempSample += tSawtooth_tick(&osc[i + NUM_VOC_VOICES]) * amplitudeTemp;
 //		tempSample += tSawtooth_tick(&osc[i] + (NUM_VOC_VOICES * 2)) * amplitudeTemp;
-		tEfficientSVF_setFreq(&synthLP[i], filtFreqs[i]);
+		tEfficientSVF_setFreq(&synthLP[i], LEAF_clip(0.0f, (filtFreqs[i] + (displayValues[15] * tADSR4_tick(&polyFiltEnvs[i]))), 4095.0f));
 		sample += tEfficientSVF_tick(&synthLP[i], tempSample);
 	}
 	sample *= INV_NUM_OSC_PER_VOICE * displayValues[0];
@@ -2117,6 +2162,7 @@ void SFXClassicSynthFree(void)
 		}
 		tEfficientSVF_freeFromPool(&synthLP[i], &smallPool);
 		tADSR4_freeFromPool(&polyEnvs[i], &smallPool);
+		tADSR4_freeFromPool(&polyFiltEnvs[i], &smallPool);
 	}
 
 }
@@ -2474,6 +2520,7 @@ void noteOn(int key, int velocity)
 			else if (currentPreset == ClassicSynth)
 			{
 				tADSR4_on(&polyEnvs[whichVoice], velocity * 0.0078125f);
+				tADSR4_on(&polyFiltEnvs[whichVoice], velocity * 0.0078125f);
 			}
 		}
 		setLED_2(1);
@@ -2537,6 +2584,7 @@ void noteOff(int key, int velocity)
 			if (voice >= 0)
 			{
 				tADSR4_off(&polyEnvs[voice]);
+				tADSR4_off(&polyFiltEnvs[voice]);
 			}
 		}
 		else

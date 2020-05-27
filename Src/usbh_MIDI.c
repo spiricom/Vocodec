@@ -315,7 +315,6 @@ static USBH_StatusTypeDef USBH_MIDI_SOFProcess (USBH_HandleTypeDef *phost)
 						MIDI_Handle->InPipe);
 
 				MIDI_Handle->data_rx_state = MIDI_RECEIVE_DATA_WAIT;
-				//BSP_LED_On(LED_Red); //ok only here
 
 				break;
 

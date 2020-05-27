@@ -271,7 +271,7 @@ void OLED_writeEditScreen()
 void OLED_writeKnobParameter(uint8_t whichKnob)
 {
 	// Knob params
-	if (whichKnob < NUM_ADC_CHANNELS)
+	if (whichKnob < KNOB_PAGE_SIZE)
 	{
 		int whichParam = whichKnob + (knobPage * KNOB_PAGE_SIZE);
 		floatADCUI[whichKnob] = smoothedADC[whichKnob];

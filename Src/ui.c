@@ -265,7 +265,7 @@ void initModeNames(void)
 	modeNames[ClassicSynth] = "POLYSYNTH";
 	shortModeNames[ClassicSynth] = "CS";
 	modeNamesDetails[ClassicSynth] = "VCO+VCF";
-	numPages[ClassicSynth] = 2;
+	numPages[ClassicSynth] = 4;
 	knobParamNames[ClassicSynth][0] = "VOLUME";
 	knobParamNames[ClassicSynth][1] = "LOWPASS";
 	knobParamNames[ClassicSynth][2] = "KEYFOLLOW";
@@ -276,6 +276,16 @@ void initModeNames(void)
 	knobParamNames[ClassicSynth][7] = "SUSTAIN";
 	knobParamNames[ClassicSynth][8] = "RELEASE";
 	knobParamNames[ClassicSynth][9] = "LEAK";
+	knobParamNames[ClassicSynth][10] = "F_ATTACK";
+	knobParamNames[ClassicSynth][11] = "F_DECAY";
+	knobParamNames[ClassicSynth][12] = "F_SUSTAIN";
+	knobParamNames[ClassicSynth][13] = "F_RELEASE";
+	knobParamNames[ClassicSynth][14] = "F_LEAK";
+	knobParamNames[ClassicSynth][15] = "F_AMOUNT";
+	knobParamNames[ClassicSynth][16] = "F_DECAY";
+	knobParamNames[ClassicSynth][17] = "F_SUSTAIN";
+	knobParamNames[ClassicSynth][18] = "F_RELEASE";
+	knobParamNames[ClassicSynth][19] = "F_LEAK";
 
 	modeNames[Rhodes] = "RHODES";
 	shortModeNames[Rhodes] = "RD";
