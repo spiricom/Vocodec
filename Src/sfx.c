@@ -70,6 +70,7 @@ tExpSmooth smoother3;
 
 tExpSmooth neartune_smoother;
 
+tStack noteOffStack;
 
 #define EXP_BUFFER_SIZE 128
 float expBuffer[EXP_BUFFER_SIZE];
@@ -111,9 +112,8 @@ void initGlobalSFXObjects()
 		tRamp_initToPool(&polyRamp[i], 10.0f, 1, &smallPool);
 	}
 
-	tRamp_init(&nearWetRamp, 10.0f, 1);
-	tRamp_init(&nearDryRamp, 10.0f, 1);
 	tRamp_init(&comp, 10.0f, 1);
+	tStack_init(&noteOffStack);
 
 	LEAF_generate_exp(expBuffer, 1000.0f, -1.0f, 0.0f, -0.0008f, EXP_BUFFER_SIZE);
 	LEAF_generate_exp(decayExpBuffer, 0.001f, 0.0f, 1.0f, -0.0008f, DECAY_EXP_BUFFER_SIZE);
@@ -902,6 +902,8 @@ void SFXNeartuneAlloc()
 	tAutotune_init(&autotuneMono, 1, 512, 256);
 	calculateNoteArray();
 	tExpSmooth_init(&neartune_smoother, 100.0f, .007f);
+	tRamp_init(&nearWetRamp, 10.0f, 1);
+	tRamp_init(&nearDryRamp, 10.0f, 1);
 	setLED_A(autotuneChromatic);
 }
 
@@ -964,6 +966,8 @@ void SFXNeartuneFree(void)
 {
 	tAutotune_free(&autotuneMono);
 	tExpSmooth_free(&neartune_smoother);
+	tRamp_free(&nearWetRamp);
+	tRamp_free(&nearDryRamp);
 }
 
 
@@ -2034,7 +2038,7 @@ void SFXClassicSynthFrame()
 	displayValues[9] = (knobs[9] > 0.98) ? 0.9985f : (((1.0f - knobs[9]*knobs[9]) * 0.0015f) + 0.9985f); //leak
 
 
-	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
+	for (int i = 0; i < numVoices; i++)
 	{
 		float myMidiNote = calculateTunedMidiNote((float)tSimplePoly_getPitch(&poly, i));
 
@@ -2054,6 +2058,22 @@ void SFXClassicSynthFrame()
 		tADSR4_setSustain(&polyEnvs[i], displayValues[7]);
 		tADSR4_setRelease(&polyEnvs[i], displayValues[8]);
 		tADSR4_setLeakFactor(&polyEnvs[i], displayValues[9]);
+
+
+
+		if (numVoices > 1)
+		{
+			if (poly->voices[i][0] == -2)
+			{
+				if (polyEnvs[i]->whichStage == env_idle)
+				{
+					tSimplePoly_deactivateVoice(&poly, i);
+				}
+			}
+		}
+
+
+
 	}
 }
 
@@ -2263,15 +2283,20 @@ void SFXRhodesFrame()
 	for (int i = 0; i < numVoices; i++)
 	{
 		calculateFreq(i);
+		if (numVoices > 1)
+		{
+			if (poly->voices[i][0] == -2)
+			{
+				if ((FM_envs[i][0]->whichStage == env_idle) && (FM_envs[i][2]->whichStage == env_idle))
+				{
+					tSimplePoly_deactivateVoice(&poly, i);
+				}
+			}
+		}
 	}
 }
 
 
-//TODO:
-// scale all ADSR times between 0-1, generate an exponential curve and map knobs to that.
-// then adapt preset sound timings to match the 0-1 knob values
-
-//
 void SFXRhodesTick(float audioIn)
 {
 	float leftSample = 0.0f;
@@ -2342,10 +2367,11 @@ void SFXRhodesFree(void)
 
 // midi functions
 
+float pitchBendValue = 0.0f;
 
 void calculateFreq(int voice)
 {
-	float tempNote = (float)tSimplePoly_getPitch(&poly, voice);
+	float tempNote = (float)tSimplePoly_getPitch(&poly, voice) + pitchBendValue;
 	float tempPitchClass = ((((int)tempNote) - keyCenter) % 12 );
 	float tunedNote = tempNote + centsDeviation[(int)tempPitchClass];
 	freq[voice] = LEAF_midiToFrequency(tunedNote);
@@ -2353,7 +2379,8 @@ void calculateFreq(int voice)
 
 float calculateTunedMidiNote(float tempNote)
 {
-	float tempPitchClass = ((((int)tempNote) - keyCenter) % 12 );
+	tempNote += pitchBendValue;
+	float tempPitchClass = ((((int)tempNote) - keyCenter) % 12 ) ;
 	return (tempNote + centsDeviation[(int)tempPitchClass]);
 }
 
@@ -2451,7 +2478,6 @@ void noteOn(int key, int velocity)
 		}
 		setLED_2(1);
 	}
-
 }
 
 void noteOff(int key, int velocity)
@@ -2474,20 +2500,48 @@ void noteOff(int key, int velocity)
 		}
 	}
 
-	int voice = tSimplePoly_noteOff(&poly, key);
-	if (voice >= 0)
+	else
 	{
-		//tRamp_setDest(&polyRamp[voice], 0.0f);
 		if (currentPreset == Rhodes)
 		{
-			for (int j = 0; j < 6; j++)
+			int voice;
+			if (tSimplePoly_getNumVoices(&poly) > 1)
 			{
-				tADSR4_off(&FM_envs[voice][j]);
+				voice = tSimplePoly_markPendingNoteOff(&poly, key); //if we're polyphonic, we need to let release envelopes happen and not mark voices free when they are not
 			}
+			else
+			{
+				voice = tSimplePoly_noteOff(&poly, key); //if we're monophonic, we need to allow fast voice stealing and returning to previous stolen notes without regard for the release envelopes
+			}
+			if (voice >= 0)
+			{
+				for (int j = 0; j < 6; j++)
+				{
+					tADSR4_off(&FM_envs[voice][j]);
+				}
+			}
+
 		}
 		else if (currentPreset == ClassicSynth)
 		{
-			tADSR4_off(&polyEnvs[voice]);
+			int voice;
+			if (tSimplePoly_getNumVoices(&poly) > 1)
+			{
+				voice = tSimplePoly_markPendingNoteOff(&poly, key); //if we're polyphonic, we need to let release envelopes happen and not mark voices free when they are not
+			}
+			else
+			{
+				voice = tSimplePoly_noteOff(&poly, key); //if we're monophonic, we need to allow fast voice stealing and returning to previous stolen notes without regard for the release envelopes
+			}
+
+			if (voice >= 0)
+			{
+				tADSR4_off(&polyEnvs[voice]);
+			}
+		}
+		else
+		{
+			tSimplePoly_noteOff(&poly, key);
 		}
 	}
 
@@ -2501,7 +2555,7 @@ void noteOff(int key, int velocity)
 
 void pitchBend(int data)
 {
-	//tPoly_setPitchBend(&poly, (data - 8192) * 0.000244140625f);
+	pitchBendValue = (data - 8192) * 0.000244140625f;
 }
 
 
