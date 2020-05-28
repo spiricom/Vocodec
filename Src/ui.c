@@ -166,13 +166,17 @@ void initModeNames(void)
 	modeNames[SamplerAutoGrab] = "AUTOSAMP";
 	shortModeNames[SamplerAutoGrab] = "AS";
 	modeNamesDetails[SamplerAutoGrab] = "AUDIO TRIG'D";
-	numPages[SamplerAutoGrab] = 1;
+	numPages[SamplerAutoGrab] = 2;
 	knobParamNames[SamplerAutoGrab][0] = "THRESHOLD";
 	knobParamNames[SamplerAutoGrab][1] = "WINDOW";
-	knobParamNames[SamplerAutoGrab][2] = "REL THRESH";
+	knobParamNames[SamplerAutoGrab][2] = "SPEED";
 	knobParamNames[SamplerAutoGrab][3] = "CROSSFADE";
 	knobParamNames[SamplerAutoGrab][4] = "";
-	knobParamNames[SamplerAutoGrab][5] = "";
+	knobParamNames[SamplerAutoGrab][5] = "LENRAND+/-";
+	knobParamNames[SamplerAutoGrab][6] = "SPDRAND+/-";
+	knobParamNames[SamplerAutoGrab][7] = "";
+	knobParamNames[SamplerAutoGrab][8] = "";
+	knobParamNames[SamplerAutoGrab][9] = "";
 
 	modeNames[Distortion] = "DISTORT";
 	shortModeNames[Distortion] = "DT";
