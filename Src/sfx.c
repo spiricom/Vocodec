@@ -34,8 +34,9 @@ tRamp polyRamp[NUM_VOC_VOICES];
 tRamp comp;
 
 tBuffer buff;
-tBuffer buff2;
+tBuffer asBuff[2];
 tSampler sampler;
+tSampler asSampler[2];
 
 // we have about 172 seconds of space to
 // divide across this number of keys
@@ -188,10 +189,14 @@ void initGlobalSFXObjects()
 
 	defaultPresetKnobValues[SamplerAutoGrab][0] = 0.95f; // thresh
 	defaultPresetKnobValues[SamplerAutoGrab][1] = 0.5f; // window
-	defaultPresetKnobValues[SamplerAutoGrab][2] = 0.0f; // rel thresh
+	defaultPresetKnobValues[SamplerAutoGrab][2] = 0.75f; // speed
 	defaultPresetKnobValues[SamplerAutoGrab][3] = 0.25f; // crossfade
 	defaultPresetKnobValues[SamplerAutoGrab][4] = 0.0f;
-	defaultPresetKnobValues[SamplerAutoGrab][5] = 0.0f;
+	defaultPresetKnobValues[SamplerAutoGrab][5] = 0.0f; // len rand
+	defaultPresetKnobValues[SamplerAutoGrab][6] = 0.0f; // speed rand
+	defaultPresetKnobValues[SamplerAutoGrab][7] = 0.0f;
+	defaultPresetKnobValues[SamplerAutoGrab][8] = 0.0f;
+	defaultPresetKnobValues[SamplerAutoGrab][9] = 0.0f;
 
 	defaultPresetKnobValues[Distortion][0] = .25f; // pre gain
 	defaultPresetKnobValues[Distortion][1] = 0.5f; // tilt (low and high shelfs, opposing gains
@@ -850,6 +855,7 @@ void SFXVocoderChFree(void)
 		tSaw_freeFromPool(&osc[i], &smallPool);
 		tRosenbergGlottalPulse_freeFromPool(&glottal[i], &smallPool);
 	}
+	tOversampler_freeFromPool(&oversampler, &smallPool);
 }
 
 // pitch shift
@@ -1310,18 +1316,29 @@ uint32_t sample_countdown = 0;
 PlayMode samplerMode = PlayLoop;
 uint32_t powerCounter = 0;
 uint8_t triggerChannel = 0;
-uint8_t firstTrigger = 0;
+uint8_t currentSampler = 0;
+int randLengthVal = 0;
+float randRateVal = 0.0f;
+tRamp asFade;
 
 void SFXSamplerAutoAlloc()
 {
-	tBuffer_initToPool(&buff2, leaf.sampleRate * 2.0f, &largePool);
-	tBuffer_setRecordMode(&buff2, RecordOneShot);
-	tSampler_init(&sampler, &buff2);
-	tSampler_setMode(&sampler, PlayLoop);
+	tBuffer_initToPool(&asBuff[0], leaf.sampleRate * 2.0f, &largePool);
+	tBuffer_setRecordMode(&asBuff[0], RecordOneShot);
+	tBuffer_initToPool(&asBuff[1], leaf.sampleRate * 2.0f, &largePool);
+	tBuffer_setRecordMode(&asBuff[1], RecordOneShot);
+	tSampler_init(&asSampler[0], &asBuff[0]);
+	tSampler_setMode(&asSampler[0], PlayLoop);
+	tSampler_init(&asSampler[1], &asBuff[1]);
+	tSampler_setMode(&asSampler[1], PlayLoop);
 	tEnvelopeFollower_init(&envfollow, 0.05f, 0.9999f);
+	tRamp_init(&asFade, 14.0f, 1);
 	setLED_A(samplerMode == PlayBackAndForth);
 	setLED_B(triggerChannel);
-	firstTrigger = 1;
+	currentSampler = 1;
+	sample_countdown = 0;
+	randLengthVal = randomNumber() * 10000.0f;
+	randRateVal = (randomNumber() - 0.5f) * 4.0f;
 }
 
 void SFXSamplerAutoFrame()
@@ -1339,26 +1356,43 @@ void SFXSamplerAutoTick(float* input)
 
 	samp_thresh = 1.0f - knobs[0];
 	displayValues[0] = samp_thresh;
+
 	int window_size = knobs[1] * 10000.0f;
 	displayValues[1] = window_size;
-	displayValues[3] = knobs[3] * 1000.0f;
-	crossfadeLength = displayValues[3];
 
-	tSampler_setCrossfadeLength(&sampler, crossfadeLength);
+	float rate = (knobs[2] - 0.5f) * 4.0f;
+	displayValues[2] = rate;
+
+	crossfadeLength = knobs[3] * 1000.0f;
+	displayValues[3] = crossfadeLength;
+
+	float randLengthAmount = knobs[5] * 5000.0f;
+	if (randLengthAmount < 20.0f) randLengthAmount = 0.0f;
+	displayValues[5] = randLengthAmount;
+
+	float randRateAmount = knobs[6] * 2.0f;
+	if (randRateAmount < 0.01) randRateAmount = 0.0f;
+	displayValues[6] = randRateAmount;
+
+
+	tSampler_setCrossfadeLength(&asSampler[0], crossfadeLength);
+	tSampler_setCrossfadeLength(&asSampler[1], crossfadeLength);
+
 
 	if ((currentPower > (samp_thresh)) && (currentPower > previousPower + 0.001f) && (samp_triggered == 0) && (sample_countdown == 0))
 	{
+		randLengthVal = (randomNumber() - 0.5f) * randLengthAmount * 2.0f;
+		randRateVal = (randomNumber() - 0.5f) * randRateAmount * 2.0f;
+		currentSampler = !currentSampler;
 		samp_triggered = 1;
 		setLED_1(1);
-		tBuffer_record(&buff2);
-		if (firstTrigger)
-		{
-			tSampler_play(&sampler);
-			firstTrigger = 0;
-		}
-		buff2->recordedLength = buff2->bufferLength;
-		sample_countdown = window_size + 24;//arbitrary extra time to avoid resampling while playing previous sample - better solution would be alternating buffers and crossfading
+		tBuffer_record(&asBuff[currentSampler]);
+		tSampler_play(&asSampler[currentSampler]);
+		sample_countdown = window_size;
 		powerCounter = 1000;
+		// why does the sampler have difficulty starting to play without this line? should probably solve this inside leaf because this is a bit weird
+		asBuff[currentSampler]->recordedLength = asBuff[currentSampler]->bufferLength;
+		tRamp_setDest(&asFade, (float)currentSampler);
 	}
 
 	if (sample_countdown > 0)
@@ -1367,8 +1401,16 @@ void SFXSamplerAutoTick(float* input)
 	}
 
 
-	tSampler_setEnd(&sampler,window_size);
-	tBuffer_tick(&buff2, input[1]);
+
+	tSampler_setRate(&asSampler[0], rate + randRateVal);
+	tSampler_setRate(&asSampler[1], rate + randRateVal);
+
+	tSampler_setEnd(&asSampler[0], window_size + randLengthVal);
+	tSampler_setEnd(&asSampler[1], window_size + randLengthVal);
+
+	tBuffer_tick(&asBuff[0], input[1]);
+	tBuffer_tick(&asBuff[1], input[1]);
+
 	//on it's way down
 	if (currentPower <= previousPower)
 	{
@@ -1386,14 +1428,16 @@ void SFXSamplerAutoTick(float* input)
 	{
 		if (samplerMode == PlayLoop)
 		{
-			tSampler_setMode(&sampler, PlayBackAndForth);
+			tSampler_setMode(&asSampler[0], PlayBackAndForth);
+			tSampler_setMode(&asSampler[1], PlayBackAndForth);
 			samplerMode = PlayBackAndForth;
 			setLED_A(1);
 			buttonActionsSFX[ButtonA][ActionPress] = 0;
 		}
 		else if (samplerMode == PlayBackAndForth)
 		{
-			tSampler_setMode(&sampler, PlayLoop);
+			tSampler_setMode(&asSampler[0], PlayLoop);
+			tSampler_setMode(&asSampler[1], PlayLoop);
 			samplerMode = PlayLoop;
 			setLED_A(0);
 			buttonActionsSFX[ButtonA][ActionPress] = 0;
@@ -1405,7 +1449,9 @@ void SFXSamplerAutoTick(float* input)
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
 		setLED_B(triggerChannel);
 	}
-	sample = tSampler_tick(&sampler);
+
+	float fade = tRamp_tick(&asFade);
+	sample = tSampler_tick(&asSampler[0]) * (1.0f - fade) + tSampler_tick(&asSampler[1]) * fade;
 	input[0] = sample;
 	input[1] = sample;
 	previousPower = currentPower;
@@ -1413,9 +1459,12 @@ void SFXSamplerAutoTick(float* input)
 
 void SFXSamplerAutoFree(void)
 {
-	tBuffer_freeFromPool(&buff2, &largePool);
-	tSampler_free(&sampler);
+	tBuffer_freeFromPool(&asBuff[0], &largePool);
+	tBuffer_freeFromPool(&asBuff[1], &largePool);
+	tSampler_free(&asSampler[0]);
+	tSampler_free(&asSampler[1]);
 	tEnvelopeFollower_free(&envfollow);
+	tRamp_free(&asFade);
 }
 
 //10 distortion tanh
@@ -1497,6 +1546,9 @@ void SFXDistortionFree(void)
 
 
 int foldMode = 0;
+
+float oversampleBuf[2];
+
 void SFXWaveFolderAlloc()
 {
 	leaf.clearOnAllocation = 1;
@@ -1583,7 +1635,7 @@ void SFXWaveFolderTick(float* input)
 
 		sample = tLockhartWavefolder_tick(&wavefolder2, sample);
 
-		sample = tOversampler_tick(&oversampler, sample, &LEAF_tanh);
+		sample = tOversampler_tick(&oversampler, sample, oversampleBuf, &LEAF_tanh);
 		sample = tHighpass_tick(&wfHP, sample) * displayValues[3];
 		//sample *= 0.99f;
 		input[0] = sample;
@@ -2118,20 +2170,18 @@ void SFXClassicSynthAlloc()
 			tRosenbergGlottalPulse_setOpenLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], 0.3f);
 			tRosenbergGlottalPulse_setPulseLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], 0.4f);
 		}
-	}
-	tCycle_initToPool(&pwmLFO1, &smallPool);
-	tCycle_initToPool(&pwmLFO2, &smallPool);
-	tCycle_setFreq(&pwmLFO1, 63.0f);
-	tCycle_setFreq(&pwmLFO2, 72.11f);
-	for (int i = 0; i < NUM_VOC_VOICES; i++)
-	{
 
 		tEfficientSVF_initToPool(&synthLP[i], SVFTypeLowpass, 6000.0f, displayValues[4], &smallPool);
 		tADSR4_initToPool(&polyEnvs[i], displayValues[5], displayValues[6], displayValues[7], displayValues[8], decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
 		tADSR4_setLeakFactor(&polyEnvs[i],((1.0f - displayValues[9]) * 0.00005f) + 0.99995f);
 		tADSR4_initToPool(&polyFiltEnvs[i], displayValues[10], displayValues[11], displayValues[12], displayValues[13], decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
 		tADSR4_setLeakFactor(&polyFiltEnvs[i], ((1.0f - displayValues[14]) * 0.00005f) + 0.99995f);
+
 	}
+	tCycle_initToPool(&pwmLFO1, &smallPool);
+	tCycle_initToPool(&pwmLFO2, &smallPool);
+	tCycle_setFreq(&pwmLFO1, 63.0f);
+	tCycle_setFreq(&pwmLFO2, 72.11f);
 
 	setLED_A(numVoices == 1);
 	leaf.clearOnAllocation = 0;
@@ -2325,6 +2375,8 @@ void SFXClassicSynthTick(float* input)
 
 void SFXClassicSynthFree(void)
 {
+	tCycle_freeFromPool(&pwmLFO1, &smallPool);
+	tCycle_freeFromPool(&pwmLFO2, &smallPool);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
@@ -2332,15 +2384,13 @@ void SFXClassicSynthFree(void)
 			tSaw_freeFromPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 			tRosenbergGlottalPulse_freeFromPool(&glottal[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 		}
-	}
-	tCycle_freeFromPool(&pwmLFO1, &smallPool);
-	tCycle_freeFromPool(&pwmLFO2, &smallPool);
-	for (int i = 0; i < NUM_VOC_VOICES; i++)
-	{
 		tEfficientSVF_freeFromPool(&synthLP[i], &smallPool);
 		tADSR4_freeFromPool(&polyEnvs[i], &smallPool);
 		tADSR4_freeFromPool(&polyFiltEnvs[i], &smallPool);
 	}
+
+	tCycle_freeFromPool(&pwmLFO1, &smallPool);
+	tCycle_freeFromPool(&pwmLFO2, &smallPool);
 
 }
 
