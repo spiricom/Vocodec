@@ -748,7 +748,8 @@ void GFXcp437(GFX* myGFX, uint8_t x) {
 }
 
 void GFXsetFont(GFX* myGFX, const GFXfont *f) {
-    if(f)
+
+	if(f)
     {            // Font struct pointer passed in?
         if(!myGFX->gfxFont) { // And no current font struct?
             // Switching from classic to new font behavior.
@@ -764,40 +765,40 @@ void GFXsetFont(GFX* myGFX, const GFXfont *f) {
 			// calculate max descender ("j" or "g")
 		myGFX->fontDesc = 0;
 
-			uint8_t first  = (uint8_t) pgm_read_byte(&f->first);
-			uint8_t last  = (uint8_t) pgm_read_byte(&f->last);
-			for (uint8_t i = first; i <= last; i++)
+		uint8_t first  = (uint8_t) pgm_read_byte(&f->first);
+		uint8_t last  = (uint8_t) pgm_read_byte(&f->last);
+		for (uint8_t i = first; i <= last; i++)
+		{
+			GFXglyph *glyph;
+			uint8_t gh;
+			int8_t  yo;
+
+			glyph = &(((GFXglyph *)pgm_read_pointer(&f->glyph))[i-first]);
+
+			gh = (uint8_t) pgm_read_byte(&glyph->height);
+			yo = (int8_t) pgm_read_byte(&glyph->yOffset);
+
+			if (gh + yo > myGFX->fontDesc)
 			{
-				GFXglyph *glyph;
-				uint8_t gh;
-				int8_t  yo;
-
-				glyph = &(((GFXglyph *)pgm_read_pointer(&f->glyph))[i-first]);
-
-				gh = (uint8_t) pgm_read_byte(&glyph->height);
-				yo = (int8_t) pgm_read_byte(&glyph->yOffset);
-
-				if (gh + yo > myGFX->fontDesc)
-				{
-					myGFX->fontDesc = gh + yo;
-				}
+				myGFX->fontDesc = gh + yo;
 			}
-
-			myGFX->fontHeight = (int16_t) pgm_read_byte(&f->yAdvance);
-		  }
-		  else
-		  {
-			if(myGFX->gfxFont)
-			{ // NULL passed.  Current font struct defined?
-			  // Switching from new to classic font behavior.
-			  // Move cursor pos up 6 pixels so it's at top-left of char.
-				myGFX->cursor_y -= 6;
-			}
-
-			myGFX->fontHeight = 8;
-			myGFX->fontDesc = 0;
 		}
-    	myGFX->gfxFont = (GFXfont *)f;
+
+		myGFX->fontHeight = (int16_t) pgm_read_byte(&f->yAdvance);
+	}
+	else
+	{
+		if(myGFX->gfxFont)
+		{ // NULL passed.  Current font struct defined?
+		  // Switching from new to classic font behavior.
+		  // Move cursor pos up 6 pixels so it's at top-left of char.
+			myGFX->cursor_y -= 6;
+		}
+
+		myGFX->fontHeight = 8;
+		myGFX->fontDesc = 0;
+	}
+    myGFX->gfxFont = (GFXfont *)f;
 }
 
 

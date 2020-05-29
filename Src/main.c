@@ -196,16 +196,16 @@ int main(void)
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);
 
   uint32_t tempFPURegisterVal = __get_FPSCR();
-  tempFPURegisterVal |= (1<<24); // set the FTZ (flush-to-zero) bit in the FPU control register
+  tempFPURegisterVal |= (1<<24); // set the FTZ (flush-to-zero) bit in the FPU control register  // this makes checking for denormals not necessary as they are automatically set to zero by the hardware
   __set_FPSCR(tempFPURegisterVal);
 
 
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
 
   if (HAL_ADC_Start_DMA(&hadc1,(uint32_t*)&ADC_values, NUM_ADC_CHANNELS) != HAL_OK)
-	{
-	  Error_Handler();
-	}
+  {
+      Error_Handler();
+  }
 
   HAL_Delay(10);
   OLED_init(&hi2c4);
@@ -228,7 +228,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
-
+    OLED_process(); // process what to write to the screen but don't actually draw
     /* USER CODE BEGIN 3 */
 
 	if (hi2c4.State == HAL_I2C_STATE_READY)

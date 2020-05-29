@@ -96,7 +96,7 @@ void initModeNames(void)
 	knobParamNames[VocoderCh][1] = "WARP";
 	knobParamNames[VocoderCh][2] = "QUALITY";
 	knobParamNames[VocoderCh][3] = "BANDWIDTH";
-	knobParamNames[VocoderCh][4] = "NOISETHRESH";
+	knobParamNames[VocoderCh][4] = "NOISTHRESH";
 	knobParamNames[VocoderCh][5] = "SAWtoPULSE";
 	knobParamNames[VocoderCh][6] = "PULSEWIDTH";
 	knobParamNames[VocoderCh][7] = "PULSESHAPE";
@@ -106,7 +106,7 @@ void initModeNames(void)
 	knobParamNames[VocoderCh][11] = "BANDOFFSET";
 	knobParamNames[VocoderCh][12] = "TILT";
 	knobParamNames[VocoderCh][13] = "STEREO";
-	knobParamNames[VocoderCh][14] = "";
+	knobParamNames[VocoderCh][14] = "BARKPULL";
 
 	modeNames[Pitchshift] = "PITCHSHIFT";
 	shortModeNames[Pitchshift] = "PS";
@@ -199,13 +199,13 @@ void initModeNames(void)
 	modeNames[BitCrusher] = "BITCRUSH";
 	shortModeNames[BitCrusher] = "BC";
 	modeNamesDetails[BitCrusher] = "AHH HALP ME";
-	numPages[BitCrusher] = 1;
+	numPages[BitCrusher] = 2;
 	knobParamNames[BitCrusher][0] = "QUALITY";
 	knobParamNames[BitCrusher][1] = "SAMP RATIO";
 	knobParamNames[BitCrusher][2] = "ROUNDING";
 	knobParamNames[BitCrusher][3] = "OPERATION";
 	knobParamNames[BitCrusher][4] = "POST GAIN";
-	knobParamNames[BitCrusher][5] = "";
+	knobParamNames[BitCrusher][5] = "PRE GAIN";
 
 	modeNames[Delay] = "DELAY";
 	shortModeNames[Delay] = "DL";
@@ -282,10 +282,10 @@ void initModeNames(void)
 	knobParamNames[ClassicSynth][13] = "F_RELEASE";
 	knobParamNames[ClassicSynth][14] = "F_LEAK";
 	knobParamNames[ClassicSynth][15] = "F_AMOUNT";
-	knobParamNames[ClassicSynth][16] = "F_DECAY";
-	knobParamNames[ClassicSynth][17] = "F_SUSTAIN";
-	knobParamNames[ClassicSynth][18] = "F_RELEASE";
-	knobParamNames[ClassicSynth][19] = "F_LEAK";
+	knobParamNames[ClassicSynth][16] = "SAW/PULSE";
+	knobParamNames[ClassicSynth][17] = "";
+	knobParamNames[ClassicSynth][18] = "";
+	knobParamNames[ClassicSynth][19] = "";
 
 	modeNames[Rhodes] = "RHODES";
 	shortModeNames[Rhodes] = "RD";
@@ -654,6 +654,11 @@ char* UIVocoderButtons(VocodecButton button, ButtonAction action)
 		writeString = internalExternal ? "EXTERNAL" : "INTERNAL";
 		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
+	if (buttonActionsUI[ButtonC][ActionPress] == 1)
+	{
+		writeString = vocChFreeze ? "FROZEN" : "UNFROZEN";
+		buttonActionsUI[ButtonC][ActionPress] = 0;
+	}
 	return writeString;
 }
 
@@ -669,6 +674,11 @@ char* UIVocoderChButtons(VocodecButton button, ButtonAction action)
 	{
 		writeString = internalExternal ? "EXTERNAL" : "INTERNAL";
 		buttonActionsUI[ButtonB][ActionPress] = 0;
+	}
+	if (buttonActionsUI[ButtonC][ActionPress] == 1)
+	{
+		writeString = vocChFreeze ? "FROZEN" : "UNFROZEN";
+		buttonActionsUI[ButtonC][ActionPress] = 0;
 	}
 	return writeString;
 }
@@ -783,6 +793,11 @@ char* UIDistortionButtons(VocodecButton button, ButtonAction action)
 char* UIWaveFolderButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
+	if (buttonActionsUI[ButtonA][ActionPress])
+	{
+		writeString = foldMode ? "TWO IN SERIES" : "OVERSAMPLED";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
 	return writeString;
 }
 
@@ -862,7 +877,7 @@ char* UIClassicSynthButtons(VocodecButton button, ButtonAction action)
 	}
 	if (buttonActionsUI[ButtonB][ActionPress])
 	{
-		writeString = knobPage == 0 ? "SETTINGS" : "ADSR";
+		//writeString = knobPage == 0 ? "SETTINGS" : "ADSR";
 		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;

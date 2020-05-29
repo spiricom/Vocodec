@@ -115,36 +115,10 @@ void initGlobalSFXObjects()
 	tRamp_init(&comp, 10.0f, 1);
 	tStack_init(&noteOffStack);
 
-	LEAF_generate_exp(expBuffer, 1000.0f, -1.0f, 0.0f, -0.0008f, EXP_BUFFER_SIZE);
-	LEAF_generate_exp(decayExpBuffer, 0.001f, 0.0f, 1.0f, -0.0008f, DECAY_EXP_BUFFER_SIZE);
-	/*
-	 * 	knobParamNames[Vocoder][0] = "VOLUME";
-	knobParamNames[Vocoder][1] = "WARP";
-	knobParamNames[Vocoder][2] = "QUALITY";
-	knobParamNames[Vocoder][3] = "SAWtoPULSE";
-	knobParamNames[Vocoder][4] = "NOISE THRESH";
-	knobParamNames[Vocoder][5] = "BREATHINESS";
-	knobParamNames[Vocoder][6] = "PULSE WIDTH";
-	knobParamNames[Vocoder][7] = "PULSE SHAPE";
-	knobParamNames[Vocoder][8] = "";
-	knobParamNames[Vocoder][9] = "";
+	LEAF_generate_exp(expBuffer, 1000.0f, -1.0f, 0.0f, -0.0008f, EXP_BUFFER_SIZE); //exponential buffer rising from 0 to 1
+	LEAF_generate_exp(decayExpBuffer, 0.001f, 0.0f, 1.0f, -0.0008f, DECAY_EXP_BUFFER_SIZE); // exponential decay buffer falling from 1 to 0
 
 
-	modeNames[VocoderCh] = "VOCODER CH";
-	shortModeNames[VocoderCh] = "VC";
-	modeNamesDetails[VocoderCh] = "";
-	numPages[VocoderCh] = 2;
-	knobParamNames[VocoderCh][0] = "VOLUME";
-	knobParamNames[VocoderCh][1] = "WARP";
-	knobParamNames[VocoderCh][2] = "QUALITY";
-	knobParamNames[VocoderCh][3] = "BANDWIDTH";
-	knobParamNames[VocoderCh][4] = "NOISE THRESH";
-	knobParamNames[VocoderCh][5] = "SAWtoPULSE";
-	knobParamNames[VocoderCh][6] = "PULSE WIDTH";
-	knobParamNames[VocoderCh][7] = "PULSE SHAPE";
-	knobParamNames[VocoderCh][8] = "BREATHINESS";
-	knobParamNames[VocoderCh][9] = "SPEED";
-	 */
 	// Note that these are the actual knob values
 	// not the parameter value
 	// (i.e. 0.5 for fine pitch is actually 0.0 fine pitch)
@@ -229,7 +203,7 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[Wavefolder][0] = 0.25f; // gain
 	defaultPresetKnobValues[Wavefolder][1] = 0.5f; // offset1
 	defaultPresetKnobValues[Wavefolder][2] = 0.5f; // offset2
-	defaultPresetKnobValues[Wavefolder][3] = 0.10f; // post gain
+	defaultPresetKnobValues[Wavefolder][3] = 0.3f; // post gain
 	defaultPresetKnobValues[Wavefolder][4] = 0.0f;
 	defaultPresetKnobValues[Wavefolder][5] = 0.0f;
 
@@ -382,7 +356,7 @@ void SFXVocoderFrame()
 	}
 }
 
-void SFXVocoderTick(float audioIn)
+void SFXVocoderTick(float* input)
 {
 
 	float zerocross = 0.0f;
@@ -401,13 +375,13 @@ void SFXVocoderTick(float audioIn)
 
 	if (internalExternal == 1)
 	{
-		sample = rightIn;
+		sample = input[0];
 	}
 
 
 	else
 	{
-		zerocross = tZeroCrossing_tick(&zerox, audioIn);
+		zerocross = tZeroCrossing_tick(&zerox, input[1]);
 
 		//currently reusing the sawtooth/pulse fade knob for noise amount but need to separate these -JS
 		if (zerocross > ((displayValues[4])-0.1f))
@@ -444,11 +418,11 @@ void SFXVocoderTick(float audioIn)
 	displayValues[2] = (presetKnobValues[Vocoder][2] * 1.3f); //quality
 	tTalkbox_setQuality(&vocoder, displayValues[2]);
 
-	sample = tTalkbox_tick(&vocoder, sample, audioIn);
+	sample = tTalkbox_tick(&vocoder, sample, input[1]);
 	sample *= displayValues[0] * 0.5f;
 	sample = tanhf(sample);
-	leftOut = sample;
-	rightOut = sample;
+	input[0] = sample;
+	input[1] = sample;
 }
 
 void SFXVocoderFree(void)
@@ -464,21 +438,21 @@ void SFXVocoderFree(void)
 	}
 }
 
-
-#define MAX_NUM_VOCODER_BANDS 15
-tVZFilter analysisBands[MAX_NUM_VOCODER_BANDS][2];
-tVZFilter synthesisBands[MAX_NUM_VOCODER_BANDS][2];
-tPowerFollower envFollowers[MAX_NUM_VOCODER_BANDS];
-uint8_t numberOfVocoderBands = 15;
-uint8_t prevNumberOfVocoderBands = 15;
-float invNumberOfVocoderBands = 0.1f;
+#define MAX_VOCODER_FILTER_ORDER 2
+#define MAX_NUM_VOCODER_BANDS 24
+tVZFilter analysisBands[MAX_NUM_VOCODER_BANDS][MAX_VOCODER_FILTER_ORDER];
+tVZFilter synthesisBands[MAX_NUM_VOCODER_BANDS][MAX_VOCODER_FILTER_ORDER];
+tExpSmooth envFollowers[MAX_NUM_VOCODER_BANDS];
+uint8_t numberOfVocoderBands = 22;
+int filterOrder = 2;
+uint8_t prevNumberOfVocoderBands = 22;
+float invNumberOfVocoderBands = 0.03125f;
 tNoise breathNoise;
 tHighpass noiseHP;
-float warpFactor = 1.0f;
+
 int currentBandToAlter = 0;
 int alteringBands = 0;
 
-float myQ = 1.0f;
 float prevMyQ = 1.0f;
 float invMyQ = 1.0f;
 float prevWarpFactor = 1.0f;
@@ -488,103 +462,23 @@ float bandWidthInSemitones;
 float bandWidthInOctaves;  // divide by 12
 
 float thisBandwidth;
-float bandSquish = 1.0f;
 float prevBandSquish = 1.0f;
-float bandOffset = 30.0f;
 float prevBandOffset = 30.0f;
+float prevMyTilt = 0.0f;
+float prevBarkPull = 0.0f;
 
+tVZFilter vocodec_highshelf;
+uint32_t vocChFreeze = 0;
+float barkBandFreqs[24] = {100.0f, 150.0f, 250.0f, 350.0f, 450.0f, 570.0f, 700.0f, 840.0f, 1000.0f, 1170.0f, 1370.0f, 1600.0f, 1850.0f, 2150.0f, 2500.0f, 2900.0f, 3400.0f, 4000.0f, 4800.0f, 5800.0f, 7000.0f, 8500.0f, 10500.0f, 12000.0f};
+float barkBandWidths[24] = {1.0f, 1.0f, 0.5849f, 0.4150f, 0.3505f, 0.304854f, 0.2895066175f, 0.256775415f, 0.231325545833333f, 0.233797185f, 0.220768679166667f, 0.216811389166667f, 0.217591435f, 0.214124805f, 0.218834601666667f, 0.222392421666667f, 0.2321734425f, 0.249978253333333f, 0.268488835833333f, 0.272079545833333f, 0.266786540833333f, 0.3030690675f, 0.3370349875f, 0.36923381f};
 void SFXVocoderChAlloc()
 {
-	invNumberOfVocoderBands = 1.0f / ((float)numberOfVocoderBands-0.99f);
-	bandWidthInSemitones = 99.0f * invNumberOfVocoderBands;
-	bandWidthInOctaves = bandWidthInSemitones * 0.083333333333333f;  // divide by 12
-	thisBandwidth = bandWidthInOctaves * myQ;
-	tOversampler_initToPool(&oversampler, 2, 0, &smallPool);
-	for (int i = 0; i < MAX_NUM_VOCODER_BANDS; i++)
-	{
-
-		float bandFreq = faster_mtof((i * bandWidthInSemitones) + 30.0f); //midinote 28 (41Hz) to midinote 134 (18814Hz) is 106 midinotes, divide that by how many bands to find out how far apart to put the bands
-
-		bandGains[i] = 1.0f;
-
-		if (i == 0)
-		{
-			tVZFilter_init(&analysisBands[i][0], Lowpass, bandFreq, thisBandwidth);
-			tVZFilter_init(&analysisBands[i][1], Lowpass, bandFreq, thisBandwidth);
-
-			tVZFilter_init(&synthesisBands[i][0], Lowpass, bandFreq, thisBandwidth);
-			tVZFilter_init(&synthesisBands[i][1], Lowpass, bandFreq, thisBandwidth);
-		}
-		else if (i == (MAX_NUM_VOCODER_BANDS-1))
-		{
-			tVZFilter_init(&analysisBands[i][0], Highpass, bandFreq, thisBandwidth);
-			tVZFilter_init(&analysisBands[i][1], Highpass, bandFreq, thisBandwidth);
-
-			tVZFilter_init(&synthesisBands[i][0], Highpass, bandFreq, thisBandwidth);
-			tVZFilter_init(&synthesisBands[i][1], Highpass, bandFreq, thisBandwidth);
-		}
-		else
-		{
-			tVZFilter_init(&analysisBands[i][0], BandpassPeak, bandFreq, thisBandwidth);
-			tVZFilter_init(&analysisBands[i][1], BandpassPeak, bandFreq, thisBandwidth);
-
-			tVZFilter_init(&synthesisBands[i][0], BandpassPeak, bandFreq, thisBandwidth);
-			tVZFilter_init(&synthesisBands[i][1], BandpassPeak, bandFreq, thisBandwidth);
-		}
-		//tSlide_initToPool(&envFollowers[i], 4800, 4800, &smallPool); //10ms logarithmic rise and fall at 48k sample rate
-		tPowerFollower_initToPool(&envFollowers[i], 0.0005f, &smallPool); // factor of .001 is 10 ms?
-	}
-	tNoise_initToPool(&breathNoise, WhiteNoise, &smallPool);
-	tNoise_initToPool(&vocoderNoise, WhiteNoise, &smallPool);
-	tZeroCrossing_initToPool(&zerox, 16, &smallPool);
-	tSimplePoly_setNumVoices(&poly, numVoices);
-	tRamp_initToPool(&noiseRamp, 10, 1, &smallPool);
-	tHighpass_initToPool(&noiseHP, 5000.0f, &smallPool);
-	for (int i = 0; i < NUM_VOC_VOICES; i++)
-	{
-
-		tSaw_initToPool(&osc[i], &smallPool);
-
-		tRosenbergGlottalPulse_initToPool(&glottal[i], &smallPool);
-		tRosenbergGlottalPulse_setOpenLength(&glottal[i], 0.3f);
-		tRosenbergGlottalPulse_setPulseLength(&glottal[i], 0.4f);
-	}
-	setLED_A(numVoices == 1);
-	setLED_B(internalExternal);
-}
-
-
-
-void SFXVocoderChFrame()
-{
-
-	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
-	{
-		numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
-		tSimplePoly_setNumVoices(&poly, numVoices);
-		buttonActionsSFX[ButtonA][ActionPress] = 0;
-		setLED_A(numVoices == 1);
-	}
-	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
-	{
-		internalExternal = !internalExternal;
-		buttonActionsSFX[ButtonB][ActionPress] = 0;
-		setLED_B(internalExternal);
-	}
-
-	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
-	{
-		tRamp_setDest(&polyRamp[i], (tSimplePoly_getVelocity(&poly, i) > 0));
-		calculateFreq(i);
-		tSaw_setFreq(&osc[i], freq[i]);
-		tRosenbergGlottalPulse_setFreq(&glottal[i], freq[i]);
-	}
 
 	displayValues[0] = presetKnobValues[VocoderCh][0]; //vocoder volume
 
 	displayValues[1] = (presetKnobValues[VocoderCh][1] * 0.8f) - 0.4f; //warp factor
 
-	displayValues[2] = (uint8_t)(presetKnobValues[VocoderCh][2] * 13.9f) + 2.0f; //quality
+	displayValues[2] = (uint8_t)(presetKnobValues[VocoderCh][2] * 16.9f) + 8.0f; //quality
 
 	displayValues[3] = (presetKnobValues[VocoderCh][3]* 2.0f) + 0.1f; //band width
 
@@ -609,40 +503,190 @@ void SFXVocoderChFrame()
 	displayValues[13] = presetKnobValues[VocoderCh][13]; //stereo
 
 	displayValues[14] = presetKnobValues[VocoderCh][14]; //odd/even
+	float myQ = displayValues[3];
 
 
-	warpFactor = 1.0f + displayValues[1];
+	invNumberOfVocoderBands = 1.0f / ((float)numberOfVocoderBands-0.99f);
+	bandWidthInSemitones = 99.0f * invNumberOfVocoderBands;
+	bandWidthInOctaves = bandWidthInSemitones * 0.083333333333333f;  // divide by 12
+	thisBandwidth = bandWidthInOctaves * myQ;
+
+	tVZFilter_init(&vocodec_highshelf, Highshelf, 6000.0f, 3.0f);
+	tVZFilter_setGain(&vocodec_highshelf, 4.0f);
+
+	for (int i = 0; i < MAX_NUM_VOCODER_BANDS; i++)
+	{
+
+		float bandFreq = faster_mtof((i * bandWidthInSemitones) + 30.0f); //midinote 28 (41Hz) to midinote 134 (18814Hz) is 106 midinotes, divide that by how many bands to find out how far apart to put the bands
+
+		bandGains[i] = 1.0f;
+
+		if (i == 0)
+		{
+			tVZFilter_init(&analysisBands[i][0], Lowpass, bandFreq, thisBandwidth);
+			tVZFilter_init(&analysisBands[i][1], Lowpass, bandFreq, thisBandwidth);
+
+			tVZFilter_init(&synthesisBands[i][0], Lowpass, bandFreq, thisBandwidth);
+			tVZFilter_init(&synthesisBands[i][1], Lowpass, bandFreq, thisBandwidth);
+
+		}
+		else if (i == (MAX_NUM_VOCODER_BANDS-1))
+		{
+			tVZFilter_init(&analysisBands[i][0], Highpass, bandFreq, thisBandwidth);
+			tVZFilter_init(&analysisBands[i][1], Highpass, bandFreq, thisBandwidth);
+
+			tVZFilter_init(&synthesisBands[i][0], Highpass, bandFreq, thisBandwidth);
+			tVZFilter_init(&synthesisBands[i][1], Highpass, bandFreq, thisBandwidth);
+
+		}
+		else
+		{
+			tVZFilter_init(&analysisBands[i][0], BandpassPeak, bandFreq, thisBandwidth);
+			tVZFilter_init(&analysisBands[i][1], BandpassPeak, bandFreq, thisBandwidth);
+
+			tVZFilter_init(&synthesisBands[i][0], BandpassPeak, bandFreq, thisBandwidth);
+			tVZFilter_init(&synthesisBands[i][1], BandpassPeak, bandFreq, thisBandwidth);
+
+		}
+		//tSlide_initToPool(&envFollowers[i], 4800, 4800, &smallPool); //10ms logarithmic rise and fall at 48k sample rate
+		tExpSmooth_initToPool(&envFollowers[i], 0.0f, 0.001f, &smallPool); // factor of .001 is 10 ms?
+	}
+	tNoise_initToPool(&breathNoise, WhiteNoise, &smallPool);
+	tNoise_initToPool(&vocoderNoise, WhiteNoise, &smallPool);
+	tZeroCrossing_initToPool(&zerox, 16, &smallPool);
+	tSimplePoly_setNumVoices(&poly, numVoices);
+	tRamp_initToPool(&noiseRamp, 10, 1, &smallPool);
+	tHighpass_initToPool(&noiseHP, 5000.0f, &smallPool);
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
+	{
+
+		tSaw_initToPool(&osc[i], &smallPool);
+
+		tRosenbergGlottalPulse_initToPool(&glottal[i], &smallPool);
+		tRosenbergGlottalPulse_setOpenLength(&glottal[i], 0.3f);
+		tRosenbergGlottalPulse_setPulseLength(&glottal[i], 0.4f);
+	}
+	setLED_A(numVoices == 1);
+	setLED_B(internalExternal);
+	setLED_C(vocChFreeze);
+
+
+
+
+}
+
+
+
+void SFXVocoderChFrame()
+{
+
+	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
+	{
+		numVoices = (numVoices > 1) ? 1 : NUM_VOC_VOICES;
+		tSimplePoly_setNumVoices(&poly, numVoices);
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
+		setLED_A(numVoices == 1);
+	}
+	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
+	{
+		internalExternal = !internalExternal;
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
+		setLED_B(internalExternal);
+	}
+
+	if (buttonActionsSFX[ButtonC][ActionPress] == 1)
+	{
+		vocChFreeze = !vocChFreeze;
+		buttonActionsSFX[ButtonC][ActionPress] = 0;
+		setLED_C(vocChFreeze);
+	}
+
+
+
+	displayValues[0] = presetKnobValues[VocoderCh][0]; //vocoder volume
+
+	displayValues[1] = (presetKnobValues[VocoderCh][1] * 0.8f) - 0.4f; //warp factor
+
+	displayValues[2] = (uint8_t)(presetKnobValues[VocoderCh][2] * 16.9f) + 8.0f; //quality
+
+	displayValues[3] = (presetKnobValues[VocoderCh][3]* 2.0f) + 0.1f; //band width
+
+	displayValues[4] = presetKnobValues[VocoderCh][4]; //noise thresh
+
+	displayValues[5] = presetKnobValues[VocoderCh][5]; //crossfade between sawtooth and glottal pulse
+
+	displayValues[6] = presetKnobValues[VocoderCh][6]; //pulse width
+
+	displayValues[7] = presetKnobValues[VocoderCh][7]; //pulse shape
+
+	displayValues[8] = presetKnobValues[VocoderCh][8]; //breathiness
+
+	displayValues[9] = presetKnobValues[VocoderCh][9]; //speed
+
+	displayValues[10] = presetKnobValues[VocoderCh][10] * 2.0f; //bandsquish
+
+	displayValues[11] = presetKnobValues[VocoderCh][11] * 60.0f; //bandoffset
+
+	displayValues[12] = (presetKnobValues[VocoderCh][12] * 4.0f) - 2.0f; //tilt
+
+	displayValues[13] = presetKnobValues[VocoderCh][13]; //stereo
+
+	displayValues[14] = presetKnobValues[VocoderCh][14]; //snap to bark scale
+
+	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
+	{
+		tRamp_setDest(&polyRamp[i], (tSimplePoly_getVelocity(&poly, i) > 0));
+		calculateFreq(i);
+		tSaw_setFreq(&osc[i], freq[i]);
+		tRosenbergGlottalPulse_setFreq(&glottal[i], freq[i]);
+		tRosenbergGlottalPulse_setOpenLengthAndPulseLength(&glottal[i], displayValues[6] * displayValues[7], displayValues[6]);
+	}
+
+	float warpFactor = 1.0f + displayValues[1];
 	numberOfVocoderBands = displayValues[2];
-	myQ = displayValues[3];
-	bandSquish = displayValues[10];
-	bandOffset = displayValues[11];
+	float myQ = displayValues[3];
+	float bandSquish = displayValues[10];
+	float bandOffset = displayValues[11];
+	float myTilt = displayValues[12];
+	float barkPull = displayValues[14];
+	float oneMinusBarkPull = 1.0f - barkPull;
 
-	if ((numberOfVocoderBands != prevNumberOfVocoderBands) || (myQ != prevMyQ) || (warpFactor != prevWarpFactor) || (bandSquish != prevBandSquish) || (bandOffset != prevBandOffset))
+	//offset of 45 and bandwidth of 7.6 semitones sounds good with 18 bands... but that's with the top 4 bands all being clipped at 16k...
+	if ((numberOfVocoderBands != prevNumberOfVocoderBands) || (myQ != prevMyQ) || (warpFactor != prevWarpFactor) || (bandSquish != prevBandSquish) || (bandOffset != prevBandOffset) || (myTilt != prevMyTilt) || (barkPull != prevBarkPull))
 	{
 		alteringBands = 1;
 		invNumberOfVocoderBands = 1.0f / ((float)numberOfVocoderBands-0.99f);
-		bandWidthInSemitones = 90.0f * bandSquish * invNumberOfVocoderBands;
+		bandWidthInSemitones = 94.0f * bandSquish * invNumberOfVocoderBands; //was 90
 		bandWidthInOctaves = bandWidthInSemitones * 0.083333333333333f;  // divide by 12
 		thisBandwidth = bandWidthInOctaves * myQ;
 		invMyQ = 1.0f / myQ;
+
 	}
 	if (alteringBands)
 	{
+		float tempWarpFactor = warpFactor;
 		float bandFreq = faster_mtof((currentBandToAlter * bandWidthInSemitones) + bandOffset); //midinote 28 (41Hz) to midinote 134 (18814Hz) is 106 midinotes, divide that by how many bands to find out how far apart to put the bands
-		if (bandFreq > 4500.0f) // a way to keep the upper bands fixed so consonants are not stretched even though vowels are
+
+		//warp to bark scale if knob 16 is up
+		bandFreq = (bandFreq * oneMinusBarkPull) + (barkBandFreqs[currentBandToAlter] * barkPull);
+
+		if (bandFreq > 5000.0f) // a way to keep the upper bands fixed so consonants are not stretched even though vowels are
 		{
-			warpFactor = 1.0f;
+			tempWarpFactor = 1.0f;
 		}
-		//alternate computation
-		//float bandFreq = 40.0f * powf(bandSpacing, ( (float)currentBandToAlter / (float)numberOfVocoderBands));
 
 		if (bandFreq > 16000.0f)
 		{
 			bandFreq = 16000.0f;
 		}
-		bandGains[currentBandToAlter] = invMyQ;
 
-		tVZFilter_setFreqAndBandwidth(&analysisBands[currentBandToAlter][0], bandFreq, thisBandwidth);
+		float bandBandwidth = (thisBandwidth * oneMinusBarkPull) + (barkBandWidths[currentBandToAlter] *  barkPull * myQ);
+		float myHeight = currentBandToAlter * invNumberOfVocoderBands; //x value
+		float tiltOffset = (1.0f - ((myTilt * 0.5f) + 0.5f)) + 0.5f;
+		float tiltY = displayValues[12] * myHeight + (tiltOffset);
+		bandGains[currentBandToAlter] = invMyQ * tiltY;
+
+		tVZFilter_setFreqAndBandwidth(&analysisBands[currentBandToAlter][0], bandFreq, bandBandwidth);
 		//set these to match without computing for increased efficiency
 		analysisBands[currentBandToAlter][1]->B = analysisBands[currentBandToAlter][0]->B;
 		analysisBands[currentBandToAlter][1]->fc = analysisBands[currentBandToAlter][0]->fc;
@@ -653,9 +697,8 @@ void SFXVocoderChFrame()
 		analysisBands[currentBandToAlter][1]->h = analysisBands[currentBandToAlter][0]->h;
 		analysisBands[currentBandToAlter][1]->g = analysisBands[currentBandToAlter][0]->g;
 
-		//tVZFilter_setFreqAndBandwidth(&analysisBands[currentBandToAlter][1], bandFreq, thisBandwidth);
-		tVZFilter_setFreqAndBandwidth(&synthesisBands[currentBandToAlter][0], bandFreq * warpFactor, thisBandwidth);
-		//tVZFilter_setFreqAndBandwidth(&synthesisBands[currentBandToAlter][1], bandFreq * warpFactor, thisBandwidth);
+
+		tVZFilter_setFreqAndBandwidth(&synthesisBands[currentBandToAlter][0], bandFreq * tempWarpFactor, bandBandwidth);
 		//set these to match without computing for increased efficiency
 		synthesisBands[currentBandToAlter][1]->B = synthesisBands[currentBandToAlter][0]->B;
 		synthesisBands[currentBandToAlter][1]->fc = synthesisBands[currentBandToAlter][0]->fc;
@@ -666,24 +709,25 @@ void SFXVocoderChFrame()
 		synthesisBands[currentBandToAlter][1]->h = synthesisBands[currentBandToAlter][0]->h;
 		synthesisBands[currentBandToAlter][1]->g = synthesisBands[currentBandToAlter][0]->g;
 
-
 		currentBandToAlter++;
 		if (currentBandToAlter >= numberOfVocoderBands)
 		{
 			alteringBands = 0;
 			currentBandToAlter = 0;
 		}
-
 	}
+
 	prevNumberOfVocoderBands = numberOfVocoderBands;
 	prevMyQ = myQ;
 	prevWarpFactor = warpFactor;
 	prevBandSquish = bandSquish;
 	prevBandOffset = bandOffset;
+	prevMyTilt = myTilt;
+	prevBarkPull = barkPull;
 
 	for (int i = 0; i < numberOfVocoderBands; i++)
 	{
-		tPowerFollower_setFactor(&envFollowers[i], (displayValues[9] * 0.0012f) + 0.0001f);
+		tExpSmooth_setFactor(&envFollowers[i], (displayValues[9] * 0.0015f) + 0.0001f);
 	}
 
 	if (tSimplePoly_getNumActiveVoices(&poly) != 0)
@@ -696,83 +740,88 @@ void SFXVocoderChFrame()
 	}
 }
 
-float tempSamp = 0.0f;
-
 
 //freeze (maybe C button?)
-//odd even / stereo/mono (maybe a knob?)
-//filter tilt (could be just gain tilt of existing band gains)
-
-void SFXVocoderChTick(float audioIn)
+void SFXVocoderChTick(float* input)
 {
 	float zerocross = 0.0f;
 	float noiseRampVal = 0.0f;
 	float sample = 0.0f;
 
+	//a little treble emphasis
+	input[1] = tVZFilter_tick(&vocodec_highshelf, input[1]);
+
 	if (internalExternal == 1)
 	{
-		sample = rightIn;
+		sample = input[0];
 	}
 	else
 	{
-		zerocross = tZeroCrossing_tick(&zerox, audioIn);
+		zerocross = tZeroCrossing_tick(&zerox, input[1]);
 
+		tRamp_setDest(&noiseRamp,zerocross > ((displayValues[4])-0.1f));
 
-		if (zerocross > ((displayValues[4])-0.1f))
-		{
-			tRamp_setDest(&noiseRamp, 1.0f);
-		}
-		else
-		{
-			tRamp_setDest(&noiseRamp, 0.0f);
-		}
+		noiseRampVal = tRamp_tick(&noiseRamp) * 0.8f;
 
-		noiseRampVal = tRamp_tick(&noiseRamp);
-
-		float noiseSample = tNoise_tick(&vocoderNoise) * 0.8f * noiseRampVal;
+		float noiseSample = tNoise_tick(&vocoderNoise) * noiseRampVal;
 
 		for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 		{
 			float tempRamp = tRamp_tick(&polyRamp[i]);
 			if (tempRamp > 0.001f)
 			{
-				sample += tSaw_tick(&osc[i]) * tempRamp *  (1.0f-displayValues[5]);
+				//sample += tSaw_tick(&osc[i]) * tempRamp * (1.0f - displayValues[5]);
+				//sample += tRosenbergGlottalPulse_tick(&glottal[i]) * tempRamp * displayValues[5];
 
-				tRosenbergGlottalPulse_setPulseLength(&glottal[i], displayValues[6] );
-
-				tRosenbergGlottalPulse_setOpenLength(&glottal[i], displayValues[6] * displayValues[7]);
-				sample += tRosenbergGlottalPulse_tick(&glottal[i]) * tempRamp * displayValues[5];
+				if (displayValues[5] < 0.5f)
+				{
+					sample += tSaw_tick(&osc[i]) * tempRamp;
+				}
+				else
+				{
+					sample += tRosenbergGlottalPulse_tick(&glottal[i]) * tempRamp;
+				}
 			}
 		}
 		//switch with consonant noise
 		sample = (sample * (1.0f - (0.3f * displayValues[8])) * (1.0f-noiseRampVal)) + noiseSample;
 		//add breathiness
-		sample += (tHighpass_tick(&noiseHP, tNoise_tick(&breathNoise)) * displayValues[8] * 4.0f);
+		sample += (tHighpass_tick(&noiseHP, tNoise_tick(&breathNoise)) * displayValues[8] * 2.0f);
 		sample *= tRamp_tick(&comp);
 
 	}
 
-	sample = tanhf(sample);
+	sample = LEAF_tanh(sample);
 
 
-	tempSamp = 0.0f;
+
 	float output[2] = {0.0f, 0.0f};
-	audioIn = audioIn * (displayValues[0] * 10.0f);
+	input[1] = input[1] * (displayValues[0] * 30.0f);
 	for (int i = 0; i < numberOfVocoderBands; i++)
 	{
 		uint8_t oddEven = i % 2;
-		tempSamp = tVZFilter_tickEfficient(&analysisBands[i][0], audioIn);
+		float tempSamp = input[1];
+
+		tempSamp = tVZFilter_tickEfficient(&analysisBands[i][0], tempSamp);
 		tempSamp = tVZFilter_tickEfficient(&analysisBands[i][1], tempSamp);
-		tempSamp = tPowerFollower_tick(&envFollowers[i], tempSamp);
+		if (filterOrder > 2)
+		{
+			tempSamp = tVZFilter_tickEfficient(&analysisBands[i][2], tempSamp);
+		}
+
+		tExpSmooth_setDest(&envFollowers[i], fabsf(tempSamp));
+		tempSamp = tExpSmooth_tick(&envFollowers[i]);
+		//here is the envelope followed gain of the modulator signal
 		tempSamp = LEAF_clip(0.0f, tempSamp, 2.0f);
-		float tempOut = tVZFilter_tickEfficient(&synthesisBands[i][0], sample);
-		//output += (tVZFilter_tickEfficient(&synthesisBands[i][1], tempOut) * tempSamp * bandGains[i]);
-		output[oddEven] += (tVZFilter_tickEfficient(&synthesisBands[i][1], tempOut) * tempSamp * bandGains[i]);
+		float tempSynth = sample;
+		tempSynth = tVZFilter_tickEfficient(&synthesisBands[i][0], tempSynth);
+		tempSynth = tVZFilter_tickEfficient(&synthesisBands[i][1], tempSynth);
+		output[oddEven] += tempSynth * tempSamp * bandGains[i];
+
 	}
 
-	sample = tanhf((output[0] + (output[1] * (1.0f - displayValues[13]))) * (displayValues[0] * 10.0f));
-	leftOut = sample;
-	rightOut = tanhf((output[1] + (output[0] * (1.0f - displayValues[13]))) * (displayValues[0] * 10.0f));
+	input[0] = tanhf((output[0] + (output[1] * (1.0f - displayValues[13]))) * (displayValues[0] * 10.0f));
+	input[1] = tanhf((output[1] + (output[0] * (1.0f - displayValues[13]))) * (displayValues[0] * 10.0f));
 
 	//sample = tOversampler_tick(&oversampler, sample, tanhf);
 	//sample = tanhf(sample);
@@ -786,20 +835,16 @@ void SFXVocoderChFree(void)
 	{
 		tVZFilter_free(&analysisBands[i][0]);
 		tVZFilter_free(&synthesisBands[i][1]);
-
 		tVZFilter_free(&analysisBands[i][0]);
 		tVZFilter_free(&synthesisBands[i][1]);
-
-
-
-		//tSlide_initToPool(&envFollowers[i], 4800, 4800, &smallPool); //10ms logarithmic rise and fall at 48k sample rate
-		tPowerFollower_freeFromPool(&envFollowers[i], &smallPool); // factor of .001 is 10 ms?
+		tExpSmooth_freeFromPool(&envFollowers[i], &smallPool);
 	}
 	tNoise_freeFromPool(&breathNoise, &smallPool);
 	tNoise_freeFromPool(&vocoderNoise, &smallPool);
 	tZeroCrossing_freeFromPool(&zerox, &smallPool);
 	tRamp_freeFromPool(&noiseRamp, &smallPool);
 	tHighpass_freeFromPool(&noiseHP, &smallPool);
+	tVZFilter_free(&vocodec_highshelf);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		tSaw_freeFromPool(&osc[i], &smallPool);
@@ -831,7 +876,7 @@ void SFXPitchShiftFrame()
 
 }
 
-void SFXPitchShiftTick(float audioIn)
+void SFXPitchShiftTick(float* input)
 {
 	//pitchFactor = (smoothedADC[0]*3.75f)+0.25f;
 	float sample = 0.0f;
@@ -869,21 +914,21 @@ void SFXPitchShiftTick(float audioIn)
 
 
 
-	float formantsample = tanhf(tFormantShifter_remove(&fs, audioIn));
+	float formantsample = tanhf(tFormantShifter_remove(&fs, input[1]));
 
 
 
 
 	float* samples = tRetune_tick(&retune2, formantsample);
 	formantsample = samples[0];
-	sample = audioIn;
+	sample = input[1];
 	samples = tRetune_tick(&retune, sample);
 	sample = samples[0];
 
 	formantsample = tanhf(tFormantShifter_add(&fs, formantsample)) * tExpSmooth_tick(&smoother2) ;
 	sample = (sample * (tExpSmooth_tick(&smoother1))) +  formantsample;
-	leftOut = sample;
-	rightOut = sample;
+	input[0] = sample;
+	input[1] = sample;
 
 
 }
@@ -939,7 +984,7 @@ void SFXNeartuneFrame()
 	}
 }
 
-void SFXNeartuneTick(float audioIn)
+void SFXNeartuneTick(float* input)
 {
 	float sample = 0.0f;
 
@@ -962,12 +1007,12 @@ void SFXNeartuneTick(float audioIn)
 	}
 	tAutotune_setFreq(&autotuneMono, tExpSmooth_tick(&neartune_smoother), 0);
 
-	float* samples = tAutotune_tick(&autotuneMono, audioIn);
+	float* samples = tAutotune_tick(&autotuneMono, input[1]);
 	//tAutotune_setFreq(&autotuneMono, leaf.sampleRate / nearestPeriod(tAutotune_getInputPeriod(&autotuneMono)), 0);
 	sample = samples[0] * tRamp_tick(&nearWetRamp);
-	sample += audioIn * tRamp_tick(&nearDryRamp); // crossfade to dry signal if no notes held down.
-	leftOut = sample;
-	rightOut = sample;
+	sample += input[1] * tRamp_tick(&nearDryRamp); // crossfade to dry signal if no notes held down.
+	input[0] = sample;
+	input[1] = sample;
 }
 
 
@@ -1002,7 +1047,7 @@ void SFXAutotuneFrame()
 	if (tempNumVoices != 0) tRamp_setDest(&comp, 1.0f / (float)tempNumVoices);
 }
 
-void SFXAutotuneTick(float audioIn)
+void SFXAutotuneTick(float* input)
 {
 	float sample = 0.0f;
 	displayValues[0] = 0.5f + (presetKnobValues[AutotunePoly][0] * 0.47f);
@@ -1021,15 +1066,15 @@ void SFXAutotuneTick(float audioIn)
 		tAutotune_setFreq(&autotunePoly, freq[i], i);
 	}
 
-	float* samples = tAutotune_tick(&autotunePoly, audioIn);
+	float* samples = tAutotune_tick(&autotunePoly, input[1]);
 
 	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); ++i)
 	{
 		sample += samples[i] * tRamp_tick(&polyRamp[i]);
 	}
 	sample *= tRamp_tick(&comp);
-	leftOut = sample;
-	rightOut = sample;
+	input[0] = sample;
+	input[1] = sample;
 }
 
 void SFXAutotuneFree(void)
@@ -1060,7 +1105,7 @@ void SFXSamplerBPFrame()
 
 }
 
-void SFXSamplerBPTick(float audioIn)
+void SFXSamplerBPTick(float* input)
 {
 	float sample = 0.0f;
 	int recordPosition = tBuffer_getRecordPosition(&buff);
@@ -1112,10 +1157,10 @@ void SFXSamplerBPTick(float audioIn)
 	tSampler_setRate(&sampler, samplerRate);
 	tSampler_setCrossfadeLength(&sampler, crossfadeLength);
 
-	tBuffer_tick(&buff, audioIn);
+	tBuffer_tick(&buff, input[1]);
 	sample = tanhf(tSampler_tick(&sampler));
-	leftOut = sample;
-	rightOut = sample;
+	input[0] = sample;
+	input[1] = sample;
 }
 
 void SFXSamplerBPFree(void)
@@ -1159,7 +1204,7 @@ void SFXSamplerKFrame()
 	}
 }
 
-void SFXSamplerKTick(float audioIn)
+void SFXSamplerKTick(float* input)
 {
 	float sample = 0.0f;
 	if (buttonActionsSFX[ButtonDown][ActionPress])
@@ -1233,15 +1278,15 @@ void SFXSamplerKTick(float audioIn)
 			int key = tSimplePoly_getPitch(&poly, i) - LOWEST_SAMPLER_KEY;
 			if (0 <= key && key < NUM_SAMPLER_KEYS)
 			{
-				tBuffer_tick(&keyBuff[key], audioIn);
+				tBuffer_tick(&keyBuff[key], input[1]);
 				sample += tSampler_tick(&keySampler[key]);
 			}
 		}
 	}
 
 	sample = tanhf(sample);
-	leftOut = sample;
-	rightOut = sample;
+	input[0] = sample;
+	input[1] = sample;
 }
 
 void SFXSamplerKFree(void)
@@ -1284,11 +1329,11 @@ void SFXSamplerAutoFrame()
 
 }
 
-void SFXSamplerAutoTick(float audioIn)
+void SFXSamplerAutoTick(float* input)
 {
 	float sample = 0.0f;
-	if (triggerChannel > 0) currentPower = tEnvelopeFollower_tick(&envfollow, rightIn);
-	else currentPower = tEnvelopeFollower_tick(&envfollow, audioIn);
+	if (triggerChannel > 0) currentPower = tEnvelopeFollower_tick(&envfollow, input[0]);
+	else currentPower = tEnvelopeFollower_tick(&envfollow, input[1]);
 
 	float* knobs = presetKnobValues[SamplerAutoGrab];
 
@@ -1323,7 +1368,7 @@ void SFXSamplerAutoTick(float audioIn)
 
 
 	tSampler_setEnd(&sampler,window_size);
-	tBuffer_tick(&buff2, audioIn);
+	tBuffer_tick(&buff2, input[1]);
 	//on it's way down
 	if (currentPower <= previousPower)
 	{
@@ -1361,8 +1406,8 @@ void SFXSamplerAutoTick(float audioIn)
 		setLED_B(triggerChannel);
 	}
 	sample = tSampler_tick(&sampler);
-	leftOut = sample;
-	rightOut = sample;
+	input[0] = sample;
+	input[1] = sample;
 	previousPower = currentPower;
 }
 
@@ -1414,11 +1459,11 @@ void SFXDistortionFrame()
 
 }
 
-void SFXDistortionTick(float audioIn)
+void SFXDistortionTick(float* input)
 {
 	//knob 0 = gain
 
-	float sample = audioIn;
+	float sample = input[1];
 	displayValues[0] = ((presetKnobValues[Distortion][0] * 20.0f) + 1.0f); // 15.0f
 	displayValues[4] = presetKnobValues[Distortion][4]; // 15.0f
 	sample = sample * displayValues[0];
@@ -1434,8 +1479,8 @@ void SFXDistortionTick(float audioIn)
 		oversamplerArray[i] = tanhf(oversamplerArray[i] * presetKnobValues[Distortion][4]);
 	}
 	sample = tOversampler_downsample(&oversampler, oversamplerArray);
-	leftOut = sample;
-	rightOut = sample;
+	input[0] = sample;
+	input[1] = sample;
 
 	//sample = tOversampler_tick(&oversampler, sample, &tanhf);
 }
@@ -1452,8 +1497,6 @@ void SFXDistortionFree(void)
 
 
 int foldMode = 0;
-
-
 void SFXWaveFolderAlloc()
 {
 	leaf.clearOnAllocation = 1;
@@ -1477,16 +1520,16 @@ void SFXWaveFolderFrame()
 	//knobParams[3] = (smoothedADC[3] * 2.0f) - 1.0f;
 }
 
-void SFXWaveFolderTick(float audioIn)
+void SFXWaveFolderTick(float* input)
 {
 	//knob 0 = gain
-	float sample = audioIn;
+	float sample = input[1];
 
-	displayValues[0] = (presetKnobValues[Wavefolder][0] * 2.0f);
+	displayValues[0] = (presetKnobValues[Wavefolder][0] * 4.0f);
 
-	displayValues[1] = (presetKnobValues[Wavefolder][1] * 2.0f) - 1.0f;
+	displayValues[1] = presetKnobValues[Wavefolder][1] - 0.5f;
 
-	displayValues[2] = (presetKnobValues[Wavefolder][2] * 2.0f) - 1.0f;
+	displayValues[2] = presetKnobValues[Wavefolder][2] - 0.5f;
 	float gain = displayValues[0];
 	displayValues[3] = presetKnobValues[Wavefolder][3];
 
@@ -1501,7 +1544,7 @@ void SFXWaveFolderTick(float audioIn)
 		for (int i = 0; i < 2; i++)
 		{
 			oversamplerArray[i] = sample + displayValues[1];
-			oversamplerArray[i] *= displayValues[0] * 2.0f;
+			oversamplerArray[i] *= displayValues[0];
 			oversamplerArray[i] = LEAF_tanh(oversamplerArray[i]);
 			//oversamplerArray[i] *= knobParams[0] * 1.5f;
 
@@ -1518,15 +1561,15 @@ void SFXWaveFolderTick(float audioIn)
 			oversamplerArray[i] = LEAF_tanh(oversamplerArray[i]);
 		}
 		sample = tHighpass_tick(&wfHP, tOversampler_downsample(&oversampler, oversamplerArray)) * displayValues[3];
-		leftOut = sample;
-		rightOut = sample;
+		input[0] = sample;
+		input[1] = sample;
 	}
 	else
 	{
 
 		sample = sample + displayValues[1];
-		sample *= displayValues[0] * 2.0f;
-		sample = LEAF_tanh(sample);
+		sample *= displayValues[0];
+		sample = tanhf(sample);
 		//oversamplerArray[i] *= knobParams[0] * 1.5f;
 
 		sample = tLockhartWavefolder_tick(&wavefolder1, sample);
@@ -1534,7 +1577,7 @@ void SFXWaveFolderTick(float audioIn)
 
 
 		sample = sample + displayValues[2];
-		sample *= displayValues[0] * 2.0f;
+		sample *= displayValues[0];
 		sample = LEAF_tanh(sample);
 		//oversamplerArray[i] *= knobParams[0] * 1.5f;
 
@@ -1543,8 +1586,8 @@ void SFXWaveFolderTick(float audioIn)
 		sample = tOversampler_tick(&oversampler, sample, &LEAF_tanh);
 		sample = tHighpass_tick(&wfHP, sample) * displayValues[3];
 		//sample *= 0.99f;
-		leftOut = sample;
-		rightOut = sample;
+		input[0] = sample;
+		input[1] = sample;
 	}
 
 }
@@ -1557,38 +1600,62 @@ void SFXWaveFolderFree(void)
 	tOversampler_free(&oversampler);
 }
 
-
+uint32_t crusherStereo = 0;
 //13 bitcrusher
 void SFXBitcrusherAlloc()
 {
-	tCrusher_init(&crush);
-	tCrusher_init(&crush2);
+	tCrusher_initToPool(&crush, &smallPool);
+	tCrusher_initToPool(&crush2, &smallPool);
+	setLED_A(crusherStereo);
 }
 
 void SFXBitcrusherFrame()
 {
+	if (buttonActionsSFX[ButtonA][ActionPress])
+	{
+		crusherStereo = !crusherStereo;
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
+		setLED_A(crusherStereo);
+	}
 }
 
-void SFXBitcrusherTick(float audioIn)
+void SFXBitcrusherTick(float* input)
 {
 	float sample = 0.0f;
-	displayValues[0] = presetKnobValues[BitCrusher][0];
+	displayValues[0] = (presetKnobValues[BitCrusher][0] * 0.99f )+ 0.01f;
 	tCrusher_setQuality (&crush, presetKnobValues[BitCrusher][0]);
 	tCrusher_setQuality (&crush2, presetKnobValues[BitCrusher][0]);
 	displayValues[1] = presetKnobValues[BitCrusher][1];
-	tCrusher_setSamplingRatio (&crush, presetKnobValues[BitCrusher][1]);
-	tCrusher_setSamplingRatio (&crush2, presetKnobValues[BitCrusher][1]);
-	displayValues[2] = presetKnobValues[BitCrusher][2];
-	tCrusher_setRound (&crush, presetKnobValues[BitCrusher][2]);
-	tCrusher_setRound (&crush2, presetKnobValues[BitCrusher][2]);
-	displayValues[3] = presetKnobValues[BitCrusher][3];
+	tCrusher_setSamplingRatio (&crush, presetKnobValues[BitCrusher][1] * 0.5f);
+	tCrusher_setSamplingRatio (&crush2, presetKnobValues[BitCrusher][1] * 0.5f);
+	displayValues[2] = presetKnobValues[BitCrusher][2] * 0.1f;
+	tCrusher_setRound (&crush, displayValues[2]);
+	tCrusher_setRound (&crush2, displayValues[2]);
+	displayValues[3] = (uint32_t) (presetKnobValues[BitCrusher][3] * 8.0f);
 	tCrusher_setOperation (&crush, presetKnobValues[BitCrusher][3]);
 	tCrusher_setOperation (&crush2, presetKnobValues[BitCrusher][3]);
 	displayValues[4] = presetKnobValues[BitCrusher][4];
-	sample = tanh(tCrusher_tick(&crush, audioIn)) * displayValues[4];
-	leftOut = sample;
-	rightOut = tanh(tCrusher_tick(&crush2, rightIn)) * displayValues[4];
+	displayValues[5] = (presetKnobValues[BitCrusher][5] * 5.0f) + 1.0f;
+	float volumeComp;
 
+	if (displayValues[0] < 0.1f)
+	{
+		volumeComp = 1.0f;
+	}
+	else
+	{
+		volumeComp = (1.0f / (displayValues[3] + 1.0f));
+	}
+	sample = tanhf(tCrusher_tick(&crush, input[1] * displayValues[5])) * displayValues[4] * volumeComp;
+	if (crusherStereo)
+	{
+		input[1] = tanhf(tCrusher_tick(&crush2, input[0] * displayValues[5])) * displayValues[4] * volumeComp;
+	}
+	else
+	{
+		input[1] = sample;
+	}
+	input[0] = sample;
 }
 
 void SFXBitcrusherFree(void)
@@ -1638,7 +1705,7 @@ void SFXDelayFrame()
 float delayFB1;
 float delayFB2;
 
-void SFXDelayTick(float audioIn)
+void SFXDelayTick(float* input)
 {
 	float sample = 0.0f;
 	displayValues[0] = presetKnobValues[Delay][0] * 30000.0f;
@@ -1658,13 +1725,13 @@ void SFXDelayTick(float audioIn)
 
 	if (delayShaper == 0)
 	{
-		input1 = tFeedbackLeveler_tick(&feedbackControl, tanhf(audioIn + (delayFB1 * displayValues[2])));
-		input2 = tFeedbackLeveler_tick(&feedbackControl, tanhf(audioIn + (delayFB2 * displayValues[2])));
+		input1 = tFeedbackLeveler_tick(&feedbackControl, tanhf(input[1] + (delayFB1 * displayValues[2])));
+		input2 = tFeedbackLeveler_tick(&feedbackControl, tanhf(input[1] + (delayFB2 * displayValues[2])));
 	}
 	else
 	{
-		input1 = tFeedbackLeveler_tick(&feedbackControl, tHighpass_tick(&delayShaperHp, LEAF_shaper(audioIn + (delayFB1 * displayValues[2] * 0.5f), 0.5f)));
-		input2 = tFeedbackLeveler_tick(&feedbackControl, tHighpass_tick(&delayShaperHp, LEAF_shaper(audioIn + (delayFB2 * displayValues[2] * 0.5f), 0.5f)));
+		input1 = tFeedbackLeveler_tick(&feedbackControl, tHighpass_tick(&delayShaperHp, LEAF_shaper(input[1] + (delayFB1 * displayValues[2] * 0.5f), 0.5f)));
+		input2 = tFeedbackLeveler_tick(&feedbackControl, tHighpass_tick(&delayShaperHp, LEAF_shaper(input[1] + (delayFB2 * displayValues[2] * 0.5f), 0.5f)));
 	}
 	tTapeDelay_setDelay(&delay, displayValues[0]);
 
@@ -1681,8 +1748,8 @@ void SFXDelayTick(float audioIn)
 	delayFB2 = tanhf(tSVF_tick(&delayHP2, delayFB2)* 0.95f);
 
 	sample = delayFB1;
-	leftOut = sample;
-	rightOut = delayFB2;
+	input[0] = sample;
+	input[1] = delayFB2;
 
 }
 
@@ -1731,7 +1798,7 @@ void SFXReverbFrame()
 	tDattorroReverb_setFeedbackFilter(&reverb, displayValues[3]);
 }
 
-void SFXReverbTick(float audioIn)
+void SFXReverbTick(float* input)
 {
 	float stereo[2];
 	float sample = 0.0f;
@@ -1753,15 +1820,15 @@ void SFXReverbTick(float audioIn)
 	}
 
 	//tDattorroReverb_setInputDelay(&reverb, smoothedADC[1] * 200.f);
-	audioIn *= 4.0f;
+	input[1] *= 4.0f;
 	displayValues[0] = presetKnobValues[Reverb][0];
 	tDattorroReverb_setSize(&reverb, displayValues[0]);
 	displayValues[4] = capFeedback ? LEAF_clip(0.0f, presetKnobValues[Reverb][4], 0.5f) : presetKnobValues[Reverb][4];
 	tDattorroReverb_setFeedbackGain(&reverb, displayValues[4]);
-	tDattorroReverb_tickStereo(&reverb, audioIn, stereo);
+	tDattorroReverb_tickStereo(&reverb, input[1], stereo);
 	sample = tanhf(stereo[0]) * 0.99f;
-	leftOut = sample;
-	rightOut = tanhf(stereo[1]) * 0.99f;
+	input[0] = sample;
+	input[1] = tanhf(stereo[1]) * 0.99f;
 }
 
 void SFXReverbFree(void)
@@ -1802,7 +1869,7 @@ void SFXReverb2Frame()
 }
 
 
-void SFXReverb2Tick(float audioIn)
+void SFXReverb2Tick(float* input)
 {
 	float stereoOuts[2];
 	float sample = 0.0f;
@@ -1815,7 +1882,7 @@ void SFXReverb2Tick(float audioIn)
 	else
 	{
 		tNReverb_setT60(&reverb2, 1000.0f);
-		audioIn = 0.0f;
+		input[1] = 0.0f;
 	}
 
 	displayValues[1] = faster_mtof(presetKnobValues[Reverb2][1]*135.0f);
@@ -1846,7 +1913,7 @@ void SFXReverb2Tick(float audioIn)
 	}
 
 
-	tNReverb_tickStereo(&reverb2, audioIn, stereoOuts);
+	tNReverb_tickStereo(&reverb2, input[1], stereoOuts);
 	float leftOut = tSVF_tick(&lowpass, stereoOuts[0]);
 	leftOut = tSVF_tick(&highpass, leftOut);
 	leftOut += tSVF_tick(&bandpass, leftOut) * displayValues[4];
@@ -1855,8 +1922,8 @@ void SFXReverb2Tick(float audioIn)
 	rightOutTemp = tSVF_tick(&highpass2, rightOutTemp);
 	rightOutTemp += tSVF_tick(&bandpass, rightOutTemp) * displayValues[4];
 	sample = tanhf(leftOut);
-	leftOut = sample;
-	rightOut = tanhf(rightOutTemp);
+	input[0] = sample;
+	input[1] = tanhf(rightOutTemp);
 
 }
 
@@ -1902,16 +1969,16 @@ void SFXLivingStringFrame()
 }
 
 
-void SFXLivingStringTick(float audioIn)
+void SFXLivingStringTick(float* input)
 {
 	float sample = 0.0f;
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		sample += tLivingString_tick(&theString[i], audioIn);
+		sample += tLivingString_tick(&theString[i], input[1]);
 	}
 	sample *= 0.0625f;
-	leftOut = sample;
-	rightOut = sample;
+	input[0] = sample;
+	input[1] = sample;
 
 
 }
@@ -1968,16 +2035,16 @@ void SFXLivingStringSynthFrame()
 }
 
 
-void SFXLivingStringSynthTick(float audioIn)
+void SFXLivingStringSynthTick(float* input)
 {
 	float sample = 0.0f;
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		sample += tLivingString_tick(&theString[i], audioIn);
+		sample += tLivingString_tick(&theString[i], input[1]);
 	}
 	sample *= 0.0625f;
-	leftOut = sample;
-	rightOut = sample;
+	input[0] = sample;
+	input[1] = sample;
 }
 
 void SFXLivingStringSynthFree(void)
@@ -1991,7 +2058,7 @@ void SFXLivingStringSynthFree(void)
 
 // CLASSIC SUBTRACTIVE SYNTH
 
-float synthMidiNotes[NUM_VOC_VOICES];
+
 tEfficientSVF synthLP[NUM_VOC_VOICES];
 uint16_t filtFreqs[NUM_VOC_VOICES];
 tADSR4 polyEnvs[NUM_VOC_VOICES];
@@ -2002,32 +2069,74 @@ void SFXClassicSynthAlloc()
 {
 	leaf.clearOnAllocation = 1;
 	tSimplePoly_setNumVoices(&poly, numVoices);
+
+
+	float* knobs = presetKnobValues[ClassicSynth];
+
+	displayValues[0] = knobs[0]; //synth volume
+
+	displayValues[1] = knobs[1] * 4096.0f; //lowpass cutoff
+
+	displayValues[2] = knobs[2]; //keyfollow filter cutoff
+
+	displayValues[3] = knobs[3]; //detune
+
+	displayValues[4] = (knobs[4] * 2.0f) + 0.4f; //filter Q
+
+	displayValues[5] = expBuffer[(int)(knobs[5] * expBufferSizeMinusOne)] * 8192.0f; //att
+
+	displayValues[6] = expBuffer[(int)(knobs[6] * expBufferSizeMinusOne)] * 8192.0f; //dec
+
+	displayValues[7] = knobs[7]; //sus
+
+	displayValues[8] = expBuffer[(int)(knobs[8] * expBufferSizeMinusOne)] * 8192.0f; //rel
+
+	displayValues[9] = knobs[9]; //leak
+
+	displayValues[10] = expBuffer[(int)(knobs[10] * expBufferSizeMinusOne)] * 8192.0f; //att
+
+	displayValues[11] = expBuffer[(int)(knobs[11] * expBufferSizeMinusOne)] * 8192.0f; //dec
+
+	displayValues[12] = knobs[12]; //sus
+
+	displayValues[13] = expBuffer[(int)(knobs[13] * expBufferSizeMinusOne)] * 8192.0f; //rel
+
+	displayValues[14] = knobs[14]; //leak
+
+	displayValues[15] = knobs[15] * 4095.0f;  // filter envelope amount
+
+	displayValues[16] = knobs[16];  // fade between sawtooth and glottal pulse
+
+
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
 			tSaw_initToPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
-			synthDetune[i][j] = ((leaf.random() * 0.5f) - 0.25f);
+			synthDetune[i][j] = ((leaf.random() * 0.0264f) - 0.0132f);
 			tRosenbergGlottalPulse_initToPool(&glottal[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 			tRosenbergGlottalPulse_setOpenLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], 0.3f);
 			tRosenbergGlottalPulse_setPulseLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], 0.4f);
 		}
-		tCycle_initToPool(&pwmLFO1, &smallPool);
-		tCycle_initToPool(&pwmLFO2, &smallPool);
-		tCycle_setFreq(&pwmLFO1, 63.0f);
-		tCycle_setFreq(&pwmLFO2, 72.11f);
-		tEfficientSVF_initToPool(&synthLP[i], SVFTypeLowpass, 6000.0f, 0.8f, &smallPool);
-		tADSR4_initToPool(&polyEnvs[i], 7.0f, 64.0f, 0.9f, 100.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
-		tADSR4_setLeakFactor(&polyEnvs[i], 0.999987f);
-		tADSR4_initToPool(&polyFiltEnvs[i], 7.0f, 64.0f, 0.9f, 100.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
-		tADSR4_setLeakFactor(&polyFiltEnvs[i], 0.999987f);
+	}
+	tCycle_initToPool(&pwmLFO1, &smallPool);
+	tCycle_initToPool(&pwmLFO2, &smallPool);
+	tCycle_setFreq(&pwmLFO1, 63.0f);
+	tCycle_setFreq(&pwmLFO2, 72.11f);
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
+	{
+
+		tEfficientSVF_initToPool(&synthLP[i], SVFTypeLowpass, 6000.0f, displayValues[4], &smallPool);
+		tADSR4_initToPool(&polyEnvs[i], displayValues[5], displayValues[6], displayValues[7], displayValues[8], decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
+		tADSR4_setLeakFactor(&polyEnvs[i],((1.0f - displayValues[9]) * 0.00005f) + 0.99995f);
+		tADSR4_initToPool(&polyFiltEnvs[i], displayValues[10], displayValues[11], displayValues[12], displayValues[13], decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
+		tADSR4_setLeakFactor(&polyFiltEnvs[i], ((1.0f - displayValues[14]) * 0.00005f) + 0.99995f);
 	}
 
 	setLED_A(numVoices == 1);
 	leaf.clearOnAllocation = 0;
+	cycleCountVals[0][2] = 2;
 }
-
-float filtEnvAmount = 0.0f;
 
 void SFXClassicSynthFrame()
 {
@@ -2040,68 +2149,140 @@ void SFXClassicSynthFrame()
 	}
 	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
 	{
-		incrementPage();
+		cycleCountVals[0][1] = 0;
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
-		setLED_B(knobPage == 1);
+		setLED_Edit(0);
 	}
 
 	float* knobs = presetKnobValues[ClassicSynth];
 
-	displayValues[0] = knobs[0]; //synth volume
-	displayValues[1] = knobs[1] * 4096.0f; //lowpass cutoff
-	displayValues[2] = knobs[2]; //keyfollow filter cutoff
-	displayValues[3] = knobs[3]; //detune
-	displayValues[4] = (knobs[4] * 2.0f) + 0.4f; //filter Q
+	if (writeKnobFlag != -1)
+	{
+		switch(writeKnobFlag + (knobPage * KNOB_PAGE_SIZE))
+		{
+			case 0:
+				displayValues[0] = knobs[0]; //synth volume
+				break;
+			case 1:
+				displayValues[1] = knobs[1] * 4096.0f; //lowpass cutoff
+				break;
+			case 2:
+				displayValues[2] = knobs[2]; //keyfollow filter cutoff
+				break;
+			case 3:
+				displayValues[3] = knobs[3]; //detune
+				break;
+			case 4:
+				displayValues[4] = (knobs[4] * 2.0f) + 0.4f; //filter Q
+				for (int i = 0; i < numVoices; i++)
+				{
+					tEfficientSVF_setQ(&synthLP[i],displayValues[4]);
+				}
+				break;
+			case 5:
+				displayValues[5] = expBuffer[(int)(knobs[5] * expBufferSizeMinusOne)] * 8192.0f; //att
+				for (int i = 0; i < numVoices; i++)
+				{
+					tADSR4_setAttack(&polyEnvs[i], displayValues[5]);
+				}
+				break;
+			case 6:
+				displayValues[6] = expBuffer[(int)(knobs[6] * expBufferSizeMinusOne)] * 8192.0f; //dec
+				for (int i = 0; i < numVoices; i++)
+				{
+					tADSR4_setDecay(&polyEnvs[i], displayValues[6]);
+				}
+				break;
+			case 7:
+				displayValues[7] = knobs[7]; //sus
+				for (int i = 0; i < numVoices; i++)
+				{
+					tADSR4_setSustain(&polyEnvs[i], displayValues[7]);
+				}
+				break;
+			case 8:
+				displayValues[8] = expBuffer[(int)(knobs[8] * expBufferSizeMinusOne)] * 8192.0f; //rel
+				for (int i = 0; i < numVoices; i++)
+				{
+					tADSR4_setRelease(&polyEnvs[i], displayValues[8]);
+				}
+				break;
+			case 9:
+				displayValues[9] = knobs[9]; //leak
+				for (int i = 0; i < numVoices; i++)
+				{
+					tADSR4_setLeakFactor(&polyEnvs[i], ((1.0f - displayValues[9]) * 0.00005f) + 0.99995f);
+				}
+				break;
+			case 10:
+				displayValues[10] = expBuffer[(int)(knobs[10] * expBufferSizeMinusOne)] * 8192.0f; //att
+				for (int i = 0; i < numVoices; i++)
+				{
+					tADSR4_setAttack(&polyFiltEnvs[i], displayValues[10]);
+				}
+				break;
+			case 11:
+				displayValues[11] = expBuffer[(int)(knobs[11] * expBufferSizeMinusOne)] * 8192.0f; //dec
+				for (int i = 0; i < numVoices; i++)
+				{
+					tADSR4_setDecay(&polyFiltEnvs[i], displayValues[11]);
+				}
+				break;
+			case 12:
+				displayValues[12] = knobs[12]; //sus
+				for (int i = 0; i < numVoices; i++)
+				{
+					tADSR4_setSustain(&polyFiltEnvs[i], displayValues[12]);
+				}
+				break;
+			case 13:
+				displayValues[13] = expBuffer[(int)(knobs[13] * expBufferSizeMinusOne)] * 8192.0f; //rel
+				for (int i = 0; i < numVoices; i++)
+				{
+					tADSR4_setRelease(&polyFiltEnvs[i], displayValues[13]);
+				}
+				break;
+			case 14:
+				displayValues[14] = knobs[14]; //leak
+				for (int i = 0; i < numVoices; i++)
+				{
+					tADSR4_setLeakFactor(&polyFiltEnvs[i], ((1.0f - displayValues[14]) * 0.00005f) + 0.99995f);
+				}
+				break;
+			case 15:
+				displayValues[15] = knobs[15] * 4095.0f;  // filter envelope amount
+				break;
+			case 16:
+				displayValues[16] = knobs[16];  // fade between sawtooth and glottal pulse
+				break;
+		}
+	}
 
-	displayValues[5] = (knobs[5] * 8000.0f) + 7.0f; //att
-	displayValues[6] = (knobs[6] * 8000.0f) + 7.0f; //dec
-	displayValues[7] = knobs[7]; //sus
-	displayValues[8] = (knobs[8] * 8000.0f) + 7.0f; //rel
-	displayValues[9] = (knobs[9] > 0.98) ? 0.9985f : (((1.0f - knobs[9]*knobs[9]) * 0.0015f) + 0.9985f); //leak
 
-	displayValues[10] = (knobs[10] * 8000.0f) + 7.0f; //att
-	displayValues[11] = (knobs[11] * 8000.0f) + 7.0f; //dec
-	displayValues[12] = knobs[12]; //sus
-	displayValues[13] = (knobs[13] * 8000.0f) + 7.0f; //rel
-	displayValues[14] = (knobs[14] > 0.98) ? 0.9985f : (((1.0f - knobs[9]*knobs[9]) * 0.0002f) + 0.9998f); //leak
+	float tempLFO1 = (tCycle_tick(&pwmLFO1) * 0.25f) + 0.5f; // pulse length
+	float tempLFO2 = ((tCycle_tick(&pwmLFO2) * 0.25f) + 0.5f) * tempLFO1; // open length
 
-	displayValues[15] = knobs[15] * 4095.0f;
-	displayValues[16] = knobs[16];
-	float tempLFO1 = (tCycle_tick(&pwmLFO1) * 0.25f) + 0.5f;
-	float tempLFO2 = ((tCycle_tick(&pwmLFO2) * 0.25f) + 0.5f)* tempLFO1;
 	for (int i = 0; i < numVoices; i++)
 	{
-		float myMidiNote = calculateTunedMidiNote((float)tSimplePoly_getPitch(&poly, i));
+		float myMidiNote = tSimplePoly_getPitch(&poly, i);
+
+		calculateFreq(i);
+
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			float tempFreq = LEAF_midiToFrequency(myMidiNote + (synthDetune[i][j] * displayValues[3]));
+			float tempFreq = freq[i] * (1.0f + (synthDetune[i][j] * displayValues[3]));
 			tSaw_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], tempFreq);
 			tRosenbergGlottalPulse_setFreq(&glottal[(i * NUM_OSC_PER_VOICE) + j], tempFreq);
 			tRosenbergGlottalPulse_setPulseLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], tempLFO1);
 			tRosenbergGlottalPulse_setOpenLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], tempLFO2);
 		}
+
+
 		float keyFollowFilt = myMidiNote * displayValues[2] * 64.0f;
-		float tempFreq = displayValues[1] +  keyFollowFilt;
-		tempFreq = LEAF_clip(0.0f, tempFreq, 4095.0f);
-
-		filtFreqs[i] = (uint16_t) tempFreq;
-		tEfficientSVF_setQ(&synthLP[i],displayValues[4]);
-
-		tADSR4_setAttack(&polyEnvs[i], displayValues[5]);
-		tADSR4_setDecay(&polyEnvs[i], displayValues[6]);
-		tADSR4_setSustain(&polyEnvs[i], displayValues[7]);
-		tADSR4_setRelease(&polyEnvs[i], displayValues[8]);
-		tADSR4_setLeakFactor(&polyEnvs[i], displayValues[9]);
-
-
-		tADSR4_setAttack(&polyFiltEnvs[i], displayValues[10]);
-		tADSR4_setDecay(&polyFiltEnvs[i], displayValues[11]);
-		tADSR4_setSustain(&polyFiltEnvs[i], displayValues[12]);
-		tADSR4_setRelease(&polyFiltEnvs[i], displayValues[13]);
-		tADSR4_setLeakFactor(&polyFiltEnvs[i], displayValues[14]);
-
-
+		float tempFreq2 = displayValues[1] +  keyFollowFilt;
+		tempFreq2 = LEAF_clip(0.0f, tempFreq2, 4095.0f);
+		filtFreqs[i] = (uint16_t) tempFreq2;
 
 		if (numVoices > 1)
 		{
@@ -2113,18 +2294,13 @@ void SFXClassicSynthFrame()
 				}
 			}
 		}
-
-
-
 	}
 }
 
-//waveshaper?
 
-void SFXClassicSynthTick(float audioIn)
+void SFXClassicSynthTick(float* input)
 {
 	float sample = 0.0f;
-	//if (tPoly_getNumActiveVoices(&poly) != 0) tRamp_setDest(&comp, 1.0f / tPoly_getNumActiveVoices(&poly));
 
 	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
@@ -2135,12 +2311,7 @@ void SFXClassicSynthTick(float audioIn)
 		{
 			tempSample += tSaw_tick(&osc[(i * NUM_OSC_PER_VOICE) + j]) * env * (1.0f-displayValues[16]);
 			tempSample += tRosenbergGlottalPulse_tick(&glottal[(i * NUM_OSC_PER_VOICE) + j]) * env * (displayValues[16]);
-			//tRosenbergGlottalPulse_setPulseLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], tCycle_tick(&pwmLFO1));
-			//tRosenbergGlottalPulse_setOpenLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], tCycle_tick(&pwmLFO2));
 		}
-//		tempSample += tSawtooth_tick(&osc[i]) * amplitudeTemp;
-//		tempSample += tSawtooth_tick(&osc[i + NUM_VOC_VOICES]) * amplitudeTemp;
-//		tempSample += tSawtooth_tick(&osc[i] + (NUM_VOC_VOICES * 2)) * amplitudeTemp;
 		tEfficientSVF_setFreq(&synthLP[i], LEAF_clip(0.0f, (filtFreqs[i] + (displayValues[15] * tADSR4_tick(&polyFiltEnvs[i]))), 4095.0f));
 		sample += tEfficientSVF_tick(&synthLP[i], tempSample);
 	}
@@ -2148,8 +2319,8 @@ void SFXClassicSynthTick(float audioIn)
 
 
 	sample = tanhf(sample);
-	leftOut = sample;
-	rightOut = sample;
+	input[0] = sample;
+	input[1] = sample;
 }
 
 void SFXClassicSynthFree(void)
@@ -2159,7 +2330,13 @@ void SFXClassicSynthFree(void)
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
 			tSaw_freeFromPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
+			tRosenbergGlottalPulse_freeFromPool(&glottal[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 		}
+	}
+	tCycle_freeFromPool(&pwmLFO1, &smallPool);
+	tCycle_freeFromPool(&pwmLFO2, &smallPool);
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
+	{
 		tEfficientSVF_freeFromPool(&synthLP[i], &smallPool);
 		tADSR4_freeFromPool(&polyEnvs[i], &smallPool);
 		tADSR4_freeFromPool(&polyFiltEnvs[i], &smallPool);
@@ -2170,9 +2347,6 @@ void SFXClassicSynthFree(void)
 
 
 ///FM RHODES ELECTRIC PIANO SYNTH
-//TODO: fix adsr/poly handling so that poly noteoffs are delayed until the voice sound is finished
-//Add option to not reassign stolen voices in poly
-//test ADSR4 using original table, seeing if flash read is faster than
 
 
 tCycle FM_sines[NUM_VOC_VOICES][6];
@@ -2343,7 +2517,7 @@ void SFXRhodesFrame()
 }
 
 
-void SFXRhodesTick(float audioIn)
+void SFXRhodesTick(float* input)
 {
 	float leftSample = 0.0f;
 	float rightSample = 0.0f;
@@ -2389,8 +2563,8 @@ void SFXRhodesTick(float audioIn)
 	rightSample = tanhf(rightSample);
 
 
-	leftOut = leftSample;
-	rightOut = rightSample;
+	input[0] = leftSample;
+	input[1] = rightSample;
 
 }
 
@@ -2490,6 +2664,10 @@ void noteOn(int key, int velocity)
 	{
 
 		chordArray[key%12]++;
+
+		int whichVoice = tSimplePoly_noteOn(&poly, key, velocity);
+
+
 		if (currentPreset == SamplerKeyboard)
 		{
 			if (key >= LOWEST_SAMPLER_KEY && key < LOWEST_SAMPLER_KEY + NUM_SAMPLER_KEYS)
@@ -2506,7 +2684,7 @@ void noteOn(int key, int velocity)
 		}
 
 
-		int whichVoice = tSimplePoly_noteOn(&poly, key, velocity);
+
 		if (whichVoice >= 0)
 		{
 			if (currentPreset == Rhodes)
@@ -2547,50 +2725,48 @@ void noteOff(int key, int velocity)
 		}
 	}
 
-	else
+
+	if (currentPreset == Rhodes)
 	{
-		if (currentPreset == Rhodes)
+		int voice;
+		if (tSimplePoly_getNumVoices(&poly) > 1)
 		{
-			int voice;
-			if (tSimplePoly_getNumVoices(&poly) > 1)
-			{
-				voice = tSimplePoly_markPendingNoteOff(&poly, key); //if we're polyphonic, we need to let release envelopes happen and not mark voices free when they are not
-			}
-			else
-			{
-				voice = tSimplePoly_noteOff(&poly, key); //if we're monophonic, we need to allow fast voice stealing and returning to previous stolen notes without regard for the release envelopes
-			}
-			if (voice >= 0)
-			{
-				for (int j = 0; j < 6; j++)
-				{
-					tADSR4_off(&FM_envs[voice][j]);
-				}
-			}
-
-		}
-		else if (currentPreset == ClassicSynth)
-		{
-			int voice;
-			if (tSimplePoly_getNumVoices(&poly) > 1)
-			{
-				voice = tSimplePoly_markPendingNoteOff(&poly, key); //if we're polyphonic, we need to let release envelopes happen and not mark voices free when they are not
-			}
-			else
-			{
-				voice = tSimplePoly_noteOff(&poly, key); //if we're monophonic, we need to allow fast voice stealing and returning to previous stolen notes without regard for the release envelopes
-			}
-
-			if (voice >= 0)
-			{
-				tADSR4_off(&polyEnvs[voice]);
-				tADSR4_off(&polyFiltEnvs[voice]);
-			}
+			voice = tSimplePoly_markPendingNoteOff(&poly, key); //if we're polyphonic, we need to let release envelopes happen and not mark voices free when they are not
 		}
 		else
 		{
-			tSimplePoly_noteOff(&poly, key);
+			voice = tSimplePoly_noteOff(&poly, key); //if we're monophonic, we need to allow fast voice stealing and returning to previous stolen notes without regard for the release envelopes
 		}
+		if (voice >= 0)
+		{
+			for (int j = 0; j < 6; j++)
+			{
+				tADSR4_off(&FM_envs[voice][j]);
+			}
+		}
+
+	}
+	else if (currentPreset == ClassicSynth)
+	{
+		int voice;
+		if (tSimplePoly_getNumVoices(&poly) > 1)
+		{
+			voice = tSimplePoly_markPendingNoteOff(&poly, key); //if we're polyphonic, we need to let release envelopes happen and not mark voices free when they are not
+		}
+		else
+		{
+			voice = tSimplePoly_noteOff(&poly, key); //if we're monophonic, we need to allow fast voice stealing and returning to previous stolen notes without regard for the release envelopes
+		}
+
+		if (voice >= 0)
+		{
+			tADSR4_off(&polyEnvs[voice]);
+			tADSR4_off(&polyFiltEnvs[voice]);
+		}
+	}
+	else
+	{
+		tSimplePoly_noteOff(&poly, key);
 	}
 
 	if (tSimplePoly_getNumActiveVoices(&poly) < 1)

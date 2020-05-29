@@ -32,14 +32,15 @@ char small_memory[SMALL_MEM_SIZE];
 char medium_memory[MED_MEM_SIZE]__ATTR_RAM_D1;
 char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
 
-#define DISPLAY_BLOCK_SIZE 512
-float audioDisplayBuffer[128];
-uint8_t displayBufferIndex = 0;
-float displayBlockVal = 0.0f;
-uint32_t displayBlockCount = 0;
+//#define DISPLAY_BLOCK_SIZE 512
+//float audioDisplayBuffer[128];
+//uint8_t displayBufferIndex = 0;
+//float displayBlockVal = 0.0f;
+//uint32_t displayBlockCount = 0;
 
 
 void audioFrame(uint16_t buffer_offset);
+uint32_t audioTick(float* samples);
 float audioTickL(float audioIn);
 float audioTickR(float audioIn);
 void buttonCheck(void);
@@ -63,11 +64,7 @@ tEnvelopeFollower LED_envelope[4];
 
 uint32_t clipCounter[4] = {0,0,0,0};
 uint8_t clipped[4] = {0,0,0,0};
-
-
-float rightIn = 0.0f;
-float rightOut = 0.0f;
-float leftOut = 0.0f;
+uint32_t clipHappened[4] = {0,0,0,0};
 
 
 BOOL bufferCleared = TRUE;
@@ -75,11 +72,16 @@ BOOL bufferCleared = TRUE;
 int numBuffersToClearOnLoad = 2;
 int numBuffersCleared = 0;
 
+#define ATODB_TABLE_SIZE 512
+float atodbTable[ATODB_TABLE_SIZE];
+
+
+
 /**********************************************/
 
 void (*allocFunctions[PresetNil])(void);
 void (*frameFunctions[PresetNil])(void);
-void (*tickFunctions[PresetNil])(float);
+void (*tickFunctions[PresetNil])(float*);
 void (*freeFunctions[PresetNil])(void);
 
 void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn)
@@ -96,17 +98,15 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 	//ramps to smooth the knobs
 	for (int i = 0; i < 6; i++)
 	{
-		tExpSmooth_init(&adc[i], 0.0f, 0.3f); //set all ramps for knobs to be 9ms ramp time and let the init function know they will be ticked every sample
+		tExpSmooth_init(&adc[i], 0.0f, 0.2f); // used to be 0.3 factor
 	}
 
 	for (int i = 0; i < 4; i++)
 	{
-		tEnvelopeFollower_init(&LED_envelope[i], 0.02f, .9995f);
+		tEnvelopeFollower_init(&LED_envelope[i], 0.0001f, .9995f);
 	}
-
+	LEAF_generate_atodbPositiveClipped(atodbTable, -120.0f, 380.f, ATODB_TABLE_SIZE);
 	initGlobalSFXObjects();
-
-//	allocFunctions[currentPreset]();
 
 	loadingPreset = 1;
 	previousPreset = PresetNil;
@@ -146,13 +146,11 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 
 void audioFrame(uint16_t buffer_offset)
 {
-	//volatile uint32_t tempCount3 = 0;
-	//volatile uint32_t tempCount4 = 0;
 	volatile uint32_t tempCount5 = 0;
 	volatile uint32_t tempCount6 = 0;
 	int i;
-	int32_t current_sample;
-
+	//int32_t current_sample;
+	uint32_t clipCatcher = 0;
 
 	tempCount5 = DWT->CYCCNT;
 
@@ -194,19 +192,16 @@ void audioFrame(uint16_t buffer_offset)
 	if (codecReady)
 	{
 
-		for (i = 0; i < (HALF_BUFFER_SIZE); i++)
+		for (i = 0; i < (HALF_BUFFER_SIZE); i += 2)
 		{
+			float theSamples[2];
+			theSamples[0] = ((float)(audioInBuffer[buffer_offset + i] << 8)) * INV_TWO_TO_31;
+			theSamples[1] = ((float)(audioInBuffer[buffer_offset + i + 1] << 8)) * INV_TWO_TO_31;
 
-			if ((i & 1) == 0)
-			{
-				current_sample = (int32_t)(audioTickR((float) (audioInBuffer[buffer_offset + i] << 8) * INV_TWO_TO_31) * TWO_TO_23);
-			}
-			else
-			{
-				current_sample = (int32_t)(audioTickL((float) (audioInBuffer[buffer_offset + i] << 8) * INV_TWO_TO_31) * TWO_TO_23);
-			}
+			clipCatcher |= audioTick(theSamples);
+			audioOutBuffer[buffer_offset + i] = (int32_t)(theSamples[1] * TWO_TO_23);
+			audioOutBuffer[buffer_offset + i + 1] = (int32_t)(theSamples[0] * TWO_TO_23);
 
-			audioOutBuffer[buffer_offset + i] = current_sample;
 		}
 
 
@@ -243,10 +238,61 @@ void audioFrame(uint16_t buffer_offset)
 	}
 	else numBuffersCleared = 0;
 
-	OLED_process(); // process what to write to the screen but don't actually draw
+	for (int i = 0; i < 4; i++)
+	{
+		if ((clipCatcher >> i) & 1)
+		{
+			switch (i)
+			{
+				case 0:
+					setLED_leftin_clip(1);
+					break;
+				case 1:
+					setLED_rightin_clip(1);
+					break;
+				case 2:
+					setLED_leftout_clip(1);
+					break;
+				case 3:
+					setLED_rightout_clip(1);
+					break;
+			}
+			clipCounter[i] = 80;
+			clipped[i] = 1;
+			clipHappened[i] = 0;
+		}
+
+		if ((clipCounter[i] > 0) && (clipped[i] == 1))
+		{
+			clipCounter[i]--;
+		}
+
+		else if ((clipCounter[i] == 0) && (clipped[i] == 1))
+		{
+			switch (i)
+			{
+				case 0:
+					setLED_leftin_clip(0);
+					break;
+				case 1:
+					setLED_rightin_clip(0);
+					break;
+				case 2:
+					setLED_leftout_clip(0);
+					break;
+				case 3:
+					setLED_rightout_clip(0);
+					break;
+			}
+			clipped[i] = 0;
+		}
+	}
+
 
 	tempCount6 = DWT->CYCCNT;
+
 	cycleCountVals[0][2] = 0;
+
 	cycleCountVals[0][1] = tempCount6-tempCount5;
 	if (cycleCountVals[0][1] > 1280000)
 	{
@@ -257,20 +303,7 @@ void audioFrame(uint16_t buffer_offset)
 }
 
 
-
-
-float audioTickL(float audioIn)
-{
-	float sample = 0.0f;
-
-
-
-	if (loadingPreset) return sample;
-
-	bufferCleared = 0;
-
-	tickFunctions[currentPreset](audioIn);
-	sample = leftOut;
+// code to display waveform on OLED
 /*
 	displayBlockVal += fabsf(sample);
 	displayBlockCount++;
@@ -283,50 +316,88 @@ float audioTickL(float audioIn)
 		displayBufferIndex++;
 		if (displayBufferIndex >= 128) displayBufferIndex = 0;
 	}
-	*/
+*/
+
+
+uint32_t audioTick(float* samples)
+{
+	uint32_t clips = 0;
+	if (loadingPreset)
+	{
+		samples[0] = 0.0f;
+		samples[1] = 0.0f;
+		return 0;
+	}
+
+	bufferCleared = 0;
+
+
+	if ((samples[1] >= 0.999999f) || (samples[1] <= -0.999999f))
+	{
+		clips |= 1;
+	}
+
+	if ((samples[0] >= 0.999999f) || (samples[0] <= -0.999999f))
+	{
+		clips |= 2;
+	}
+
+
+	uint16_t current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[0], samples[1]) * ATODB_TABLE_SIZE)];
+	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, current_env);
+	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[2], samples[0]) * ATODB_TABLE_SIZE)];
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, current_env);
+
+	tickFunctions[currentPreset](samples);
+
+	//now the samples array is output
+	if ((samples[1] >= 0.999999f) || (samples[1] <= -0.999999f))
+	{
+		clips |= 4;
+	}
+
+	if ((samples[0] >= 0.999999f) || (samples[0] <= -0.999999f))
+	{
+		clips |= 8;
+	}
+	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[1], samples[1]) * ATODB_TABLE_SIZE)];
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, current_env);
+	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[3], samples[0]) * ATODB_TABLE_SIZE)];
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, current_env);
+
+	return clips;
+}
+
+/*
+float audioTickL(float audioIn)
+{
+	float sample = 0.0f;
+
+	if (loadingPreset) return sample;
+
+	bufferCleared = 0;
+
 
 	if ((audioIn >= 0.999999f) || (audioIn <= -0.999999f))
 	{
-		setLED_leftin_clip(1);
-		clipCounter[0] = 10000;
-		clipped[0] = 1;
-	}
-	if ((clipCounter[0] > 0) && (clipped[0] == 1))
-	{
-		clipCounter[0]--;
-	}
-	else if ((clipCounter[0] == 0) && (clipped[0] == 1))
-	{
-		setLED_leftin_clip(0);
-		clipped[0] = 0;
+		clipHappened[0] = 1;
 	}
 
-	float current_env = tEnvelopeFollower_tick(&LED_envelope[0], audioIn);
-	uint16_t audioLEDLevel = LEAF_clip(0, (current_env * 4096.0f), 1024);
-	 __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, audioLEDLevel);
 
-
-	current_env = tEnvelopeFollower_tick(&LED_envelope[1], sample);
-	audioLEDLevel = LEAF_clip(0, (current_env *  4096.0f), 1024);
-	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, audioLEDLevel);
-
-
+	tickFunctions[currentPreset](audioIn);
+	sample = leftOut;
 
 	if ((sample >= 0.999999f) || (sample <= -0.999999f))
 	{
-		setLED_leftout_clip(1);
-		clipCounter[2] = 10000;
-		clipped[2] = 1;
+		clipHappened[2] = 1;
 	}
-	if ((clipCounter[2] > 0) && (clipped[2] == 1))
-	{
-		clipCounter[2]--;
-	}
-	else if ((clipCounter[2] == 0) && (clipped[2] == 1))
-	{
-		setLED_leftout_clip(0);
-		clipped[2] = 0;
-	}
+
+
+	float current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[2], audioIn)* ATODB_TABLE_SIZE)];
+	 __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, (uint32_t)current_env);
+
+	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[3], leftOut)* ATODB_TABLE_SIZE)];
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, (uint32_t)current_env);
 
 	return sample;
 }
@@ -336,55 +407,44 @@ float audioTickL(float audioIn)
 float audioTickR(float audioIn)
 {
 	rightIn = audioIn;
+	uint32_t tempCount1, tempCount2;
+
+
+
+
 
 
 	if ((rightIn >= 0.999999f) || (rightIn <= -0.999999f))
 	{
-		setLED_rightin_clip(1);
-		clipCounter[1] = 10000;
-		clipped[1] = 1;
-	}
-	if ((clipCounter[1] > 0) && (clipped[1] == 1))
-	{
-		clipCounter[1]--;
-	}
-	else if ((clipCounter[1] == 0) && (clipped[1] == 1))
-	{
-		setLED_rightin_clip(0);
-		clipped[1] = 0;
+		clipHappened[1] = 1;
 	}
 
 
 
 	if ((rightOut >= 0.999999f) || (rightOut <= -0.999999f))
 	{
-		setLED_rightout_clip(1);
-		clipCounter[3] = 10000;
-		clipped[3] = 1;
-	}
-	if ((clipCounter[3] > 0) && (clipped[3] == 1))
-	{
-		clipCounter[3]--;
-	}
-	else if ((clipCounter[3] == 0) && (clipped[3] == 1))
-	{
-		setLED_rightout_clip(0);
-		clipped[3] = 0;
+		clipHappened[3] = 1;
 	}
 
 
-	float current_env = tEnvelopeFollower_tick(&LED_envelope[2], rightIn);
-	uint16_t audioLEDLevel = LEAF_clip(0, (current_env * 4096.0f), 1024);
-	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, audioLEDLevel);
+	float current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[2], rightIn)* ATODB_TABLE_SIZE)];
+	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, (uint32_t)current_env);
 
 
-	current_env = tEnvelopeFollower_tick(&LED_envelope[3], rightOut);
-	audioLEDLevel = LEAF_clip(0, (current_env  * 4096.0f), 1024);
-	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, audioLEDLevel);
+		cycleCountVals[3][2] = 0;
+		tempCount1 = DWT->CYCCNT;
 
 
+	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[3], rightOut)* ATODB_TABLE_SIZE)];
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, (uint32_t)current_env);
+
+	tempCount2 = DWT->CYCCNT;
+	cycleCountVals[3][1] = tempCount2-tempCount1;
+	CycleCounterTrackMinAndMax(3);
 	return rightOut;
 }
+
+*/
 
 void initFunctionPointers(void)
 {
