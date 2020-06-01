@@ -1824,11 +1824,13 @@ void SFXDelayFree(void)
 uint32_t freeze = 0;
 
 tDattorroReverb reverb;
+tExpSmooth sizeSmoother;
 
 void SFXReverbAlloc()
 {
 	leaf.clearOnAllocation = 1;
 	tDattorroReverb_init(&reverb);
+	tExpSmooth_init(&sizeSmoother, 0.5f, 0.001f);
 	tDattorroReverb_setMix(&reverb, 1.0f);
 	freeze = 0;
 	capFeedback = 1;
@@ -1842,11 +1844,11 @@ void SFXReverbFrame()
 		capFeedback = !capFeedback;
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
 	}
-	displayValues[1] = faster_mtof(presetKnobValues[Reverb][1]*135.0f);
+	displayValues[1] = faster_mtof(presetKnobValues[Reverb][1]*129.0f);
 	tDattorroReverb_setInputFilter(&reverb, displayValues[1]);
 	displayValues[2] =  faster_mtof(presetKnobValues[Reverb][2]*128.0f);
 	tDattorroReverb_setHP(&reverb, displayValues[2]);
-	displayValues[3] = faster_mtof(presetKnobValues[Reverb][3]*135.0f);
+	displayValues[3] = faster_mtof(presetKnobValues[Reverb][3]*129.0f);
 	tDattorroReverb_setFeedbackFilter(&reverb, displayValues[3]);
 }
 
@@ -1874,7 +1876,9 @@ void SFXReverbTick(float* input)
 	//tDattorroReverb_setInputDelay(&reverb, smoothedADC[1] * 200.f);
 	input[1] *= 4.0f;
 	displayValues[0] = presetKnobValues[Reverb][0];
-	tDattorroReverb_setSize(&reverb, displayValues[0]);
+	tExpSmooth_setDest(&sizeSmoother, (displayValues[0] * 0.9f) + 0.1f);
+	float tempSize = tExpSmooth_tick(&sizeSmoother);
+	tDattorroReverb_setSize(&reverb, tempSize);
 	displayValues[4] = capFeedback ? LEAF_clip(0.0f, presetKnobValues[Reverb][4], 0.5f) : presetKnobValues[Reverb][4];
 	tDattorroReverb_setFeedbackGain(&reverb, displayValues[4]);
 	tDattorroReverb_tickStereo(&reverb, input[1], stereo);
