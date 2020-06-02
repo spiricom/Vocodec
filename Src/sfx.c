@@ -870,7 +870,7 @@ void SFXPitchShiftAlloc()
 	tRamp_init(&pitchshiftRamp, 100.0f, 1);
 	tRamp_setVal(&pitchshiftRamp, 1.0f);
 
-
+	tSimplePoly_setNumVoices(&poly, 1);
 	tExpSmooth_init(&smoother1, 0.0f, 0.01f);
 	tExpSmooth_init(&smoother2, 0.0f, 0.01f);
 	tExpSmooth_init(&smoother3, 0.0f, 0.01f);
@@ -892,7 +892,19 @@ void SFXPitchShiftTick(float* input)
 	float myPitchFactorCombined = myPitchFactorFine + myPitchFactorCoarse;
 	displayValues[0] = myPitchFactorCombined;
 	displayValues[1] = myPitchFactorCombined;
+
+	float keyPitch = tSimplePoly_getPitchAndCheckActive(&poly, 0);
+	if (keyPitch >= 0)
+	{
+		keyPitch = LEAF_midiToFrequency(keyPitch) * 0.003822629969419f ;
+	}
+	else
+	{
+		keyPitch = 1.0f;
+	}
+
 	float myPitchFactor = fastexp2f(myPitchFactorCombined);
+	myPitchFactor *= keyPitch;
 	tRetune_setPitchFactor(&retune, myPitchFactor, 0);
 	tRetune_setPitchFactor(&retune2, myPitchFactor, 0);
 
@@ -1331,7 +1343,7 @@ void SFXSamplerAutoAlloc()
 	tSampler_setMode(&asSampler[0], PlayLoop);
 	tSampler_init(&asSampler[1], &asBuff[1]);
 	tSampler_setMode(&asSampler[1], PlayLoop);
-	tEnvelopeFollower_init(&envfollow, 0.001f, 0.9999f);
+	tEnvelopeFollower_init(&envfollow, 0.00001f, 0.9999f);
 	tRamp_init(&asFade, 14.0f, 1);
 	setLED_A(samplerMode == PlayBackAndForth);
 	setLED_B(triggerChannel);
@@ -1389,17 +1401,17 @@ void SFXSamplerAutoTick(float* input)
 	{
 		randLengthVal = (randomNumber() - 0.5f) * randLengthAmount * 2.0f;
 		randRateVal = (randomNumber() - 0.5f) * randRateAmount * 2.0f;
-		currentSampler = !currentSampler;
+
 		samp_triggered = 1;
 		setLED_1(1);
-		tBuffer_record(&asBuff[currentSampler]);
-		tSampler_play(&asSampler[currentSampler]);
+		tBuffer_record(&asBuff[!currentSampler]);
+		//tSampler_play(&asSampler[currentSampler]);
 		sample_countdown = window_size;
 		powerCounter = 1000;
 		// why does the sampler have difficulty starting to play without this line?
 		// should probably solve this inside leaf because this is a bit weird
 		asBuff[currentSampler]->recordedLength = asBuff[currentSampler]->bufferLength;
-		tRamp_setDest(&asFade, (float)currentSampler);
+
 	}
 
 	if (sample_countdown > 0)
@@ -1429,6 +1441,9 @@ void SFXSamplerAutoTick(float* input)
 		{
 			setLED_1(0);
 			samp_triggered = 0;
+			currentSampler = !currentSampler;
+			tSampler_play(&asSampler[currentSampler]);
+			tRamp_setDest(&asFade, (float)currentSampler);
 		}
 	}
 	if (buttonActionsSFX[ButtonA][ActionPress])
