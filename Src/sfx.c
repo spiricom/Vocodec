@@ -1331,7 +1331,7 @@ void SFXSamplerAutoAlloc()
 	tSampler_setMode(&asSampler[0], PlayLoop);
 	tSampler_init(&asSampler[1], &asBuff[1]);
 	tSampler_setMode(&asSampler[1], PlayLoop);
-	tEnvelopeFollower_init(&envfollow, 0.05f, 0.9999f);
+	tEnvelopeFollower_init(&envfollow, 0.001f, 0.9999f);
 	tRamp_init(&asFade, 14.0f, 1);
 	setLED_A(samplerMode == PlayBackAndForth);
 	setLED_B(triggerChannel);
@@ -1349,8 +1349,14 @@ void SFXSamplerAutoFrame()
 void SFXSamplerAutoTick(float* input)
 {
 	float sample = 0.0f;
-	if (triggerChannel > 0) currentPower = tEnvelopeFollower_tick(&envfollow, input[0]);
-	else currentPower = tEnvelopeFollower_tick(&envfollow, input[1]);
+	if (triggerChannel > 0)
+	{
+		currentPower = tEnvelopeFollower_tick(&envfollow, input[0]);
+	}
+	else
+	{
+		currentPower = tEnvelopeFollower_tick(&envfollow, input[1]);
+	}
 
 	float* knobs = presetKnobValues[SamplerAutoGrab];
 

@@ -73,6 +73,7 @@ int numBuffersToClearOnLoad = 2;
 int numBuffersCleared = 0;
 
 #define ATODB_TABLE_SIZE 512
+#define ATODB_TABLE_SIZE_MINUS_ONE 511
 float atodbTable[ATODB_TABLE_SIZE];
 
 
@@ -343,9 +344,9 @@ uint32_t audioTick(float* samples)
 	}
 
 
-	uint16_t current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[0], samples[1]) * ATODB_TABLE_SIZE)];
+	uint16_t current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[0], LEAF_clip(-1.0f, samples[1], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, current_env);
-	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[2], samples[0]) * ATODB_TABLE_SIZE)];
+	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[2], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, current_env);
 
 	tickFunctions[currentPreset](samples);
@@ -360,9 +361,9 @@ uint32_t audioTick(float* samples)
 	{
 		clips |= 8;
 	}
-	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[1], samples[1]) * ATODB_TABLE_SIZE)];
+	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[1], LEAF_clip(-1.0f, samples[1], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, current_env);
-	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[3], samples[0]) * ATODB_TABLE_SIZE)];
+	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[3], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, current_env);
 
 	return clips;
