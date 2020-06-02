@@ -839,8 +839,8 @@ void SFXVocoderChFree(void)
 	for (int i = 0; i < MAX_NUM_VOCODER_BANDS; i++)
 	{
 		tVZFilter_free(&analysisBands[i][0]);
-		tVZFilter_free(&synthesisBands[i][1]);
-		tVZFilter_free(&analysisBands[i][0]);
+		tVZFilter_free(&analysisBands[i][1]);
+		tVZFilter_free(&synthesisBands[i][0]);
 		tVZFilter_free(&synthesisBands[i][1]);
 		tExpSmooth_freeFromPool(&envFollowers[i], &smallPool);
 	}
@@ -855,7 +855,7 @@ void SFXVocoderChFree(void)
 		tSaw_freeFromPool(&osc[i], &smallPool);
 		tRosenbergGlottalPulse_freeFromPool(&glottal[i], &smallPool);
 	}
-	tOversampler_freeFromPool(&oversampler, &smallPool);
+//	tOversampler_freeFromPool(&oversampler, &smallPool);
 }
 
 // pitch shift
@@ -1390,7 +1390,8 @@ void SFXSamplerAutoTick(float* input)
 		tSampler_play(&asSampler[currentSampler]);
 		sample_countdown = window_size;
 		powerCounter = 1000;
-		// why does the sampler have difficulty starting to play without this line? should probably solve this inside leaf because this is a bit weird
+		// why does the sampler have difficulty starting to play without this line?
+		// should probably solve this inside leaf because this is a bit weird
 		asBuff[currentSampler]->recordedLength = asBuff[currentSampler]->bufferLength;
 		tRamp_setDest(&asFade, (float)currentSampler);
 	}
@@ -1712,8 +1713,8 @@ void SFXBitcrusherTick(float* input)
 
 void SFXBitcrusherFree(void)
 {
-	tCrusher_free(&crush);
-	tCrusher_free(&crush2);
+	tCrusher_freeFromPool(&crush, &smallPool);
+	tCrusher_freeFromPool(&crush2, &smallPool);
 }
 
 
@@ -2379,8 +2380,6 @@ void SFXClassicSynthTick(float* input)
 
 void SFXClassicSynthFree(void)
 {
-	tCycle_freeFromPool(&pwmLFO1, &smallPool);
-	tCycle_freeFromPool(&pwmLFO2, &smallPool);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
@@ -2395,7 +2394,6 @@ void SFXClassicSynthFree(void)
 
 	tCycle_freeFromPool(&pwmLFO1, &smallPool);
 	tCycle_freeFromPool(&pwmLFO2, &smallPool);
-
 }
 
 
