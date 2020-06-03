@@ -1371,6 +1371,8 @@ void SFXSamplerAutoFrame()
 	}
 }
 
+float lastSample = 0.0f;
+
 void SFXSamplerAutoTick(float* input)
 {
 	float sample = 0.0f;
@@ -1434,13 +1436,25 @@ void SFXSamplerAutoTick(float* input)
 		powerCounter = 1000;
 		// why does the sampler have difficulty starting to play without this line?
 		// should probably solve this inside leaf because this is a bit weird
-		asBuff[currentSampler]->recordedLength = asBuff[currentSampler]->bufferLength;
+		asBuff[!currentSampler]->recordedLength = asBuff[!currentSampler]->bufferLength;
 
 	}
 
 	if (sample_countdown > 0)
 	{
 		sample_countdown--;
+	}
+	else if (samp_triggered == 1)
+	{
+		setLED_1(0);
+
+		currentSampler = !currentSampler;
+
+
+		tBuffer_stop(&asBuff[currentSampler]);
+		tSampler_play(&asSampler[currentSampler]);
+		tRamp_setDest(&asFade, (float)currentSampler);
+		samp_triggered = 0;
 	}
 
 
@@ -1470,12 +1484,9 @@ void SFXSamplerAutoTick(float* input)
 		}
 		else if (samp_triggered == 1)
 		{
-			setLED_1(0);
-			samp_triggered = 0;
-			currentSampler = !currentSampler;
-			tSampler_play(&asSampler[currentSampler]);
-			tRamp_setDest(&asFade, (float)currentSampler);
+
 		}
+
 	}
 	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
@@ -1508,6 +1519,7 @@ void SFXSamplerAutoTick(float* input)
 	input[0] = sample;
 	input[1] = sample;
 	previousPower = currentPower;
+	lastSample = sample;
 }
 
 void SFXSamplerAutoFree(void)
