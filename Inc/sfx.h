@@ -99,6 +99,7 @@ void SFXSamplerKFree(void);
 
 // sampler - auto ch1
 extern uint8_t triggerChannel;
+extern int pitchQuantization;
 
 void SFXSamplerAutoAlloc();
 void SFXSamplerAutoFrame();

@@ -172,8 +172,8 @@ void initModeNames(void)
 	knobParamNames[SamplerAutoGrab][2] = "SPEED";
 	knobParamNames[SamplerAutoGrab][3] = "CROSSFADE";
 	knobParamNames[SamplerAutoGrab][4] = "";
-	knobParamNames[SamplerAutoGrab][5] = "LENRAND+/-";
-	knobParamNames[SamplerAutoGrab][6] = "SPDRAND+/-";
+	knobParamNames[SamplerAutoGrab][5] = "LEN RAND";
+	knobParamNames[SamplerAutoGrab][6] = "SPD RAND";
 	knobParamNames[SamplerAutoGrab][7] = "";
 	knobParamNames[SamplerAutoGrab][8] = "";
 	knobParamNames[SamplerAutoGrab][9] = "";
@@ -410,10 +410,6 @@ void buttonCheck(void)
 			writeCurrentPresetToFlash();
 			clearButtonActions();
 		}
-		if (buttonActionsUI[ButtonC][ActionPress] == 1)
-		{
-			if (buttonActionsUI[ButtonEdit][ActionHoldContinuous] == 0) buttonActionsUI[ButtonC][ActionPress] = 0;
-		}
 		if (buttonActionsUI[ButtonD][ActionPress] == 1)
 		{
 			if (currentTuning == 0)
@@ -451,11 +447,13 @@ void buttonCheck(void)
 				OLEDwriteString("KEY: ", 5, 0, SecondLine);
 				OLEDwritePitchClass(keyCenter+60, 64, SecondLine);
 				buttonActionsUI[ButtonC][ActionPress] = 0;
+				buttonActionsSFX[ButtonC][ActionPress] = 0;
 			}
 			if (buttonActionsUI[ButtonDown][ActionPress])
 			{
 				cvAddParam[currentPreset] = -1;
 				buttonActionsUI[ButtonDown][ActionPress] = 0;
+				buttonActionsSFX[ButtonDown][ActionPress] = 0;
 			}
 //			OLEDdrawFloatArray(audioDisplayBuffer, -1.0f, 1.0f, 128, displayBufferIndex, 0, BothLines);
 		}
@@ -780,6 +778,11 @@ char* UISamplerAutoButtons(VocodecButton button, ButtonAction action)
 	{
 		writeString = triggerChannel ? "CH2 TRIG" : "CH1 TRIG";
 		buttonActionsUI[ButtonB][ActionPress] = 0;
+	}
+	if (buttonActionsUI[ButtonC][ActionPress])
+	{
+		writeString = pitchQuantization ? "OVRTNE RAND" : "FREE RAND";
+		buttonActionsUI[ButtonC][ActionPress] = 0;
 	}
 	return writeString;
 }

@@ -1334,6 +1334,7 @@ PlayMode samplerMode = PlayLoop;
 uint32_t powerCounter = 0;
 uint8_t triggerChannel = 0;
 uint8_t currentSampler = 0;
+int pitchQuantization = 0;
 int randLengthVal = 0;
 float randRateVal = 0.0f;
 tRamp asFade;
@@ -1356,11 +1357,18 @@ void SFXSamplerAutoAlloc()
 	sample_countdown = 0;
 	randLengthVal = randomNumber() * 10000.0f;
 	randRateVal = (randomNumber() - 0.5f) * 4.0f;
+
+	setLED_C(pitchQuantization);
 }
 
 void SFXSamplerAutoFrame()
 {
-
+	if (buttonActionsSFX[ButtonC][ActionPress] == 1)
+	{
+		pitchQuantization = !pitchQuantization;
+		buttonActionsSFX[ButtonC][ActionPress] = 0;
+		setLED_C(pitchQuantization);
+	}
 }
 
 void SFXSamplerAutoTick(float* input)
@@ -1393,9 +1401,19 @@ void SFXSamplerAutoTick(float* input)
 	if (randLengthAmount < 20.0f) randLengthAmount = 0.0f;
 	displayValues[5] = randLengthAmount;
 
-	float randRateAmount = knobs[6] * 2.0f;
-	if (randRateAmount < 0.01) randRateAmount = 0.0f;
-	displayValues[6] = randRateAmount;
+
+	float randRateAmount;
+	if (pitchQuantization)
+	{
+		randRateAmount = roundf(knobs[6] * 8.0f);
+		displayValues[6] = randRateAmount;
+	}
+	else
+	{
+		randRateAmount = knobs[6] * 2.0f;
+		if (randRateAmount < 0.01) randRateAmount = 0.0f;
+		displayValues[6] = randRateAmount;
+	}
 
 
 	tSampler_setCrossfadeLength(&asSampler[0], crossfadeLength);
@@ -1405,7 +1423,8 @@ void SFXSamplerAutoTick(float* input)
 	if ((currentPower > (samp_thresh)) && (currentPower > previousPower + 0.001f) && (samp_triggered == 0) && (sample_countdown == 0))
 	{
 		randLengthVal = (randomNumber() - 0.5f) * randLengthAmount * 2.0f;
-		randRateVal = (randomNumber() - 0.5f) * randRateAmount * 2.0f;
+		if (pitchQuantization) randRateVal = roundf(randomNumber() * randRateAmount) + 1.0f;
+		else randRateVal = (randomNumber() - 0.5f) * randRateAmount * 2.0f;
 
 		samp_triggered = 1;
 		setLED_1(1);
@@ -1425,9 +1444,16 @@ void SFXSamplerAutoTick(float* input)
 	}
 
 
-
-	tSampler_setRate(&asSampler[0], rate + randRateVal);
-	tSampler_setRate(&asSampler[1], rate + randRateVal);
+	if (pitchQuantization)
+	{
+		tSampler_setRate(&asSampler[0], rate * randRateVal);
+		tSampler_setRate(&asSampler[1], rate * randRateVal);
+	}
+	else
+	{
+		tSampler_setRate(&asSampler[0], rate + randRateVal);
+		tSampler_setRate(&asSampler[1], rate + randRateVal);
+	}
 
 	tSampler_setEnd(&asSampler[0], window_size + randLengthVal);
 	tSampler_setEnd(&asSampler[1], window_size + randLengthVal);
@@ -2053,7 +2079,6 @@ void SFXLivingStringFrame()
 		tComplexLivingString_setPrepPos(&theString[i], displayValues[5]);
 		tComplexLivingString_setPrepIndex(&theString[i], displayValues[6]);
 	}
-
 }
 
 
@@ -2119,7 +2144,6 @@ void SFXLivingStringSynthFrame()
 		tComplexLivingString_setFreq(&theString[i], freq[i]);
 		tComplexLivingString_setTargetLev(&theString[i],(tSimplePoly_getVelocity(&poly, i) > 0));
 	}
-
 }
 
 
