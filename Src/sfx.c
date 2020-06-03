@@ -1475,19 +1475,7 @@ void SFXSamplerAutoTick(float* input)
 	tBuffer_tick(&asBuff[0], input[1]);
 	tBuffer_tick(&asBuff[1], input[1]);
 
-	//on it's way down
-	if (currentPower <= previousPower)
-	{
-		if (powerCounter > 0)
-		{
-			powerCounter--;
-		}
-		else if (samp_triggered == 1)
-		{
 
-		}
-
-	}
 	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
 		if (samplerMode == PlayLoop)
