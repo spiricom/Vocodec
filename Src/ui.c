@@ -247,13 +247,14 @@ void initModeNames(void)
 	modeNames[LivingString] = "STRING1";
 	shortModeNames[LivingString] = "LS";
 	modeNamesDetails[LivingString] = "SYMP STRING";
-	numPages[LivingString] = 1;
+	numPages[LivingString] = 2;
 	knobParamNames[LivingString][0] = "FREQ";
 	knobParamNames[LivingString][1] = "DETUNE";
 	knobParamNames[LivingString][2] = "DECAY";
 	knobParamNames[LivingString][3] = "DAMPING";
-	knobParamNames[LivingString][4] = "PICK_POS";
-	knobParamNames[LivingString][5] = "";
+	knobParamNames[LivingString][4] = "PICK POS";
+	knobParamNames[LivingString][5] = "PREP POS";
+	knobParamNames[LivingString][6] = "PREP INDEX";
 
 	modeNames[LivingStringSynth] = "STRING2";
 	shortModeNames[LivingStringSynth] = "SS";

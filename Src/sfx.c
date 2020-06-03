@@ -83,7 +83,7 @@ float decayExpBufferSizeMinusOne = DECAY_EXP_BUFFER_SIZE - 1;
 
 
 #define NUM_STRINGS 6
-tLivingString theString[NUM_STRINGS];
+tComplexLivingString theString[NUM_STRINGS];
 
 float myFreq;
 float myDetune[NUM_STRINGS];
@@ -240,12 +240,17 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[Reverb2][4] = 0.5f; // peak gain
 	defaultPresetKnobValues[Reverb2][5] = 0.0f;
 
-	defaultPresetKnobValues[LivingString][0] = 0.5f; // freq
-	defaultPresetKnobValues[LivingString][1] = 0.5f; // detune
-	defaultPresetKnobValues[LivingString][2] = 0.5f; // decay
-	defaultPresetKnobValues[LivingString][3] = 0.8f; // damping
+	defaultPresetKnobValues[LivingString][0] = 0.3f; // freq
+	defaultPresetKnobValues[LivingString][1] = 0.1f; // detune
+	defaultPresetKnobValues[LivingString][2] = 0.3f; // decay
+	defaultPresetKnobValues[LivingString][3] = 0.9f; // damping
 	defaultPresetKnobValues[LivingString][4] = 0.5f; // pick pos
-	defaultPresetKnobValues[LivingString][5] = 0.0f;
+	defaultPresetKnobValues[LivingString][5] = 0.25f; // prep pos
+	defaultPresetKnobValues[LivingString][6] = 0.0f; // prep index
+	defaultPresetKnobValues[LivingString][7] = 0.5f;
+	defaultPresetKnobValues[LivingString][8] = 0.8f;
+	defaultPresetKnobValues[LivingString][9] = 0.5f;
+	defaultPresetKnobValues[LivingString][10] = 0.0f;
 
 	defaultPresetKnobValues[LivingStringSynth][0] = 0.0f;
 	defaultPresetKnobValues[LivingStringSynth][1] = 0.0f;
@@ -2024,24 +2029,29 @@ void SFXLivingStringAlloc()
 	{
 		myFreq = (randomNumber() * 300.0f) + 60.0f;
 		myDetune[i] = (randomNumber() * 0.3f) - 0.15f;
-		//tLivingString_init(&theString[i],  myFreq, 0.4f, 0.0f, 16000.0f, .999f, .5f, .5f, 0.1f, 0);
-		tLivingString_init(&theString[i], 440.f, 0.2f, 0.f, 9000.f, 1.0f, 0.3f, 0.01f, 0.125f, 0);
+		//tComplexLivingString_init(&theString[i],  myFreq, 0.4f, 0.0f, 16000.0f, .999f, .5f, .5f, 0.1f, 0);
+		tComplexLivingString_init(&theString[i], 440.f, 0.8f, 0.3f, 0.f, 9000.f, 1.0f, 0.3f, 0.01f, 0.125f, 0);
 	}
 }
 
 void SFXLivingStringFrame()
 {
-	displayValues[0] = mtof((presetKnobValues[LivingString][0] * 135.0f)); //freq
+	displayValues[0] = LEAF_midiToFrequency((presetKnobValues[LivingString][0] * 90.0f)); //freq
 	displayValues[1] = presetKnobValues[LivingString][1]; //detune
-	displayValues[2] = ((presetKnobValues[LivingString][2] * 0.09999999f) + 0.9f);
+	displayValues[2] = presetKnobValues[LivingString][2]; //decay
 	displayValues[3] = mtof((presetKnobValues[LivingString][3] * 130.0f)+12.0f); //lowpass
-	displayValues[4] = (presetKnobValues[LivingString][4] * 0.5) + 0.02f;//pickPos
+	displayValues[4] = (presetKnobValues[LivingString][4] * 0.48) + 0.5f;//pickPos
+	displayValues[5] = (presetKnobValues[LivingString][5] * 0.48) + 0.02f;//prepPos
+	displayValues[6] = ((tanhf((presetKnobValues[LivingString][6] * 8.0f) - 4.0f)) * 0.5f) + 0.5f;//prep Index
+
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		tLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * displayValues[1]))) * displayValues[0]);
-		tLivingString_setDecay(&theString[i], displayValues[2]);
-		tLivingString_setDampFreq(&theString[i], displayValues[3]);
-		tLivingString_setPickPos(&theString[i], displayValues[4]);
+		tComplexLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * displayValues[1]))) * displayValues[0]);
+		tComplexLivingString_setDecay(&theString[i], (displayValues[2] * 0.015f) + 0.995f);
+		tComplexLivingString_setDampFreq(&theString[i], displayValues[3]);
+		tComplexLivingString_setPickPos(&theString[i], displayValues[4]);
+		tComplexLivingString_setPrepPos(&theString[i], displayValues[5]);
+		tComplexLivingString_setPrepIndex(&theString[i], displayValues[6]);
 	}
 
 }
@@ -2052,7 +2062,7 @@ void SFXLivingStringTick(float* input)
 	float sample = 0.0f;
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		sample += tLivingString_tick(&theString[i], input[1]);
+		sample += tComplexLivingString_tick(&theString[i], input[1]);
 	}
 	sample *= 0.0625f;
 	input[0] = sample;
@@ -2065,18 +2075,18 @@ void SFXLivingStringFree(void)
 {
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		tLivingString_free(&theString[i]);
+		tComplexLivingString_free(&theString[i]);
 	}
 }
 
 
-//Living String
+//Living String Synth
 void SFXLivingStringSynthAlloc()
 {
 	tSimplePoly_setNumVoices(&poly, NUM_STRINGS);
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		tLivingString_init(&theString[i], 440.f, 0.2f, 0.f, 9000.f, 1.0f, 0.0f, 0.01f, 0.125f, 1);
+		tComplexLivingString_init(&theString[i], 440.f, 0.2f, 0.3f, 0.f, 9000.f, 1.0f, 0.0f, 0.01f, 0.125f, 1);
 	}
 }
 
@@ -2096,18 +2106,18 @@ void SFXLivingStringSynthFrame()
 	displayValues[4] = (presetKnobValues[LivingStringSynth][4] * 0.5) + 0.02f;//pickPos
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		//tLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * knobParams[1]))) * knobParams[0]);
-		tLivingString_setDecay(&theString[i], displayValues[2]);
-		tLivingString_setDampFreq(&theString[i], displayValues[3]);
-		tLivingString_setPickPos(&theString[i], displayValues[4]);
+		//tComplexLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * knobParams[1]))) * knobParams[0]);
+		tComplexLivingString_setDecay(&theString[i], displayValues[2]);
+		tComplexLivingString_setDampFreq(&theString[i], displayValues[3]);
+		tComplexLivingString_setPickPos(&theString[i], displayValues[4]);
 	}
 
 	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
 		//tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
 		calculateFreq(i);
-		tLivingString_setFreq(&theString[i], freq[i]);
-		tLivingString_setTargetLev(&theString[i],(tSimplePoly_getVelocity(&poly, i) > 0));
+		tComplexLivingString_setFreq(&theString[i], freq[i]);
+		tComplexLivingString_setTargetLev(&theString[i],(tSimplePoly_getVelocity(&poly, i) > 0));
 	}
 
 }
@@ -2118,7 +2128,7 @@ void SFXLivingStringSynthTick(float* input)
 	float sample = 0.0f;
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		sample += tLivingString_tick(&theString[i], input[1]);
+		sample += tComplexLivingString_tick(&theString[i], input[1]);
 	}
 	sample *= 0.0625f;
 	input[0] = sample;
@@ -2129,7 +2139,7 @@ void SFXLivingStringSynthFree(void)
 {
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		tLivingString_free(&theString[i]);
+		tComplexLivingString_free(&theString[i]);
 	}
 }
 
