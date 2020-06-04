@@ -240,7 +240,7 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[Reverb2][4] = 0.5f; // peak gain
 	defaultPresetKnobValues[Reverb2][5] = 0.0f;
 
-	defaultPresetKnobValues[LivingString][0] = 0.3f; // freq
+	defaultPresetKnobValues[LivingString][0] = 0.3f; // freq 1
 	defaultPresetKnobValues[LivingString][1] = 0.1f; // detune
 	defaultPresetKnobValues[LivingString][2] = 0.3f; // decay
 	defaultPresetKnobValues[LivingString][3] = 0.9f; // damping
@@ -250,7 +250,11 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[LivingString][7] = 0.5f;
 	defaultPresetKnobValues[LivingString][8] = 0.8f;
 	defaultPresetKnobValues[LivingString][9] = 0.5f;
-	defaultPresetKnobValues[LivingString][10] = 0.0f;
+	defaultPresetKnobValues[LivingString][10] = 0.3f;// freq 2
+	defaultPresetKnobValues[LivingString][11] = 0.3f;// freq 3
+	defaultPresetKnobValues[LivingString][12] = 0.3f;// freq 4
+	defaultPresetKnobValues[LivingString][13] = 0.3f;// freq 5
+	defaultPresetKnobValues[LivingString][14] = 0.3f;// freq 6
 
 	defaultPresetKnobValues[LivingStringSynth][0] = 0.0f;
 	defaultPresetKnobValues[LivingStringSynth][1] = 0.0f;
@@ -1393,7 +1397,17 @@ void SFXSamplerAutoTick(float* input)
 	int window_size = knobs[1] * 10000.0f;
 	displayValues[1] = window_size;
 
-	float rate = (knobs[2] - 0.5f) * 4.0f;
+	float rate;
+	if (pitchQuantization)
+	{
+		rate = roundf((knobs[2] - 0.5f) * 14.0f);
+		if (rate < 0.0f) rate = 1.0f / fabsf(rate-1.0f);
+		else rate += 1.0f;
+	}
+	else
+	{
+		rate = (knobs[2] - 0.5f) * 4.0f;
+	}
 	displayValues[2] = rate;
 
 	crossfadeLength = knobs[3] * 1000.0f;
@@ -1408,14 +1422,13 @@ void SFXSamplerAutoTick(float* input)
 	if (pitchQuantization)
 	{
 		randRateAmount = roundf(knobs[6] * 8.0f);
-		displayValues[6] = randRateAmount;
 	}
 	else
 	{
 		randRateAmount = knobs[6] * 2.0f;
 		if (randRateAmount < 0.01) randRateAmount = 0.0f;
-		displayValues[6] = randRateAmount;
 	}
+	displayValues[6] = randRateAmount;
 
 
 	tSampler_setCrossfadeLength(&asSampler[0], crossfadeLength);
@@ -2048,20 +2061,44 @@ void SFXReverb2Free(void)
 }
 
 
+int ignoreFreqKnobs = 0;
+int levMode = 0;
+
 //Living String
 void SFXLivingStringAlloc()
 {
+	levMode = 0;
+	tSimplePoly_setNumVoices(&poly, NUM_STRINGS);
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 		myFreq = (randomNumber() * 300.0f) + 60.0f;
 		myDetune[i] = (randomNumber() * 0.3f) - 0.15f;
 		//tComplexLivingString_init(&theString[i],  myFreq, 0.4f, 0.0f, 16000.0f, .999f, .5f, .5f, 0.1f, 0);
-		tComplexLivingString_init(&theString[i], 440.f, 0.8f, 0.3f, 0.f, 9000.f, 1.0f, 0.3f, 0.01f, 0.125f, 0);
+		tComplexLivingString_init(&theString[i], 440.f, 0.8f, 0.3f, 0.f, 9000.f, 1.0f, 0.3f, 0.01f, 0.125f, levMode);
 	}
+	ignoreFreqKnobs = 0;
+	setLED_A(ignoreFreqKnobs);
+	setLED_B(levMode);
 }
 
 void SFXLivingStringFrame()
 {
+	if (buttonActionsSFX[ButtonA][ActionPress] == 1)
+	{
+		ignoreFreqKnobs = !ignoreFreqKnobs;
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
+		setLED_A(ignoreFreqKnobs);
+	}
+	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
+	{
+		levMode = !levMode;
+		for (int i = 0; i < NUM_STRINGS; i++)
+		{
+			tComplexLivingString_setLevMode(&theString[i], levMode);
+		}
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
+		setLED_B(levMode);
+	}
 	displayValues[0] = LEAF_midiToFrequency((presetKnobValues[LivingString][0] * 90.0f)); //freq
 	displayValues[1] = presetKnobValues[LivingString][1]; //detune
 	displayValues[2] = presetKnobValues[LivingString][2]; //decay
@@ -2070,9 +2107,18 @@ void SFXLivingStringFrame()
 	displayValues[5] = (presetKnobValues[LivingString][5] * 0.48) + 0.02f;//prepPos
 	displayValues[6] = ((tanhf((presetKnobValues[LivingString][6] * 8.0f) - 4.0f)) * 0.5f) + 0.5f;//prep Index
 
+	displayValues[10] = LEAF_midiToFrequency((presetKnobValues[LivingString][10] * 90.0f)); //freq
+	displayValues[11] = LEAF_midiToFrequency((presetKnobValues[LivingString][11] * 90.0f)); //freq
+	displayValues[12] = LEAF_midiToFrequency((presetKnobValues[LivingString][12] * 90.0f)); //freq
+	displayValues[13] = LEAF_midiToFrequency((presetKnobValues[LivingString][13] * 90.0f)); //freq
+	displayValues[14] = LEAF_midiToFrequency((presetKnobValues[LivingString][14] * 90.0f)); //freq
+
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		tComplexLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * displayValues[1]))) * displayValues[0]);
+		float freqVal = i == 0 ? displayValues[0] : displayValues[9+i];
+		int note = tSimplePoly_getPitchAndCheckActive(&poly, i);
+		if (note >= 0) freqVal = LEAF_midiToFrequency(note);
+		tComplexLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * displayValues[1]))) * freqVal);
 		tComplexLivingString_setDecay(&theString[i], (displayValues[2] * 0.015f) + 0.995f);
 		tComplexLivingString_setDampFreq(&theString[i], displayValues[3]);
 		tComplexLivingString_setPickPos(&theString[i], displayValues[4]);
@@ -2087,7 +2133,12 @@ void SFXLivingStringTick(float* input)
 	float sample = 0.0f;
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		sample += tComplexLivingString_tick(&theString[i], input[1]);
+		float tick = tComplexLivingString_tick(&theString[i], input[1]);
+		if ((ignoreFreqKnobs && tSimplePoly_isOn(&poly, i)) || !ignoreFreqKnobs)
+		{
+			sample += tick;
+		}
+
 	}
 	sample *= 0.0625f;
 	input[0] = sample;
@@ -2108,11 +2159,14 @@ void SFXLivingStringFree(void)
 //Living String Synth
 void SFXLivingStringSynthAlloc()
 {
+	levMode = 1;
 	tSimplePoly_setNumVoices(&poly, NUM_STRINGS);
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		tComplexLivingString_init(&theString[i], 440.f, 0.2f, 0.3f, 0.f, 9000.f, 1.0f, 0.0f, 0.01f, 0.125f, 1);
+		tComplexLivingString_init(&theString[i], 440.f, 0.2f, 0.3f, 0.f, 9000.f, 1.0f, 0.0f, 0.01f, 0.125f, levMode);
 	}
+	setLED_A(numVoices == 1);
+	setLED_B(levMode);
 }
 
 void SFXLivingStringSynthFrame()
@@ -2123,6 +2177,16 @@ void SFXLivingStringSynthFrame()
 		tSimplePoly_setNumVoices(&poly, numVoices);
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(numVoices == 1);
+	}
+	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
+	{
+		levMode = !levMode;
+		for (int i = 0; i < NUM_STRINGS; i++)
+		{
+			tComplexLivingString_setLevMode(&theString[i], levMode);
+		}
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
+		setLED_B(levMode);
 	}
 	//displayValues[0] = mtof((smoothedADC[0] * 135.0f)); //freq
 	//displayValues[1] = smoothedADC[1]; //detune

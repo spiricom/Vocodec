@@ -220,6 +220,9 @@ void audioFrame(uint16_t buffer_offset)
 				if (previousPreset != PresetNil)
 				{
 					freeFunctions[previousPreset]();
+					setLED_A(0);
+					setLED_B(0);
+					setLED_C(0);
 				}
 				else
 				{

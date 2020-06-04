@@ -152,6 +152,9 @@ void SFXReverb2Tick(float* input);
 void SFXReverb2Free(void);
 
 // living string
+extern int levMode;
+extern int ignoreFreqKnobs;
+
 void SFXLivingStringAlloc();
 void SFXLivingStringFrame();
 void SFXLivingStringTick(float* input);
