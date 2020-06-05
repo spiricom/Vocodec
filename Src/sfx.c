@@ -1354,19 +1354,21 @@ void SFXSamplerAutoAlloc()
 	tBuffer_setRecordMode(&asBuff[0], RecordOneShot);
 	tBuffer_initToPool(&asBuff[1], MAX_AUTOSAMP_LENGTH, &largePool);
 	tBuffer_setRecordMode(&asBuff[1], RecordOneShot);
-	tSampler_init(&asSampler[0], &asBuff[0]);
+	tSampler_initToPool(&asSampler[0], &asBuff[0], &smallPool);
 	tSampler_setMode(&asSampler[0], PlayLoop);
-	tSampler_init(&asSampler[1], &asBuff[1]);
+	tSampler_initToPool(&asSampler[1], &asBuff[1], &smallPool);
 	tSampler_setMode(&asSampler[1], PlayLoop);
-	tEnvelopeFollower_init(&envfollow, 0.00001f, 0.9999f);
-	tRamp_init(&asFade, 7.0f, 1);
+
+	tEnvelopeFollower_initToPool(&envfollow, 0.00001f, 0.9999f, &smallPool);
+	tExpSmooth_initToPool(&cfxSmooth, 0.0f, 0.01f, &smallPool);
+
 	setLED_A(samplerMode == PlayBackAndForth);
 	setLED_B(triggerChannel);
 	currentSampler = 1;
 	sample_countdown = 0;
 	randLengthVal = randomNumber() * 10000.0f;
 	randRateVal = (randomNumber() - 0.5f) * 4.0f;
-	tExpSmooth_init(&cfxSmooth, 0.0f, 0.01f);
+
 	setLED_C(pitchQuantization);
 }
 
@@ -1538,10 +1540,10 @@ void SFXSamplerAutoFree(void)
 {
 	tBuffer_freeFromPool(&asBuff[0], &largePool);
 	tBuffer_freeFromPool(&asBuff[1], &largePool);
-	tSampler_free(&asSampler[0]);
-	tSampler_free(&asSampler[1]);
-	tEnvelopeFollower_free(&envfollow);
-	tRamp_free(&asFade);
+	tSampler_freeFromPool(&asSampler[0], &smallPool);
+	tSampler_freeFromPool(&asSampler[1], &smallPool);
+	tEnvelopeFollower_freeFromPool(&envfollow, &smallPool);
+	tExpSmooth_freeFromPool(&cfxSmooth, &smallPool);
 }
 
 //10 distortion tanh
