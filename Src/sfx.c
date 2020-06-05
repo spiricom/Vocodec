@@ -1343,25 +1343,30 @@ int randLengthVal = 0;
 float randRateVal = 0.0f;
 tRamp asFade;
 
+float lastSample = 0.0f;
+int firstTime = 1;
+tExpSmooth cfxSmooth;
+#define MAX_AUTOSAMP_LENGTH 192000
+
 void SFXSamplerAutoAlloc()
 {
-	tBuffer_initToPool(&asBuff[0], leaf.sampleRate * 2.0f, &largePool);
+	tBuffer_initToPool(&asBuff[0], MAX_AUTOSAMP_LENGTH, &largePool);
 	tBuffer_setRecordMode(&asBuff[0], RecordOneShot);
-	tBuffer_initToPool(&asBuff[1], leaf.sampleRate * 2.0f, &largePool);
+	tBuffer_initToPool(&asBuff[1], MAX_AUTOSAMP_LENGTH, &largePool);
 	tBuffer_setRecordMode(&asBuff[1], RecordOneShot);
 	tSampler_init(&asSampler[0], &asBuff[0]);
 	tSampler_setMode(&asSampler[0], PlayLoop);
 	tSampler_init(&asSampler[1], &asBuff[1]);
 	tSampler_setMode(&asSampler[1], PlayLoop);
 	tEnvelopeFollower_init(&envfollow, 0.00001f, 0.9999f);
-	tRamp_init(&asFade, 14.0f, 1);
+	tRamp_init(&asFade, 7.0f, 1);
 	setLED_A(samplerMode == PlayBackAndForth);
 	setLED_B(triggerChannel);
 	currentSampler = 1;
 	sample_countdown = 0;
 	randLengthVal = randomNumber() * 10000.0f;
 	randRateVal = (randomNumber() - 0.5f) * 4.0f;
-
+	tExpSmooth_init(&cfxSmooth, 0.0f, 0.01f);
 	setLED_C(pitchQuantization);
 }
 
@@ -1372,11 +1377,12 @@ void SFXSamplerAutoFrame()
 		pitchQuantization = !pitchQuantization;
 		buttonActionsSFX[ButtonC][ActionPress] = 0;
 		setLED_C(pitchQuantization);
+		firstTime = 1;
 	}
 }
 
-float lastSample = 0.0f;
-
+int fadeDone = 0;
+int finalWindowSize = 5000;
 void SFXSamplerAutoTick(float* input)
 {
 	float sample = 0.0f;
@@ -1394,7 +1400,7 @@ void SFXSamplerAutoTick(float* input)
 	samp_thresh = 1.0f - knobs[0];
 	displayValues[0] = samp_thresh;
 
-	int window_size = knobs[1] * 10000.0f;
+	int window_size = expBuffer[(int)(knobs[1] * expBufferSizeMinusOne)] * MAX_AUTOSAMP_LENGTH;
 	displayValues[1] = window_size;
 
 	float rate;
@@ -1435,7 +1441,7 @@ void SFXSamplerAutoTick(float* input)
 	tSampler_setCrossfadeLength(&asSampler[1], crossfadeLength);
 
 
-	if ((currentPower > (samp_thresh)) && (currentPower > previousPower + 0.001f) && (samp_triggered == 0) && (sample_countdown == 0))
+	if ((currentPower > (samp_thresh)) && (currentPower > previousPower + 0.001f) && (samp_triggered == 0) && (sample_countdown == 0) && (fadeDone == 1))
 	{
 		randLengthVal = (randomNumber() - 0.5f) * randLengthAmount * 2.0f;
 		if (pitchQuantization) randRateVal = roundf(randomNumber() * randRateAmount) + 1.0f;
@@ -1443,15 +1449,16 @@ void SFXSamplerAutoTick(float* input)
 
 		samp_triggered = 1;
 		setLED_1(1);
-		tBuffer_record(&asBuff[!currentSampler]);
-		//tSampler_play(&asSampler[currentSampler]);
-		sample_countdown = window_size;
-		powerCounter = 1000;
-		// why does the sampler have difficulty starting to play without this line?
-		// should probably solve this inside leaf because this is a bit weird
-		asBuff[!currentSampler]->recordedLength = asBuff[!currentSampler]->bufferLength;
 
+		finalWindowSize = LEAF_clip(4, window_size + randLengthVal, MAX_AUTOSAMP_LENGTH);
+		sample_countdown = finalWindowSize;
+		tSampler_stop(&asSampler[!currentSampler]);
+		tBuffer_record(&asBuff[!currentSampler]);
 	}
+
+
+	tBuffer_tick(&asBuff[0], input[1]);
+	tBuffer_tick(&asBuff[1], input[1]);
 
 	if (sample_countdown > 0)
 	{
@@ -1463,11 +1470,12 @@ void SFXSamplerAutoTick(float* input)
 
 		currentSampler = !currentSampler;
 
-
-		tBuffer_stop(&asBuff[currentSampler]);
 		tSampler_play(&asSampler[currentSampler]);
-		tRamp_setDest(&asFade, (float)currentSampler);
+
+		tExpSmooth_setDest(&cfxSmooth,(float)currentSampler);
+
 		samp_triggered = 0;
+		fadeDone = 0;
 	}
 
 
@@ -1481,13 +1489,9 @@ void SFXSamplerAutoTick(float* input)
 		tSampler_setRate(&asSampler[0], rate + randRateVal);
 		tSampler_setRate(&asSampler[1], rate + randRateVal);
 	}
-
-	tSampler_setEnd(&asSampler[0], window_size + randLengthVal);
-	tSampler_setEnd(&asSampler[1], window_size + randLengthVal);
-
-	tBuffer_tick(&asBuff[0], input[1]);
-	tBuffer_tick(&asBuff[1], input[1]);
-
+	finalWindowSize = LEAF_clip(4, window_size + randLengthVal, MAX_AUTOSAMP_LENGTH);
+	tSampler_setEnd(&asSampler[0], finalWindowSize);
+	tSampler_setEnd(&asSampler[1], finalWindowSize);
 
 	if (buttonActionsSFX[ButtonA][ActionPress])
 	{
@@ -1515,11 +1519,18 @@ void SFXSamplerAutoTick(float* input)
 		setLED_B(triggerChannel);
 	}
 
-	float fade = tRamp_tick(&asFade);
-	sample = tSampler_tick(&asSampler[0]) * (1.0f - fade) + tSampler_tick(&asSampler[1]) * fade;
+	float fade = tExpSmooth_tick(&cfxSmooth);
+	if (fabsf(cfxSmooth->curr - cfxSmooth->dest) < 0.00001f)
+	{
+		fadeDone = 1;
+	}
+	float volumes[2];
+	LEAF_crossfade((fade * 2.0f) - 1.0f, volumes);
+	sample = (tSampler_tick(&asSampler[0]) * volumes[1]) + (tSampler_tick(&asSampler[1]) * volumes[0]);
+
+	previousPower = currentPower;
 	input[0] = sample;
 	input[1] = sample;
-	previousPower = currentPower;
 	lastSample = sample;
 }
 

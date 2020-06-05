@@ -231,7 +231,7 @@ int main(void)
     OLED_process(); // process what to write to the screen but don't actually draw
     /* USER CODE BEGIN 3 */
 
-	if (hi2c4.State == HAL_I2C_STATE_READY)
+ 	if (hi2c4.State == HAL_I2C_STATE_READY)
 	{
 	  OLED_draw();
 	}
