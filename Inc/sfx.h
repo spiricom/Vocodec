@@ -33,7 +33,7 @@ extern uint8_t knobActive[NUM_ADC_CHANNELS];
 
 extern tSimplePoly poly;
 extern tExpSmooth polyRamp[NUM_VOC_VOICES];
-extern tSaw osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
+extern tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
 
 extern PlayMode samplerMode;
 extern float sampleLength;
@@ -46,6 +46,7 @@ void initGlobalSFXObjects();
 extern uint8_t numVoices;
 extern uint8_t internalExternal;
 extern uint32_t vocChFreeze;
+extern int vocFreezeLPC;
 //LPC Vocoder
 void SFXVocoderAlloc();
 void SFXVocoderFrame();

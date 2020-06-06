@@ -25,8 +25,9 @@
 int32_t audioOutBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
 int32_t audioInBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
 
-#define SMALL_MEM_SIZE 16328
-#define MED_MEM_SIZE 500000
+//#define SMALL_MEM_SIZE 16328
+#define SMALL_MEM_SIZE 80328
+#define MED_MEM_SIZE 519000
 #define LARGE_MEM_SIZE 33554432 //32 MBytes - size of SDRAM IC
 char small_memory[SMALL_MEM_SIZE];
 char medium_memory[MED_MEM_SIZE]__ATTR_RAM_D1;

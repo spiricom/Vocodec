@@ -123,11 +123,11 @@ void initGlobalSFXObjects()
 	// Note that these are the actual knob values
 	// not the parameter value
 	// (i.e. 0.5 for fine pitch is actually 0.0 fine pitch)
-	defaultPresetKnobValues[Vocoder][0] = 0.6f; // volume
+	defaultPresetKnobValues[Vocoder][0] = 0.5f; // volume
 	defaultPresetKnobValues[Vocoder][1] = 0.5f; // warp factor
 	defaultPresetKnobValues[Vocoder][2] = 0.75f; // quality
-	defaultPresetKnobValues[Vocoder][3] = 0.5f; // pulse length
-	defaultPresetKnobValues[Vocoder][4] = 0.25f; // noise threshold
+	defaultPresetKnobValues[Vocoder][3] = 0.3f; // sawToPulse
+	defaultPresetKnobValues[Vocoder][4] = 0.2f; // noise threshold
 	defaultPresetKnobValues[Vocoder][5] = 0.0f; // breathiness
 	defaultPresetKnobValues[Vocoder][6] = 0.5f; // pulse width
 	defaultPresetKnobValues[Vocoder][7] = 0.5f; // pulse shape
@@ -309,28 +309,35 @@ void initGlobalSFXObjects()
 tTalkbox vocoder;
 tNoise vocoderNoise;
 tZeroCrossing zerox;
-tSaw osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
+tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
 tRosenbergGlottalPulse glottal[NUM_VOC_VOICES];
 uint8_t numVoices = NUM_VOC_VOICES;
 uint8_t internalExternal = 0;
+int vocFreezeLPC = 0;
 tExpSmooth noiseRamp;
+tNoise breathNoise;
+tHighpass noiseHP;
 
 void SFXVocoderAlloc()
 {
-	tTalkbox_init(&vocoder, 1024);
+	tTalkbox_initToPool(&vocoder, 1024,  &smallPool);
 	tTalkbox_setWarpOn(&vocoder, 1);
 	tNoise_initToPool(&vocoderNoise, WhiteNoise, &smallPool);
-	tZeroCrossing_initToPool(&zerox, 64, &smallPool);
+	tZeroCrossing_initToPool(&zerox, 8, &smallPool);
 	tSimplePoly_setNumVoices(&poly, numVoices);
-	tExpSmooth_initToPool(&noiseRamp, 0.0f, 0.05f, &smallPool);
+	tExpSmooth_initToPool(&noiseRamp, 0.0f, 0.005f, &smallPool);
+
+
+	tNoise_initToPool(&breathNoise, WhiteNoise, &smallPool);
+	tHighpass_initToPool(&noiseHP, 5000.0f, &smallPool);
+
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 
-		tSaw_initToPool(&osc[i], &smallPool);
+		tSawtooth_initToPool(&osc[i], &smallPool);
 
 		tRosenbergGlottalPulse_initToPool(&glottal[i], &smallPool);
-		tRosenbergGlottalPulse_setOpenLength(&glottal[i], 0.3f);
-		tRosenbergGlottalPulse_setPulseLength(&glottal[i], 0.4f);
+		tRosenbergGlottalPulse_setOpenLengthAndPulseLength(&glottal[i], 0.3f, 0.4f);
 	}
 	setLED_A(numVoices == 1);
 	setLED_B(internalExternal);
@@ -351,18 +358,38 @@ void SFXVocoderFrame()
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
 		setLED_B(internalExternal);
 	}
+	if (buttonActionsSFX[ButtonC][ActionPress] == 1)
+	{
+		vocFreezeLPC = !vocFreezeLPC;
+		tTalkbox_setFreeze(&vocoder, vocFreezeLPC);
+		buttonActionsSFX[ButtonC][ActionPress] = 0;
+		setLED_C(vocFreezeLPC);
+	}
+
+	displayValues[0] = presetKnobValues[Vocoder][0]; //vocoder volume
+	displayValues[1] = (presetKnobValues[Vocoder][1] * 0.4f) - 0.2f; //warp factor
+	displayValues[2] = presetKnobValues[Vocoder][2]; //quality
+	displayValues[3] = presetKnobValues[Vocoder][3]; //crossfade between sawtooth and glottal pulse
+	displayValues[4] = presetKnobValues[Vocoder][4]; //noise thresh
+	displayValues[5] = presetKnobValues[Vocoder][5]; //breathy
+	displayValues[6] = presetKnobValues[Vocoder][6]; //pulse length
+	displayValues[7] = presetKnobValues[Vocoder][7]; //open length
+
+	tTalkbox_setWarpFactor(&vocoder, displayValues[1]);
+	tTalkbox_setQuality(&vocoder, displayValues[2]);
 
 	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
 		tExpSmooth_setDest(&polyRamp[i], (tSimplePoly_getVelocity(&poly, i) > 0));
 		calculateFreq(i);
-		tSaw_setFreq(&osc[i], freq[i]);
+		tSawtooth_setFreq(&osc[i], freq[i]);
 		tRosenbergGlottalPulse_setFreq(&glottal[i], freq[i]);
+		tRosenbergGlottalPulse_setOpenLengthAndPulseLength(&glottal[i], displayValues[6], displayValues[7] * displayValues[6]);
 	}
 
 	if (tSimplePoly_getNumActiveVoices(&poly) != 0)
 	{
-		tExpSmooth_setDest(&comp, 1.0f / tSimplePoly_getNumActiveVoices(&poly));
+		tExpSmooth_setDest(&comp, sqrtf(1.0f / tSimplePoly_getNumActiveVoices(&poly)));
 	}
 	else
 	{
@@ -376,64 +403,51 @@ void SFXVocoderTick(float* input)
 	float zerocross = 0.0f;
 	float noiseRampVal = 0.0f;
 	float sample = 0.0f;
-	// presetKnobValues are ALL the 0-1 values for each preset (numpresets*15), set from smoothedADC
-	// in audiostream frame before sfx frame function are called, and in audiostream tick before sfx ticks are called
-
-	// displayValues (5) are the values to be written to the screen and should depend on knobPage,
-	// usually equal to params but sometimes different
-
-	// ** we could replace params with local variables in each function, but the other two need to be global
-	displayValues[3] = presetKnobValues[Vocoder][3]; //pulse length
-
-	displayValues[4] = presetKnobValues[Vocoder][4]; //crossfade between sawtooth and glottal pulse
 
 	if (internalExternal == 1)
 	{
 		sample = input[0];
 	}
-
-
 	else
 	{
 		zerocross = tZeroCrossing_tick(&zerox, input[1]);
 
-		//currently reusing the sawtooth/pulse fade knob for noise amount but need to separate these -JS
-		if (zerocross > ((displayValues[4])-0.1f))
+		if (!vocChFreeze)
 		{
-			tExpSmooth_setDest(&noiseRamp, 1.0f);
+			tExpSmooth_setDest(&noiseRamp,zerocross > ((displayValues[4])-0.1f));
+		}
+		noiseRampVal = tExpSmooth_tick(&noiseRamp);
+
+		float noiseSample = tNoise_tick(&vocoderNoise) * noiseRampVal * 0.5f;
+
+		if (displayValues[3] < 0.5f)
+		{
+			for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
+			{
+				sample += tSawtooth_tick(&osc[i]) * tExpSmooth_tick(&polyRamp[i]);
+			}
 		}
 		else
 		{
-			tExpSmooth_setDest(&noiseRamp, 0.0f);
+			for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
+			{
+				sample += tRosenbergGlottalPulse_tick(&glottal[i]) * tExpSmooth_tick(&polyRamp[i]) * 1.2f;
+			}
 		}
 
-		noiseRampVal = tExpSmooth_tick(&noiseRamp);
-
-		float noiseSample = tNoise_tick(&vocoderNoise) * 0.8f * noiseRampVal;
-
-		for (int i = 0; i < tSimplePoly_getNumActiveVoices(&poly); i++)
-		{
-			sample += tSaw_tick(&osc[i]) * tExpSmooth_tick(&polyRamp[i]) * (1.0f-displayValues[4]);
-
-			tRosenbergGlottalPulse_setPulseLength(&glottal[i], displayValues[3] );
-
-			//tRosenbergGlottalPulse_setOpenLength(&glottal[i], smoothedADC[2] * smoothedADC[1]);
-			sample += tRosenbergGlottalPulse_tick(&glottal[i]) * tExpSmooth_tick(&polyRamp[i]) * displayValues[4];
-		}
-
-		sample = (sample * (1.0f-noiseRampVal)) + noiseSample;
+		//switch with consonant noise
+		sample = (sample * (1.0f - (0.3f * displayValues[5])) * (1.0f-noiseRampVal)) + noiseSample;
+		//add breathiness
+		sample += (tHighpass_tick(&noiseHP, tNoise_tick(&breathNoise)) * displayValues[5] * 1.5f);
 		sample *= tExpSmooth_tick(&comp);
 	}
-	displayValues[0] = presetKnobValues[Vocoder][0]; //vocoder volume
 
-	displayValues[1] = (presetKnobValues[Vocoder][1] * 0.4f) - 0.2f; //warp factor
-	tTalkbox_setWarpFactor(&vocoder, displayValues[1]);
+	sample = LEAF_tanh(sample);
 
-	displayValues[2] = (presetKnobValues[Vocoder][2] * 1.3f); //quality
-	tTalkbox_setQuality(&vocoder, displayValues[2]);
 
 	sample = tTalkbox_tick(&vocoder, sample, input[1]);
-	sample *= displayValues[0] * 0.5f;
+
+	sample *= displayValues[0] * 0.6f;
 	sample = tanhf(sample);
 	input[0] = sample;
 	input[1] = sample;
@@ -441,13 +455,17 @@ void SFXVocoderTick(float* input)
 
 void SFXVocoderFree(void)
 {
-	tTalkbox_free(&vocoder);
+	tTalkbox_freeFromPool(&vocoder,  &smallPool);
 	tNoise_freeFromPool(&vocoderNoise, &smallPool);
 	tZeroCrossing_freeFromPool(&zerox, &smallPool);
 	tExpSmooth_freeFromPool(&noiseRamp, &smallPool);
+
+	tNoise_freeFromPool(&breathNoise, &smallPool);
+	tHighpass_freeFromPool(&noiseHP, &smallPool);
+
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
-		tSaw_freeFromPool(&osc[i], &smallPool);
+		tSawtooth_freeFromPool(&osc[i], &smallPool);
 		tRosenbergGlottalPulse_freeFromPool(&glottal[i], &smallPool);
 	}
 }
@@ -461,8 +479,7 @@ uint8_t numberOfVocoderBands = 22;
 int filterOrder = 2;
 uint8_t prevNumberOfVocoderBands = 22;
 float invNumberOfVocoderBands = 0.03125f;
-tNoise breathNoise;
-tHighpass noiseHP;
+
 
 int currentBandToAlter = 0;
 int analysisOrSynthesis = 0;
@@ -567,14 +584,14 @@ void SFXVocoderChAlloc()
 	}
 	tNoise_initToPool(&breathNoise, WhiteNoise, &smallPool);
 	tNoise_initToPool(&vocoderNoise, WhiteNoise, &smallPool);
-	tZeroCrossing_initToPool(&zerox, 16, &smallPool);
+	tZeroCrossing_initToPool(&zerox, 256, &smallPool);
 	tSimplePoly_setNumVoices(&poly, numVoices);
 	tExpSmooth_initToPool(&noiseRamp, 0.0f, 0.05f, &smallPool);
 	tHighpass_initToPool(&noiseHP, 5000.0f, &smallPool);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 
-		tSaw_initToPool(&osc[i], &smallPool);
+		tSawtooth_initToPool(&osc[i], &smallPool);
 
 		tRosenbergGlottalPulse_initToPool(&glottal[i], &smallPool);
 		tRosenbergGlottalPulse_setOpenLength(&glottal[i], 0.3f);
@@ -650,7 +667,7 @@ void SFXVocoderChFrame()
 			displayValues[9] = presetKnobValues[VocoderCh][9]; //speed
 			break;
 		case 10:
-			displayValues[10] = (presetKnobValues[VocoderCh][10] * 1.5f) + 0.5f; //bandsquish
+			displayValues[10] = presetKnobValues[VocoderCh][10] + 0.5f; //bandsquish
 			break;
 		case 11:
 			displayValues[11] = presetKnobValues[VocoderCh][11] * 60.0f; //bandoffset
@@ -666,42 +683,12 @@ void SFXVocoderChFrame()
 			break;
 
 	}
-/*
-	displayValues[0] = presetKnobValues[VocoderCh][0]; //vocoder volume
 
-	displayValues[1] = (presetKnobValues[VocoderCh][1] * 0.8f) - 0.4f; //warp factor
-
-	displayValues[2] = (uint8_t)(presetKnobValues[VocoderCh][2] * 16.9f) + 8.0f; //quality
-
-	displayValues[3] = (presetKnobValues[VocoderCh][3]* 2.0f) + 0.1f; //band width
-
-	displayValues[4] = presetKnobValues[VocoderCh][4]; //noise thresh
-
-	displayValues[5] = presetKnobValues[VocoderCh][5]; //crossfade between sawtooth and glottal pulse
-
-	displayValues[6] = presetKnobValues[VocoderCh][6]; //pulse width
-
-	displayValues[7] = presetKnobValues[VocoderCh][7]; //pulse shape
-
-	displayValues[8] = presetKnobValues[VocoderCh][8]; //breathiness
-
-	displayValues[9] = presetKnobValues[VocoderCh][9]; //speed
-
-	displayValues[10] = (presetKnobValues[VocoderCh][10] * 1.5f) + 0.5f; //bandsquish
-
-	displayValues[11] = presetKnobValues[VocoderCh][11] * 60.0f; //bandoffset
-
-	displayValues[12] = (presetKnobValues[VocoderCh][12] * 4.0f) - 2.0f; //tilt
-
-	displayValues[13] = presetKnobValues[VocoderCh][13]; //stereo
-
-	displayValues[14] = presetKnobValues[VocoderCh][14]; //snap to bark scale
-*/
 	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
 		tExpSmooth_setDest(&polyRamp[i], (tSimplePoly_getVelocity(&poly, i) > 0));
 		calculateFreq(i);
-		tSaw_setFreq(&osc[i], freq[i]);
+		tSawtooth_setFreq(&osc[i], freq[i]);
 		tRosenbergGlottalPulse_setFreq(&glottal[i], freq[i]);
 		tRosenbergGlottalPulse_setOpenLengthAndPulseLength(&glottal[i], displayValues[6] * displayValues[7], displayValues[6]);
 	}
@@ -747,7 +734,7 @@ void SFXVocoderChFrame()
 		float bandBandwidth = (thisBandwidth * oneMinusBarkPull) + (barkBandWidths[currentBandToAlter] *  barkPull * myQ);
 		float myHeight = currentBandToAlter * invNumberOfVocoderBands; //x value
 		float tiltOffset = (1.0f - ((myTilt * 0.5f) + 0.5f)) + 0.5f;
-		float tiltY = displayValues[12] * myHeight + (tiltOffset);
+		float tiltY = displayValues[12] * myHeight + tiltOffset;
 		bandGains[currentBandToAlter] = invMyQ * tiltY;
 
 		if (analysisOrSynthesis == 0)
@@ -803,7 +790,7 @@ void SFXVocoderChFrame()
 
 	if (tSimplePoly_getNumActiveVoices(&poly) != 0)
 	{
-		tExpSmooth_setDest(&comp, 1.0f / tSimplePoly_getNumActiveVoices(&poly));
+		tExpSmooth_setDest(&comp, sqrtf(1.0f / tSimplePoly_getNumActiveVoices(&poly)));
 	}
 	else
 	{
@@ -830,9 +817,11 @@ void SFXVocoderChTick(float* input)
 	{
 		zerocross = tZeroCrossing_tick(&zerox, input[1]);
 
-		tExpSmooth_setDest(&noiseRamp,zerocross > ((displayValues[4])-0.1f));
-
-		noiseRampVal = tExpSmooth_tick(&noiseRamp) * 1.0f;
+		if (!vocChFreeze)
+		{
+			tExpSmooth_setDest(&noiseRamp,zerocross > ((displayValues[4])-0.1f));
+		}
+		noiseRampVal = tExpSmooth_tick(&noiseRamp);
 
 		float noiseSample = tNoise_tick(&vocoderNoise) * noiseRampVal;
 
@@ -843,7 +832,7 @@ void SFXVocoderChTick(float* input)
 			{
 				if (displayValues[5] < 0.5f)
 				{
-					sample += tSaw_tick(&osc[i]) * tempRamp;
+					sample += tSawtooth_tick(&osc[i]) * tempRamp;
 				}
 				else
 				{
@@ -869,10 +858,13 @@ void SFXVocoderChTick(float* input)
 	{
 		uint8_t oddEven = i % 2;
 		float tempSamp = input[1];
+		if (!vocChFreeze)
+		{
+			tempSamp = tVZFilter_tickEfficient(&analysisBands[i][0], tempSamp);
+			tempSamp = tVZFilter_tickEfficient(&analysisBands[i][1], tempSamp);
+			tExpSmooth_setDest(&envFollowers[i], fabsf(tempSamp));
+		}
 
-		tempSamp = tVZFilter_tickEfficient(&analysisBands[i][0], tempSamp);
-		tempSamp = tVZFilter_tickEfficient(&analysisBands[i][1], tempSamp);
-		tExpSmooth_setDest(&envFollowers[i], fabsf(tempSamp));
 		tempSamp = tExpSmooth_tick(&envFollowers[i]);
 		//here is the envelope followed gain of the modulator signal
 		tempSamp = LEAF_clip(0.0f, tempSamp, 2.0f);
@@ -907,7 +899,7 @@ void SFXVocoderChFree(void)
 	tVZFilter_freeFromPool(&vocodec_highshelf, &smallPool);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
-		tSaw_freeFromPool(&osc[i], &smallPool);
+		tSawtooth_freeFromPool(&osc[i], &smallPool);
 		tRosenbergGlottalPulse_freeFromPool(&glottal[i], &smallPool);
 	}
 }
@@ -2346,7 +2338,7 @@ void SFXClassicSynthAlloc()
 	{
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSaw_initToPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
+			tSawtooth_initToPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 			synthDetune[i][j] = ((leaf.random() * 0.0264f) - 0.0132f);
 			tRosenbergGlottalPulse_initToPool(&glottal[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 			tRosenbergGlottalPulse_setOpenLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], 0.3f);
@@ -2504,7 +2496,7 @@ void SFXClassicSynthFrame()
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
 			float tempFreq = freq[i] * (1.0f + (synthDetune[i][j] * displayValues[3]));
-			tSaw_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], tempFreq);
+			tSawtooth_setFreq(&osc[(i * NUM_OSC_PER_VOICE) + j], tempFreq);
 			tRosenbergGlottalPulse_setFreq(&glottal[(i * NUM_OSC_PER_VOICE) + j], tempFreq);
 			tRosenbergGlottalPulse_setPulseLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], tempLFO1);
 			tRosenbergGlottalPulse_setOpenLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], tempLFO2);
@@ -2541,7 +2533,7 @@ void SFXClassicSynthTick(float* input)
 
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tempSample += tSaw_tick(&osc[(i * NUM_OSC_PER_VOICE) + j]) * env * (1.0f-displayValues[16]);
+			tempSample += tSawtooth_tick(&osc[(i * NUM_OSC_PER_VOICE) + j]) * env * (1.0f-displayValues[16]);
 			tempSample += tRosenbergGlottalPulse_tick(&glottal[(i * NUM_OSC_PER_VOICE) + j]) * env * (displayValues[16]);
 		}
 		tEfficientSVF_setFreq(&synthLP[i], LEAF_clip(0.0f, (filtFreqs[i] + (displayValues[15] * tADSR4_tick(&polyFiltEnvs[i]))), 4095.0f));
@@ -2561,7 +2553,7 @@ void SFXClassicSynthFree(void)
 	{
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSaw_freeFromPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
+			tSawtooth_freeFromPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 			tRosenbergGlottalPulse_freeFromPool(&glottal[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
 		}
 		tEfficientSVF_freeFromPool(&synthLP[i], &smallPool);

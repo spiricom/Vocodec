@@ -80,8 +80,8 @@ void initModeNames(void)
 	knobParamNames[Vocoder][1] = "WARP";
 	knobParamNames[Vocoder][2] = "QUALITY";
 	knobParamNames[Vocoder][3] = "SAWtoPULSE";
-	knobParamNames[Vocoder][4] = "NOISETHRESH";
-	knobParamNames[Vocoder][5] = "BREATHINESS";
+	knobParamNames[Vocoder][4] = "NOISTHRESH";
+	knobParamNames[Vocoder][5] = "BREATH";
 	knobParamNames[Vocoder][6] = "PULSEWIDTH";
 	knobParamNames[Vocoder][7] = "PULSESHAPE";
 	knobParamNames[Vocoder][8] = "";
@@ -100,10 +100,10 @@ void initModeNames(void)
 	knobParamNames[VocoderCh][5] = "SAWtoPULSE";
 	knobParamNames[VocoderCh][6] = "PULSEWIDTH";
 	knobParamNames[VocoderCh][7] = "PULSESHAPE";
-	knobParamNames[VocoderCh][8] = "BREATHINESS";
+	knobParamNames[VocoderCh][8] = "BREATH";
 	knobParamNames[VocoderCh][9] = "SPEED";
 	knobParamNames[VocoderCh][10] = "BANDSQUISH";
-	knobParamNames[VocoderCh][11] = "BANDOFFSET";
+	knobParamNames[VocoderCh][11] = "BANDOFF";
 	knobParamNames[VocoderCh][12] = "TILT";
 	knobParamNames[VocoderCh][13] = "STEREO";
 	knobParamNames[VocoderCh][14] = "BARKPULL";
@@ -667,7 +667,7 @@ char* UIVocoderButtons(VocodecButton button, ButtonAction action)
 	}
 	if (buttonActionsUI[ButtonC][ActionPress] == 1)
 	{
-		writeString = vocChFreeze ? "FROZEN" : "UNFROZEN";
+		writeString = vocFreezeLPC ? "FROZEN" : "UNFROZEN";
 		buttonActionsUI[ButtonC][ActionPress] = 0;
 	}
 	return writeString;

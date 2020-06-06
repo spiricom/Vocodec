@@ -119,11 +119,11 @@
                                 								
                                 <option id="gnu.c.compiler.option.dialect.std.1821644740" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
                                 								
-                                <option id="gnu.c.compiler.option.optimization.flags.1829048253" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" useByScannerDiscovery="false" value="" valueType="string"/>
+                                <option id="gnu.c.compiler.option.optimization.flags.1829048253" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" useByScannerDiscovery="false" value="-fno-strict-aliasing -fwrapv -Ofast" valueType="string"/>
                                 								
                                 <option id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.ffunction.1657479895" name="Place the function in their own section (-ffunction-sections)" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.ffunction" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                 								
-                                <option id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.fdata.1165467477" name="Place the data in their own section (-fdata-sections)" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.fdata" useByScannerDiscovery="false" value="false" valueType="boolean"/>
+                                <option id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.fdata.1165467477" name="Place the data in their own section (-fdata-sections)" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.fdata" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                 								
                                 <option id="gnu.c.compiler.option.warnings.extrawarn.1504788385" name="Extra warnings (-Wextra)" superClass="gnu.c.compiler.option.warnings.extrawarn" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                 								
