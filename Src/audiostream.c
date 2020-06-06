@@ -41,8 +41,6 @@ char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
 
 void audioFrame(uint16_t buffer_offset);
 uint32_t audioTick(float* samples);
-float audioTickL(float audioIn);
-float audioTickR(float audioIn);
 void buttonCheck(void);
 
 HAL_StatusTypeDef transmit_status;
@@ -99,7 +97,7 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 	//ramps to smooth the knobs
 	for (int i = 0; i < 6; i++)
 	{
-		tExpSmooth_init(&adc[i], 0.0f, 0.2f); // used to be 0.3 factor
+		tExpSmooth_init(&adc[i], 0.0f, 0.2f);
 	}
 
 	for (int i = 0; i < 4; i++)
@@ -181,7 +179,11 @@ void audioFrame(uint16_t buffer_offset)
 		}
 
 
-		if (cvAddParam[currentPreset] >= 0) presetKnobValues[currentPreset][cvAddParam[currentPreset]] = smoothedADC[5];
+		if (cvAddParam[currentPreset] >= 0)
+		{
+			presetKnobValues[currentPreset][cvAddParam[currentPreset]] = smoothedADC[5];
+		}
+
 		frameFunctions[currentPreset]();
 	}
 
@@ -202,10 +204,7 @@ void audioFrame(uint16_t buffer_offset)
 			clipCatcher |= audioTick(theSamples);
 			audioOutBuffer[buffer_offset + i] = (int32_t)(theSamples[1] * TWO_TO_23);
 			audioOutBuffer[buffer_offset + i + 1] = (int32_t)(theSamples[0] * TWO_TO_23);
-
 		}
-
-
 	}
 
 

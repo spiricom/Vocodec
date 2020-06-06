@@ -32,7 +32,7 @@ extern float presetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
 extern uint8_t knobActive[NUM_ADC_CHANNELS];
 
 extern tSimplePoly poly;
-extern tRamp polyRamp[NUM_VOC_VOICES];
+extern tExpSmooth polyRamp[NUM_VOC_VOICES];
 extern tSaw osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
 
 extern PlayMode samplerMode;
