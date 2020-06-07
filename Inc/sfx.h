@@ -67,6 +67,7 @@ void SFXPitchShiftFree(void);
 
 // neartune
 extern uint8_t autotuneChromatic;
+extern uint32_t autotuneLock;
 void SFXNeartuneAlloc();
 void SFXNeartuneFrame();
 void SFXNeartuneTick(float* input);
@@ -122,7 +123,7 @@ void SFXWaveFolderFrame();
 void SFXWaveFolderTick(float* input);
 void SFXWaveFolderFree(void);
 
-
+extern uint32_t crusherStereo;
 // bitcrusher
 void SFXBitcrusherAlloc();
 void SFXBitcrusherFrame();
@@ -200,9 +201,8 @@ float calculateTunedMidiNote(float tempNote);
 
 
 void calculateNoteArray(void);
-//void calculatePeriodArray(void);
 float nearestNote(float period);
-//float nearestPeriod(float period);
+float nearestNoteWithHysteresis(float note, float hysteresis);
 
 void clearNotes(void);
 

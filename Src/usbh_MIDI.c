@@ -469,7 +469,7 @@ USBH_StatusTypeDef  USBH_MIDI_Receive(USBH_HandleTypeDef *phost, uint8_t *pbuff,
  *  @param  pdev: Selected device
  * @retval None
  */
-static void MIDI_ProcessTransmission(USBH_HandleTypeDef *phost)
+void MIDI_ProcessTransmission(USBH_HandleTypeDef *phost)
 {
 	MIDI_HandleTypeDef *MIDI_Handle =  phost->pActiveClass->pData;
 	USBH_URBStateTypeDef URB_Status = USBH_URB_IDLE;
@@ -550,7 +550,7 @@ static void MIDI_ProcessTransmission(USBH_HandleTypeDef *phost)
  * @retval None
  */
 
-static void MIDI_ProcessReception(USBH_HandleTypeDef *phost)
+void MIDI_ProcessReception(USBH_HandleTypeDef *phost)
 {
 
 }

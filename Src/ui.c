@@ -82,9 +82,9 @@ void initModeNames(void)
 	knobParamNames[Vocoder][3] = "SAWtoPULSE";
 	knobParamNames[Vocoder][4] = "NOISTHRESH";
 	knobParamNames[Vocoder][5] = "BREATH";
-	knobParamNames[Vocoder][6] = "PULSEWIDTH";
-	knobParamNames[Vocoder][7] = "PULSESHAPE";
-	knobParamNames[Vocoder][8] = "";
+	knobParamNames[Vocoder][6] = "TILT";
+	knobParamNames[Vocoder][7] = "PULSEWIDTH";
+	knobParamNames[Vocoder][8] = "PULSESHAPE";
 	knobParamNames[Vocoder][9] = "";
 
 
@@ -117,18 +117,18 @@ void initModeNames(void)
 	knobParamNames[Pitchshift][2] = "F AMT";
 	knobParamNames[Pitchshift][3] = "FORMANT";
 	knobParamNames[Pitchshift][4] = "";
-	knobParamNames[Pitchshift][5] = "";
+
 
 	modeNames[AutotuneMono] = "AUTOTUNE";
 	shortModeNames[AutotuneMono] = "NT";
 	modeNamesDetails[AutotuneMono] = "";
 	numPages[AutotuneMono] = 1;
-	knobParamNames[AutotuneMono][0] = "FID THRESH";
+	knobParamNames[AutotuneMono][0] = "PICKINESS";
 	knobParamNames[AutotuneMono][1] = "AMOUNT";
 	knobParamNames[AutotuneMono][2] = "SPEED";
-	knobParamNames[AutotuneMono][3] = "";
-	knobParamNames[AutotuneMono][4] = "";
-	knobParamNames[AutotuneMono][5] = "";
+	knobParamNames[AutotuneMono][3] = "LEAPALLOW";
+	knobParamNames[AutotuneMono][4] = "HYSTERESIS";
+
 
 	modeNames[AutotunePoly] = "HARMONIZE";
 	shortModeNames[AutotunePoly] = "AT";
@@ -139,7 +139,7 @@ void initModeNames(void)
 	knobParamNames[AutotunePoly][2] = "TOLERANCE";
 	knobParamNames[AutotunePoly][3] = "";
 	knobParamNames[AutotunePoly][4] = "";
-	knobParamNames[AutotunePoly][5] = "";
+
 
 	modeNames[SamplerButtonPress] = "SAMPLER BP";
 	shortModeNames[SamplerButtonPress] = "SB";
@@ -150,7 +150,7 @@ void initModeNames(void)
 	knobParamNames[SamplerButtonPress][2] = "SPEED";
 	knobParamNames[SamplerButtonPress][3] = "CROSSFADE";
 	knobParamNames[SamplerButtonPress][4] = "";
-	knobParamNames[SamplerButtonPress][5] = "";
+
 
 	modeNames[SamplerKeyboard] = "KEYSAMPLER";
 	shortModeNames[SamplerKeyboard] = "KS";
@@ -161,7 +161,7 @@ void initModeNames(void)
 	knobParamNames[SamplerKeyboard][2] = "SPEED";
 	knobParamNames[SamplerKeyboard][3] = "CROSSFADE";
 	knobParamNames[SamplerKeyboard][4] = "";
-	knobParamNames[SamplerKeyboard][5] = "";
+
 
 	modeNames[SamplerAutoGrab] = "AUTOSAMP";
 	shortModeNames[SamplerAutoGrab] = "AS";
@@ -187,7 +187,6 @@ void initModeNames(void)
 	knobParamNames[Distortion][2] = "MID GAIN";
 	knobParamNames[Distortion][3] = "MID FREQ";
 	knobParamNames[Distortion][4] = "POST GAIN";
-	knobParamNames[Distortion][5] = "";
 
 	modeNames[Wavefolder] = "WAVEFOLD";
 	shortModeNames[Wavefolder] = "WF";
@@ -198,7 +197,6 @@ void initModeNames(void)
 	knobParamNames[Wavefolder][2] = "OFFSET2";
 	knobParamNames[Wavefolder][3] = "POST GAIN";
 	knobParamNames[Wavefolder][4] = "";
-	knobParamNames[Wavefolder][5] = "";
 
 	modeNames[BitCrusher] = "BITCRUSH";
 	shortModeNames[BitCrusher] = "BC";
@@ -210,28 +208,36 @@ void initModeNames(void)
 	knobParamNames[BitCrusher][3] = "OPERATION";
 	knobParamNames[BitCrusher][4] = "POST GAIN";
 	knobParamNames[BitCrusher][5] = "PRE GAIN";
+	knobParamNames[BitCrusher][6] = "";
+	knobParamNames[BitCrusher][7] = "";
+	knobParamNames[BitCrusher][8] = "";
+	knobParamNames[BitCrusher][9] = "";
 
 	modeNames[Delay] = "DELAY";
 	shortModeNames[Delay] = "DL";
 	modeNamesDetails[Delay] = "STEREO";
-	numPages[Delay] = 1;
+	numPages[Delay] = 2;
 	knobParamNames[Delay][0] = "DELAY_L";
 	knobParamNames[Delay][1] = "DELAY_R";
-	knobParamNames[Delay][2] = "FEEDBACK";
+	knobParamNames[Delay][2] = "HIGHPASS";
 	knobParamNames[Delay][3] = "LOWPASS";
-	knobParamNames[Delay][4] = "HIGHPASS";
-	knobParamNames[Delay][5] = "";
+	knobParamNames[Delay][4] = "FEEDBACK";
+	knobParamNames[Delay][5] = "POST GAIN";
+	knobParamNames[Delay][6] = "POST GAIN";
+	knobParamNames[Delay][7] = "POST GAIN";
+	knobParamNames[Delay][8] = "POST GAIN";
+	knobParamNames[Delay][9] = "";
 
 	modeNames[Reverb] = "REVERB1";
 	shortModeNames[Reverb] = "RV";
 	modeNamesDetails[Reverb] = "DATTORRO ALG";
 	numPages[Reverb] = 1;
 	knobParamNames[Reverb][0] = "SIZE";
-	knobParamNames[Reverb][1] = "IN LOPASS";
+	knobParamNames[Reverb][1] = "FB LOPASS";
 	knobParamNames[Reverb][2] = "IN HIPASS";
-	knobParamNames[Reverb][3] = "FB LOPASS";
+	knobParamNames[Reverb][3] = "IN LOPASS";
 	knobParamNames[Reverb][4] = "FB GAIN";
-	knobParamNames[Reverb][5] = "";
+
 
 	modeNames[Reverb2] = "REVERB2";
 	shortModeNames[Reverb2] = "RV";
@@ -242,7 +248,6 @@ void initModeNames(void)
 	knobParamNames[Reverb2][2] = "HIGHPASS";
 	knobParamNames[Reverb2][3] = "PEAK_FREQ";
 	knobParamNames[Reverb2][4] = "PEAK_GAIN";
-	knobParamNames[Reverb2][5] = "";
 
 	modeNames[LivingString] = "STRING1";
 	shortModeNames[LivingString] = "LS";
@@ -708,6 +713,14 @@ char* UINeartuneButtons(VocodecButton button, ButtonAction action)
 		writeString = autotuneChromatic ? "AUTOCHROM ON" : "AUTOCHROM OFF";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
+
+	if (buttonActionsUI[ButtonC][ActionPress])
+	{
+		writeString = autotuneLock ? "CHORD LOCK ON" : "CHORD LOCK OFF";
+		buttonActionsUI[ButtonC][ActionPress] = 0;
+	}
+
+
 	return writeString;
 }
 
@@ -820,6 +833,14 @@ char* UIWaveFolderButtons(VocodecButton button, ButtonAction action)
 char* UIBitcrusherButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
+
+	if (buttonActionsUI[ButtonA][ActionPress])
+	{
+		writeString = crusherStereo ? "STEREO" : "MONO";
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
+
+
 	return writeString;
 }
 
@@ -842,10 +863,10 @@ char* UIDelayButtons(VocodecButton button, ButtonAction action)
 char* UIReverbButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
-	if (buttonActionsUI[ButtonA][ActionPress])
+	if (buttonActionsUI[ButtonC][ActionPress])
 	{
 		writeString = freeze ? "FREEZE" : "UNFREEZE";
-		buttonActionsUI[ButtonA][ActionPress] = 0;
+		buttonActionsUI[ButtonC][ActionPress] = 0;
 	}
 	if (buttonActionsUI[ButtonB][ActionPress])
 	{
@@ -858,10 +879,10 @@ char* UIReverbButtons(VocodecButton button, ButtonAction action)
 char* UIReverb2Buttons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
-	if (buttonActionsUI[ButtonA][ActionPress])
+	if (buttonActionsUI[ButtonC][ActionPress])
 	{
 		writeString = freeze ? "FREEZE" : "UNFREEZE";
-		buttonActionsUI[ButtonA][ActionPress] = 0;
+		buttonActionsUI[ButtonC][ActionPress] = 0;
 	}
 	return writeString;
 }
