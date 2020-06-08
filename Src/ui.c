@@ -308,14 +308,14 @@ void initModeNames(void)
 	modeNames[Rhodes] = "RHODES";
 	shortModeNames[Rhodes] = "RD";
 	modeNamesDetails[Rhodes] = "DARK";
-	numPages[Rhodes] = 2;
+	numPages[Rhodes] = 5;
 	knobParamNames[Rhodes][0] = "BRIGHTNESS";
 	knobParamNames[Rhodes][1] = "TREM DEPTH";
 	knobParamNames[Rhodes][2] = "TREM RATE";
 	knobParamNames[Rhodes][3] = "DRIVE";
 	knobParamNames[Rhodes][4] = "PAN SPREAD";
-	knobParamNames[Rhodes][5] = "ATK MULT";
-	knobParamNames[Rhodes][6] = "DEC MULT";
+	knobParamNames[Rhodes][5] = "ATTACK";
+	knobParamNames[Rhodes][6] = "DECAY";
 	knobParamNames[Rhodes][7] = "SUSTAIN";
 	knobParamNames[Rhodes][8] = "RELEASE";
 	knobParamNames[Rhodes][9] = "LEAK";
@@ -324,11 +324,16 @@ void initModeNames(void)
 	knobParamNames[Rhodes][12] = "INDEX3";
 	knobParamNames[Rhodes][13] = "INDEX4";
 	knobParamNames[Rhodes][14] = "INDEX5";
-	knobParamNames[Rhodes][15] = "FEEDBACK";
-	knobParamNames[Rhodes][16] = "RATIO1";
-	knobParamNames[Rhodes][17] = "RATIO2";
-	knobParamNames[Rhodes][18] = "RATIO3";
-	knobParamNames[Rhodes][19] = "RATIO4";
+	knobParamNames[Rhodes][15] = "RATIO1";
+	knobParamNames[Rhodes][16] = "RATIO2";
+	knobParamNames[Rhodes][17] = "RATIO3";
+	knobParamNames[Rhodes][18] = "RATIO4";
+	knobParamNames[Rhodes][19] = "RATIO5";
+	knobParamNames[Rhodes][20] = "RATIO6";
+	knobParamNames[Rhodes][21] = "FEEDBACK";
+	knobParamNames[Rhodes][22] = "TUNE SNAP";
+	knobParamNames[Rhodes][23] = "RAND DECAY";
+	knobParamNames[Rhodes][24] = "RAND SUST";
 }
 
 void buttonCheck(void)
@@ -504,7 +509,7 @@ void buttonCheck(void)
 //		}
 	}
 }
-
+int firstADCPass = 1;
 void adcCheck()
 {
 	//read the analog inputs and smooth them with ramps
@@ -513,8 +518,17 @@ void adcCheck()
 		//floatADC[i] = (float) (ADC_values[i]>>8) * INV_TWO_TO_8;
 		floatADC[i] = (float) (ADC_values[i]>>6) * INV_TWO_TO_10;
 	}
+	if (firstADCPass)
+	{
+		for (int i = 0 ; i < 6; i++)
+		{
+			lastFloatADC[i] = floatADC[i];
+		}
+		firstADCPass = 0;
+	}
 	for (int i = 0; i < 6; i++)
 	{
+
 		if (fastabsf(floatADC[i] - lastFloatADC[i]) > adcHysteresisThreshold)
 		{
 			if (buttonActionsUI[ButtonEdit][ActionHoldContinuous])
@@ -762,20 +776,20 @@ char* UISamplerKButtons(VocodecButton button, ButtonAction action)
 	char* writeString = "";
 
 	// should try to clean this up somehow...
-	if (((buttonActionsUI[ButtonA][ActionRelease] || buttonActionsUI[ButtonB][ActionPress]) ||
-		 (buttonActionsUI[ButtonDown][ActionPress] || buttonActionsUI[ButtonUp][ActionPress])) ||
-		 (buttonActionsUI[ButtonC][ActionHoldContinuous] || buttonActionsUI[ButtonA][ActionHoldContinuous]))
+	if (buttonActionsUI[ButtonC][ActionHoldContinuous] || buttonActionsUI[ButtonA][ActionPress])
 		// ^ these are some dummy values that get set in sfx.c frame so we can trigger this based on midi
 	{
 		OLEDclearLine(SecondLine);
 		OLEDwritePitch(currentSamplerKey + LOWEST_SAMPLER_KEY, 0, SecondLine, false);
 		OLEDwriteFloat(sampleLength, OLEDgetCursor(), SecondLine);
-		buttonActionsUI[ButtonA][ActionRelease] = 0;
-		buttonActionsUI[ButtonA][ActionHoldContinuous] = 0;
-		buttonActionsUI[ButtonB][ActionPress] = 0;
-		buttonActionsUI[ButtonDown][ActionPress] = 0;
-		buttonActionsUI[ButtonUp][ActionPress] = 0;
 		buttonActionsUI[ButtonC][ActionHoldContinuous] = 0;
+		buttonActionsUI[ButtonA][ActionPress] = 0;
+	}
+
+	if (buttonActionsUI[ButtonB][ActionPress])
+	{
+		writeString = controlAllKeys ? "MOD ALL" : "MOD SINGLE";
+		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	return writeString;
 }
@@ -943,13 +957,18 @@ char* UIRhodesButtons(VocodecButton button, ButtonAction action)
 		writeString = (numVoices > 1) ? "POLY" : "MONO";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
-	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
+	if (buttonActionsUI[ButtonB][ActionPress] == 1)
 	{
-		buttonActionsSFX[ButtonB][ActionPress] = 0;
-		Rsound = (Rsound + 1 ) % 4; // switch to another rhodes preset sound
+		buttonActionsUI[ButtonB][ActionPress] = 0;
 		OLEDclearLine(SecondLine);
 		OLEDwriteString(soundNames[Rsound], 6, 0, SecondLine);
 	}
-
+	if (buttonActionsUI[ButtonC][ActionPress] == 1)
+	{
+		buttonActionsUI[ButtonC][ActionPress] = 0;
+		OLEDclearLine(SecondLine);
+		OLEDwriteString("STEREO TREMO", 12, 0, SecondLine);
+		OLEDwriteInt(tremoloStereo, 1, 110, SecondLine);
+	}
 	return writeString;
 }

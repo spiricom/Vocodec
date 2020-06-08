@@ -25,8 +25,8 @@
 #define OVERSAMPLER_HQ FALSE
 
 #define NUM_SAMPLER_VOICES 6 // need to limit this because too many samplers going can take too long
-#define NUM_SAMPLER_KEYS 76
-#define LOWEST_SAMPLER_KEY 28
+#define NUM_SAMPLER_KEYS 49
+#define LOWEST_SAMPLER_KEY 36
 
 extern float presetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
 extern uint8_t knobActive[NUM_ADC_CHANNELS];
@@ -93,6 +93,7 @@ extern int recordingSamplerKey;
 extern int editingSamplerKey;
 extern float recSampleLength;
 extern float editSampleLength;
+extern int controlAllKeys;
 
 void SFXSamplerKAlloc();
 void SFXSamplerKFrame();
@@ -177,9 +178,9 @@ void SFXClassicSynthTick(float* input);
 void SFXClassicSynthFree(void);
 
 // rhodes
-extern char* soundNames[4];
+extern char* soundNames[5];
 extern int Rsound;
-extern uint8_t rhodesKnobPage;
+extern uint8_t tremoloStereo;
 void SFXRhodesAlloc();
 void SFXRhodesFrame();
 void SFXRhodesTick(float* input);

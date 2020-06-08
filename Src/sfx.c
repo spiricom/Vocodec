@@ -278,13 +278,28 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[Rhodes][0] = 0.25f;
 	defaultPresetKnobValues[Rhodes][1] = 0.25f;
 	defaultPresetKnobValues[Rhodes][2] = 0.25f;
-	defaultPresetKnobValues[Rhodes][3] = 0.2f;
+	defaultPresetKnobValues[Rhodes][3] = 0.5f;
 	defaultPresetKnobValues[Rhodes][4] = 0.0f; //stereo spread
 	defaultPresetKnobValues[Rhodes][5] = 0.05f;
 	defaultPresetKnobValues[Rhodes][6] = 0.05f;
 	defaultPresetKnobValues[Rhodes][7] = 0.9f;
 	defaultPresetKnobValues[Rhodes][8] = 0.1007f;
 	defaultPresetKnobValues[Rhodes][9] = 0.5f;
+	defaultPresetKnobValues[Rhodes][10] = 0.05f;
+	defaultPresetKnobValues[Rhodes][11] = 0.05f;
+	defaultPresetKnobValues[Rhodes][12] = 0.9f;
+	defaultPresetKnobValues[Rhodes][13] = 0.1007f;
+	defaultPresetKnobValues[Rhodes][14] = 0.5f;
+	defaultPresetKnobValues[Rhodes][15] = 0.8f;
+	defaultPresetKnobValues[Rhodes][16] = 0.6f;
+	defaultPresetKnobValues[Rhodes][17] = 0.7f;
+	defaultPresetKnobValues[Rhodes][18] = 0.5f;
+	defaultPresetKnobValues[Rhodes][19] = 0.5f;
+	defaultPresetKnobValues[Rhodes][20] = 0.5f;
+	defaultPresetKnobValues[Rhodes][21] = 0.0f;
+	defaultPresetKnobValues[Rhodes][22] = 0.00f;
+	defaultPresetKnobValues[Rhodes][23] = 0.00f;
+	defaultPresetKnobValues[Rhodes][24] = 0.00f;
 
 	for (int p = 0; p < PresetNil; p++)
 	{
@@ -455,6 +470,12 @@ void SFXVocoderFree(void)
 
 	tNoise_freeFromPool(&breathNoise, &smallPool);
 	tHighpass_freeFromPool(&noiseHP, &smallPool);
+
+
+	tVZFilter_freeFromPool(&shelf1, &smallPool);
+	tVZFilter_freeFromPool(&shelf2, &smallPool);
+
+
 
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
@@ -1014,6 +1035,7 @@ int updatePitch = 1;
 
 void SFXNeartuneAlloc()
 {
+	leaf.clearOnAllocation = 1;
 	tRetune_init(&autotuneMono, 1, 512, 256);
 	calculateNoteArray();
 	tExpSmooth_init(&neartune_smoother, 1.0f, .007f);
@@ -1226,6 +1248,8 @@ int crossfadeLength = 0;
 float samplerRate = 1.0f;
 float maxSampleSizeSeconds = 1.0f;
 uint8_t samplePlaying = 1;
+tExpSmooth startSmooth;
+tExpSmooth lengthSmooth;
 
 void SFXSamplerBPAlloc()
 {
@@ -1233,17 +1257,20 @@ void SFXSamplerBPAlloc()
 	tBuffer_setRecordMode(&buff, RecordOneShot);
 	tSampler_init(&sampler, &buff);
 	tSampler_setMode(&sampler, PlayLoop);
+	tExpSmooth_initToPool(&startSmooth, 0.0f, 0.01f, &smallPool);
+	tExpSmooth_initToPool(&lengthSmooth, 0.0f, 0.01f, &smallPool);
 }
 
 void SFXSamplerBPFrame()
 {
 
 }
-
+tExpSmooth startSmooth;
 void SFXSamplerBPTick(float* input)
 {
 	float sample = 0.0f;
 	int recordPosition = tBuffer_getRecordPosition(&buff);
+	float* knobs = presetKnobValues[SamplerButtonPress];
 
 	if (buttonActionsSFX[ButtonDown][ActionPress])
 	{
@@ -1251,6 +1278,7 @@ void SFXSamplerBPTick(float* input)
 		{
 			samplePlaying = 0;
 			tSampler_stop(&sampler);
+			displayValues[1] = LEAF_clip(0.0f, knobs[1] * sampleLength, sampleLength * (1.0f - knobs[0]));
 		}
 		else
 		{
@@ -1275,7 +1303,7 @@ void SFXSamplerBPTick(float* input)
 		setLED_A(0);
 	}
 
-	float* knobs = presetKnobValues[SamplerButtonPress];
+
 
 	sampleLength = recordPosition * leaf.invSampleRate;
 	displayValues[0] = knobs[0] * sampleLength;
@@ -1283,8 +1311,11 @@ void SFXSamplerBPTick(float* input)
 	displayValues[2] = (knobs[2] - 0.5f) * 4.0f;
 	displayValues[3] = knobs[3] * 4000.0f;
 
-	samplePlayStart = knobs[0] * recordPosition;
-	samplePlayLength = knobs[1] * recordPosition;
+	tExpSmooth_setDest(&startSmooth, knobs[0] * recordPosition);
+	tExpSmooth_setDest(&lengthSmooth, knobs[1] * recordPosition);
+
+	samplePlayStart = tExpSmooth_tick(&startSmooth);
+	samplePlayLength = tExpSmooth_tick(&lengthSmooth);
 	samplerRate = displayValues[2];
 	crossfadeLength = displayValues[3];
 	tSampler_setStart(&sampler, samplePlayStart);
@@ -1302,6 +1333,8 @@ void SFXSamplerBPFree(void)
 {
 	tBuffer_freeFromPool(&buff, &largePool);
 	tSampler_free(&sampler);
+	tExpSmooth_freeFromPool(&startSmooth, &smallPool);
+	tExpSmooth_freeFromPool(&lengthSmooth, &smallPool);
 }
 
 // keyboard sampler
@@ -1309,117 +1342,193 @@ int currentSamplerKey = 60 - LOWEST_SAMPLER_KEY;
 int recordingSamplerKey = 60 - LOWEST_SAMPLER_KEY;
 uint8_t samplerKeyHeld[NUM_SAMPLER_KEYS];
 float keyKnobValues[NUM_SAMPLER_KEYS][KNOB_PAGE_SIZE];
+tExpSmooth kSamplerGains[NUM_SAMPLER_KEYS];
+int waitingForDeactivation[NUM_SAMPLER_VOICES];
+int controlAllKeys = 0;
+int prevSamplerKey = 60;
+
+float prevKnobs[5];
+
+
 
 void SFXSamplerKAlloc()
 {
+	leaf.clearOnAllocation = 0; //needs this in case the box loads on this one first
 	currentSamplerKey = 60 - LOWEST_SAMPLER_KEY;
+
 	for (int i = 0; i < NUM_SAMPLER_KEYS; i++)
 	{
 		//leaf.sampleRate * 172.0f
-		tBuffer_initToPool(&keyBuff[i], leaf.sampleRate * 2.0f, &largePool);
+
+		tBuffer_initToPool(&keyBuff[i], leaf.sampleRate * 3.5f, &largePool);
 		tBuffer_setRecordMode(&keyBuff[i], RecordOneShot);
 		tSampler_init(&keySampler[i], &keyBuff[i]);
 		tSampler_setMode(&keySampler[i], PlayLoop);
+
 		for (int j = 0; j < KNOB_PAGE_SIZE; j++)
 		{
 			keyKnobValues[i][j] = defaultPresetKnobValues[currentPreset][j];
 		}
+
 		samplerKeyHeld[i] = 0;
+		tExpSmooth_initToPool(&kSamplerGains[i], 0.0f, 0.01f, &smallPool);
 	}
 	tSimplePoly_setNumVoices(&poly, NUM_SAMPLER_VOICES);
+	for (int i = 0; i < NUM_SAMPLER_VOICES; i++)
+	{
+		waitingForDeactivation[i] = -1;
+	}
+	setLED_B(controlAllKeys);
 }
+
+
 
 void SFXSamplerKFrame()
 {
 	if (samplerKeyHeld[currentSamplerKey])
 	{
-		buttonActionsUI[ButtonC][ActionHoldContinuous] = 1;
-		writeButtonFlag = ButtonC;
-		writeActionFlag = ActionHoldContinuous;
+		if ((tBuffer_isActive(&keyBuff[currentSamplerKey])) || (currentSamplerKey != prevSamplerKey)) //only write if recording
+		{
+			buttonActionsUI[ButtonC][ActionHoldContinuous] = 1;
+			writeButtonFlag = ButtonC;
+			writeActionFlag = ActionHoldContinuous;
+		}
+		prevSamplerKey = currentSamplerKey;
+	}
+
+	if (buttonActionsSFX[ButtonA][ActionPress])
+	{
+		tBuffer_setRecordPosition(&keyBuff[currentSamplerKey],0);
+		tBuffer_setRecordedLength(&keyBuff[currentSamplerKey],0);
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
+	}
+	if (buttonActionsSFX[ButtonB][ActionPress])
+	{
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
+		controlAllKeys = !controlAllKeys;
+		setLED_B(controlAllKeys);
 	}
 }
+
+//TODO:  marking this spot
+
+
+//TODO: add smoothers to length/start to avoid clicks. Need only 6 (one for each voice) or 49 (one per sampler key)?
 
 void SFXSamplerKTick(float* input)
 {
 	float sample = 0.0f;
-	if (buttonActionsSFX[ButtonDown][ActionPress])
+
+	if (!controlAllKeys)
 	{
-		if (currentSamplerKey > 0) currentSamplerKey--;
-		else currentSamplerKey = NUM_SAMPLER_KEYS - 1;
-		setKnobValues(keyKnobValues[currentSamplerKey]);
-		buttonActionsSFX[ButtonDown][ActionPress] = 0;
-	}
-	if (buttonActionsSFX[ButtonUp][ActionPress])
-	{
-		currentSamplerKey++;
-		if (currentSamplerKey >= NUM_SAMPLER_KEYS) currentSamplerKey = 0;
-		setKnobValues(keyKnobValues[currentSamplerKey]);
-		buttonActionsSFX[ButtonUp][ActionPress] = 0;
-	}
-	if (buttonActionsSFX[ButtonB][ActionPress])
-	{
-		// this just resets the record position; should probably add a setRecordPosition to Buffer
-		tBuffer_record(&keyBuff[currentSamplerKey]);
-		tBuffer_stop(&keyBuff[currentSamplerKey]);
+		int recordPosition = tBuffer_getRecordPosition(&keyBuff[currentSamplerKey]);
+		sampleLength = recordPosition * leaf.invSampleRate;
 
-		buttonActionsSFX[ButtonB][ActionPress] = 0;
-	}
-	if (buttonActionsSFX[ButtonA][ActionPress])
-	{
-		recordingSamplerKey = currentSamplerKey;
-		tBuffer_record(&keyBuff[recordingSamplerKey]);
-		buttonActionsSFX[ButtonA][ActionPress] = 0;
-		setLED_A(1);
-	}
-	if (buttonActionsSFX[ButtonA][ActionRelease])
-	{
-		// should we assume the user wants to edit what they just recorded
-		// knobs would take immediate effect, maybe causing unwanted settings
-//		editingSamplerKey = currentSamplerKey;
-		tBuffer_stop(&keyBuff[recordingSamplerKey]);
-		buttonActionsSFX[ButtonA][ActionRelease] = 0;
-		setLED_A(0);
-	}
+		float* knobs = presetKnobValues[SamplerKeyboard];
 
-	int recordPosition = tBuffer_getRecordPosition(&keyBuff[currentSamplerKey]);
-	sampleLength = recordPosition * leaf.invSampleRate;
 
-	float* knobs = presetKnobValues[SamplerKeyboard];
+		displayValues[0] = knobs[0] * sampleLength;
 
-	for (int i = 0; i < KNOB_PAGE_SIZE; i++)
-	{
-		keyKnobValues[currentSamplerKey][i] = knobs[i];
-	}
+		displayValues[1] = LEAF_clip(0.0f, knobs[1] * sampleLength, sampleLength * (1.0f - knobs[0]));
 
-	displayValues[0] = knobs[0] * sampleLength;
-	displayValues[1] = LEAF_clip(0.0f, knobs[1] * sampleLength, sampleLength * (1.0f - knobs[0]));
-	displayValues[2] = (knobs[2] - 0.5f) * 4.0f;
-	displayValues[3] = knobs[3] * 4000.0f;
+		displayValues[2] = (knobs[2] - 0.5f) * 4.0f;
 
-	samplePlayStart = knobs[0] * recordPosition;
-	samplePlayLength = knobs[1] * recordPosition;
-	samplerRate = displayValues[2];
-	crossfadeLength = displayValues[3];
+		displayValues[3] = knobs[3] * 4000.0f;
 
-	tSampler_setStart(&keySampler[currentSamplerKey], samplePlayStart);
-	tSampler_setLength(&keySampler[currentSamplerKey], samplePlayLength);
-	tSampler_setRate(&keySampler[currentSamplerKey], samplerRate);
-	tSampler_setCrossfadeLength(&keySampler[currentSamplerKey], crossfadeLength);
 
-	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); ++i)
-	{
-		if (tSimplePoly_isOn(&poly, i) > 0)
+		for (int i = 0; i < KNOB_PAGE_SIZE; i++)
 		{
-			int key = tSimplePoly_getPitch(&poly, i) - LOWEST_SAMPLER_KEY;
-			if (0 <= key && key < NUM_SAMPLER_KEYS)
+			keyKnobValues[currentSamplerKey][i] = knobs[i];
+		}
+
+		samplePlayStart = knobs[0] * recordPosition;
+		samplePlayLength = knobs[1] * recordPosition;
+		samplerRate = displayValues[2];
+		crossfadeLength = displayValues[3];
+
+		tSampler_setStart(&keySampler[currentSamplerKey], samplePlayStart);
+		tSampler_setLength(&keySampler[currentSamplerKey], samplePlayLength);
+		tSampler_setRate(&keySampler[currentSamplerKey], samplerRate);
+		tSampler_setCrossfadeLength(&keySampler[currentSamplerKey], crossfadeLength);
+
+		for (int i = 0; i < NUM_SAMPLER_VOICES; ++i)
+		{
+			if (tSimplePoly_isOn(&poly, i) > 0)
 			{
-				tBuffer_tick(&keyBuff[key], input[1]);
-				sample += tSampler_tick(&keySampler[key]);
+				int key = tSimplePoly_getPitch(&poly, i) - LOWEST_SAMPLER_KEY;
+				if ((0 <= key) && (key < NUM_SAMPLER_KEYS))
+				{
+					tBuffer_tick(&keyBuff[key], input[1]);
+				}
 			}
 		}
 	}
 
-	sample = tanhf(sample);
+	else
+	{
+
+		for (int i = 0; i < NUM_SAMPLER_VOICES; i++)
+		{
+			//get the keys sounding right now
+			if (tSimplePoly_isOn(&poly, i) > 0)
+			{
+				int key = tSimplePoly_getPitch(&poly, i) - LOWEST_SAMPLER_KEY;
+				if ((0 <= key) && (key < NUM_SAMPLER_KEYS))
+				{
+					tBuffer_tick(&keyBuff[key], input[1]);
+
+					int recordPosition = tBuffer_getRecordPosition(&keyBuff[key]);
+					sampleLength = recordPosition * leaf.invSampleRate;
+
+					float* knobs = presetKnobValues[SamplerKeyboard];
+
+					displayValues[0] = knobs[0] * sampleLength;
+					displayValues[1] = LEAF_clip(0.0f, knobs[1] * sampleLength, sampleLength * (1.0f - knobs[0]));
+					displayValues[2] = (knobs[2] - 0.5f) * 4.0f;
+					displayValues[3] = knobs[3] * 4000.0f;
+
+					samplePlayStart = knobs[0] * recordPosition;
+					samplePlayLength = knobs[1] * recordPosition;
+					samplerRate = displayValues[2];
+					crossfadeLength = displayValues[3];
+
+					tSampler_setStart(&keySampler[key], samplePlayStart);
+					tSampler_setLength(&keySampler[key], samplePlayLength);
+					tSampler_setRate(&keySampler[key], samplerRate);
+					tSampler_setCrossfadeLength(&keySampler[key], crossfadeLength);
+
+					for (int i = 0; i < KNOB_PAGE_SIZE; i++)
+					{
+						keyKnobValues[key][i] = knobs[i];
+					}
+				}
+			}
+		}
+	}
+
+
+
+	for (int i = 0; i < NUM_SAMPLER_KEYS; i++)
+	{
+		float tempGain = tExpSmooth_tick(&kSamplerGains[i]);
+		if ( tempGain > 0.001f)
+		{
+			sample += tSampler_tick(&keySampler[i]) * tempGain;
+		}
+		else
+		{
+			for (int j = 0; j< NUM_SAMPLER_VOICES; j++)
+			{
+				if (waitingForDeactivation[j] == (i + LOWEST_SAMPLER_KEY))
+				{
+					tSimplePoly_deactivateVoice(&poly, j);
+					waitingForDeactivation[j] = -1;
+				}
+			}
+		}
+	}
+
+	sample = tanhf(sample) * 0.98;
 	input[0] = sample;
 	input[1] = sample;
 }
@@ -1430,6 +1539,7 @@ void SFXSamplerKFree(void)
 	{
 		tBuffer_freeFromPool(&keyBuff[i], &largePool);
 		tSampler_free(&keySampler[i]);
+		tExpSmooth_freeFromPool(&kSamplerGains[i], &smallPool);
 	}
 }
 
@@ -1639,8 +1749,8 @@ void SFXSamplerAutoTick(float* input)
 	sample = (tSampler_tick(&asSampler[0]) * volumes[1]) + (tSampler_tick(&asSampler[1]) * volumes[0]);
 
 	previousPower = currentPower;
-	input[0] = sample;
-	input[1] = sample;
+	input[0] = sample * 0.99f;
+	input[1] = sample * 0.99f;
 	lastSample = sample;
 }
 
@@ -2643,11 +2753,11 @@ void SFXClassicSynthFree(void)
 
 
 tCycle FM_sines[NUM_VOC_VOICES][6];
-float FM_freqRatios[4][6] = {{1.0f, 1.00001f, 1.0f, 3.0f, 1.0f, 1.0f}, {2.0f, 2.0001f, .99999f, 3.0f, 5.0f, 8.0f},  {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}, {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}};
-float FM_indices[4][6] = {{800.0f, 0.0f, 120.0f, 32.0f, 3.0f, 1.0f}, {100.0f, 100.0f, 300.0f, 300.0f, 10.0f, 5.0f}, {500.0f, 50.0f, 500.0f, 10.0f,0.0f, 0.0f}, {50.0f, 128.0f, 1016.0f, 528.0f, 4.0f, 0.0f}};
-float FM_decays[4][6] = {{64.0f, 2000.0f, 3000.0f, 3400.0f, 3200.0f, 3100.0f}, {2000.0f, 300.0f, 800.0f, 3000.0f, 340.0f, 50.0f}, {20.0f, 50.0f, 50.0f, 10.0f, 30.0f, 20.0f}, {584.0f, 1016.0f, 1016.0f, 1000.0f, 600.0f, 500.0f}};
-float FM_sustains[4][6] = {{0.9f, 0.9f, 0.9f, 0.8f, 0.7f, 0.7f}, {0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f}, {0.3f, 0.3f, 0.3f, 0.3f, 0.0f, 0.0f},{0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f}};
-float FM_attacks[4][6] = {{7.0f, 7.0f, 7.0f, 7.0f, 7.0f, 7.0f}, {7.0f, 7.0f, 7.0f, 7.0f, 7.0f,7.0f}, {10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f},{1000.0f, 680.0f, 250.0f, 1300.0f, 750.0f, 820.0f}};
+float FM_freqRatios[5][6] = {{1.0f, 1.00001f, 1.0f, 3.0f, 1.0f, 1.0f}, {2.0f, 2.0001f, .99999f, 3.0f, 5.0f, 8.0f},  {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}, {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}, {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}};
+float FM_indices[5][6] = {{800.0f, 0.0f, 120.0f, 32.0f, 3.0f, 1.0f}, {100.0f, 100.0f, 300.0f, 300.0f, 10.0f, 5.0f}, {500.0f, 50.0f, 500.0f, 10.0f,0.0f, 0.0f}, {50.0f, 128.0f, 1016.0f, 528.0f, 4.0f, 0.0f},{50.0f, 128.0f, 1016.0f, 528.0f, 4.0f, 0.0f}};
+//float FM_decays[5][6] = {{64.0f, 2000.0f, 3000.0f, 3400.0f, 3200.0f, 3100.0f}, {2000.0f, 300.0f, 800.0f, 3000.0f, 340.0f, 50.0f}, {20.0f, 50.0f, 50.0f, 10.0f, 30.0f, 20.0f}, {584.0f, 1016.0f, 1016.0f, 1000.0f, 600.0f, 500.0f},{584.0f, 1016.0f, 1016.0f, 1000.0f, 600.0f, 500.0f}};
+//float FM_sustains[5][6] = {{0.9f, 0.9f, 0.9f, 0.8f, 0.7f, 0.7f}, {0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f}, {0.3f, 0.3f, 0.3f, 0.3f, 0.0f, 0.0f},{0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f},{0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f}};
+//float FM_attacks[5][6] = {{7.0f, 7.0f, 7.0f, 7.0f, 7.0f, 7.0f}, {7.0f, 7.0f, 7.0f, 7.0f, 7.0f,7.0f}, {10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f},{1000.0f, 680.0f, 250.0f, 1300.0f, 750.0f, 820.0f},{1000.0f, 680.0f, 250.0f, 1300.0f, 750.0f, 820.0f}};
 tADSR4 FM_envs[NUM_VOC_VOICES][6];
 float feedback_output = 0.0f;
 float prevDisplayValues[NUM_PRESET_KNOB_VALUES];
@@ -2657,8 +2767,8 @@ uint8_t tremoloStereo = 0;
 
 int Rsound = 0;
 
-char* soundNames[4];
-
+char* soundNames[5];
+tExpSmooth susSmoothers[6];
 
 
 //FM Rhodes
@@ -2669,15 +2779,20 @@ void SFXRhodesAlloc()
 	soundNames[1] = "LIGHT ";
 	soundNames[2] = "BASS  ";
 	soundNames[3] = "PAD   ";
+	soundNames[4] = "CUSTOM";
 
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		for (int j = 0; j < 6; j++)
 		{
 			tCycle_initToPool(&FM_sines[i][j], &smallPool);
-			tADSR4_initToPool(&FM_envs[i][j], FM_attacks[Rsound][j], FM_decays[Rsound][j], FM_sustains[Rsound][j], 100.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
+			tADSR4_initToPool(&FM_envs[i][j], 10, 1000, 0.5f, 100.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
 			tADSR4_setLeakFactor(&FM_envs[i][j], 0.99998f);
 		}
+	}
+	for (int i = 0; i < 6; i++)
+	{
+		tExpSmooth_initToPool(&susSmoothers[i], 1.0f, 0.01f, &smallPool);
 	}
 	tCycle_initToPool(&tremolo, &smallPool);
 	tCycle_setFreq(&tremolo, 3.0f);
@@ -2691,7 +2806,10 @@ void SFXRhodesAlloc()
 
 }
 
-
+float prevKnobValues[25];
+float overtoneSnap = 1.0f;
+float randomDecays[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+float randomSustains[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 
 void SFXRhodesFrame()
 {
@@ -2705,18 +2823,14 @@ void SFXRhodesFrame()
 	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
 	{
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
-		Rsound = (Rsound + 1 ) % 4; // switch to another rhodes preset sound
-		OLEDclearLine(SecondLine);
-		OLEDwriteString(soundNames[Rsound], 6, 0, SecondLine);
+		Rsound = (Rsound + 1 ) % 5; // switch to another rhodes preset sound
 	}
 	if (buttonActionsSFX[ButtonC][ActionPress] == 1)
 	{
 		tremoloStereo = !tremoloStereo;
 		buttonActionsSFX[ButtonC][ActionPress] = 0;
 		setLED_C(tremoloStereo == 1);
-		OLEDclearLine(SecondLine);
-		OLEDwriteString("STEREO TREMO", 12, 0, SecondLine);
-		OLEDwriteInt(tremoloStereo, 1, 110, SecondLine);
+
 	}
 
 	displayValues[0] = presetKnobValues[Rhodes][0] * 4.0f; // brightness
@@ -2729,6 +2843,79 @@ void SFXRhodesFrame()
 	displayValues[7] = presetKnobValues[Rhodes][7];
 	displayValues[8] = expBuffer[(int)(presetKnobValues[Rhodes][8] * expBufferSizeMinusOne)] * 8192.0f;
 	displayValues[9] = presetKnobValues[Rhodes][9];
+
+	FM_indices[4][0] = displayValues[10] = presetKnobValues[Rhodes][10] * 1000.0f;
+	FM_indices[4][1] = displayValues[11] = presetKnobValues[Rhodes][11] * 1000.0f;
+	FM_indices[4][2] = displayValues[12] = presetKnobValues[Rhodes][12] * 1000.0f;
+	FM_indices[4][3] = displayValues[13] = presetKnobValues[Rhodes][13] * 1000.0f;
+	FM_indices[4][4] = displayValues[14] = presetKnobValues[Rhodes][14] * 1000.0f;
+	FM_indices[4][5] = displayValues[21] = LEAF_clip(0.0f, ((presetKnobValues[Rhodes][21] * 1000.0f) - 10.0f), 1000.0f); // feedback
+	//pitch ratios for custom rhodes preset
+	for (int k = 15; k < 21; k++)
+	{
+		if (presetKnobValues[Rhodes][k] != prevKnobValues[k])
+		{
+			float rawRate = (presetKnobValues[Rhodes][k] - 0.5f) * 14.0f;
+			float snapRate = roundf(rawRate);
+			float rate = (snapRate * overtoneSnap) + (rawRate * (1.0f - overtoneSnap));
+			if (rate < 0.0f) rate = 1.0f / fabsf(rate-1.0f);
+			else rate += 1.0f;
+			displayValues[k] = rate;
+			FM_freqRatios[4][k-15] = rate;
+		}
+		prevKnobValues[k] = presetKnobValues[Rhodes][k];
+	}
+	//overtone snap
+	if (presetKnobValues[Rhodes][22] != prevKnobValues[22])
+	{
+		overtoneSnap = displayValues[22] = presetKnobValues[Rhodes][22];
+		for (int k = 15; k < 21; k++)
+		{
+
+			float rawRate = (presetKnobValues[Rhodes][k] - 0.5f) * 14.0f;
+			float snapRate = roundf(rawRate);
+			float rate = (snapRate * overtoneSnap) + (rawRate * (1.0f - overtoneSnap));
+			if (rate < 0.0f) rate = 1.0f / fabsf(rate-1.0f);
+			else rate += 1.0f;
+			displayValues[k] = rate;
+			FM_freqRatios[4][k-15] = rate;
+		}
+	}
+	prevKnobValues[22] = presetKnobValues[Rhodes][22];
+	// random decays
+	displayValues[23] = presetKnobValues[Rhodes][23];
+	if (prevDisplayValues[23] != displayValues[23])
+	{
+
+		for (int i = 0; i < 6; i++)
+		{
+			float randomNumberDraw = (randomNumber() * 2.0f) + 0.08f;
+			randomDecays[i] = (1.0f - displayValues[23]) + (randomNumberDraw * displayValues[23]);
+		}
+
+		for (int i = 0; i < NUM_VOC_VOICES; i++)
+		{
+			for (int j = 0; j < 6; j++)
+			{
+				tADSR4_setDecay(&FM_envs[i][j],(LEAF_clip(10.0f, displayValues[6] * randomDecays[j], 20000.0f))); //FM_decays[Rsound][j] * displayValues[6]);
+			}
+		}
+	}
+	prevKnobValues[23] = presetKnobValues[Rhodes][23];
+
+	// random sustains
+	displayValues[24] = presetKnobValues[Rhodes][24];
+	if (prevDisplayValues[24] != displayValues[24])
+	{
+
+		for (int i = 0; i < 6; i++)
+		{
+			float randomNumberDraw = randomNumber() * 2.0f;
+			randomSustains[i] = (1.0f - displayValues[24]) + (randomNumberDraw * displayValues[24]);
+			tExpSmooth_setDest(&susSmoothers[i], displayValues[7] * randomSustains[i]);
+		}
+	}
+	prevDisplayValues[24] = displayValues[24];
 
 	for (int k = 5; k < 10; k++)
 	{
@@ -2757,19 +2944,16 @@ void SFXRhodesFrame()
 					{
 						for (int j = 0; j < 6; j++)
 						{
-							tADSR4_setDecay(&FM_envs[i][j],displayValues[6]); //FM_decays[Rsound][j] * displayValues[6]);
+							tADSR4_setDecay(&FM_envs[i][j],(LEAF_clip(7.0f, displayValues[6] * randomDecays[j], 20000.0f)));
 						}
 					}
 					break;
 				case 7:
-					for (int i = 0; i < NUM_VOC_VOICES; i++)
+					for (int i = 0; i < 6; i++)
 					{
-						for (int j = 0; j < 6; j++)
-						{
-							tADSR4_setSustain(&FM_envs[i][j], displayValues[7]); //FM_sustains[Rsound][j] * displayValues[7]);
-						}
+						tExpSmooth_setDest(&susSmoothers[i], displayValues[7] * randomSustains[i]);
 					}
-					break;
+						break;
 				case 8:
 					for (int i = 0; i < NUM_VOC_VOICES; i++)
 					{
@@ -2807,15 +2991,27 @@ void SFXRhodesFrame()
 			}
 		}
 	}
+
+	tCycle_setFreq(&tremolo, displayValues[2]);
 }
 
-
+float sustainsFinal[6];
 void SFXRhodesTick(float* input)
 {
 	float leftSample = 0.0f;
 	float rightSample = 0.0f;
 
-	tCycle_setFreq(&tremolo, displayValues[2]);
+	for (int i = 0; i < 6; i++)
+	{
+		sustainsFinal[i] = tExpSmooth_tick(&susSmoothers[i]);
+	}
+	for (int i = 0; i < NUM_VOC_VOICES; i++)
+	{
+		for (int j = 0; j < 6; j++)
+		{
+			tADSR4_setSustain(&FM_envs[i][j], sustainsFinal[j]); //FM_sustains[Rsound][j] * displayValues[7]);
+		}
+	}
 
 	for (int i = 0; i < numVoices; i++)
 	{
@@ -2871,6 +3067,10 @@ void SFXRhodesFree(void)
 			tADSR4_freeFromPool(&FM_envs[i][j],&smallPool);
 		}
 
+	}
+	for (int i = 0; i < 6; i++)
+	{
+		tExpSmooth_freeFromPool(&susSmoothers[i], &smallPool);
 	}
 	tCycle_freeFromPool(&tremolo,&smallPool);
 
@@ -3077,7 +3277,6 @@ void noteOn(int key, int velocity)
 
 		chordArray[key%12]++;
 
-		int whichVoice = tSimplePoly_noteOn(&poly, key, velocity);
 
 		if (currentPreset == AutotuneMono)
 		{
@@ -3088,26 +3287,17 @@ void noteOn(int key, int velocity)
 			updatePitch = 1;
 		}
 
-		if (currentPreset == SamplerKeyboard)
+
+
+
+
+
+		if (currentPreset == Rhodes)
 		{
-			if (key >= LOWEST_SAMPLER_KEY && key < LOWEST_SAMPLER_KEY + NUM_SAMPLER_KEYS)
-			{
-				currentSamplerKey = key - LOWEST_SAMPLER_KEY;
-				setKnobValues(keyKnobValues[currentSamplerKey]);
-				if (tBuffer_getRecordedLength(&keyBuff[currentSamplerKey]) == 0)
-				{
-					tBuffer_record(&keyBuff[currentSamplerKey]);
-				}
-				else tSampler_play(&keySampler[currentSamplerKey]);
-				samplerKeyHeld[currentSamplerKey] = 1;
-			}
-		}
 
+			int whichVoice = tSimplePoly_noteOn(&poly, key, velocity);
 
-
-		if (whichVoice >= 0)
-		{
-			if (currentPreset == Rhodes)
+			if (whichVoice >= 0)
 			{
 				for (int j = 0; j < 6; j++)
 				{
@@ -3115,10 +3305,44 @@ void noteOn(int key, int velocity)
 				}
 				panValues[whichVoice] = key * 0.0078125; // divide by 128.0f
 			}
-			else if (currentPreset == ClassicSynth)
+		}
+		else if (currentPreset == ClassicSynth)
+		{
+
+			int whichVoice = tSimplePoly_noteOn(&poly, key, velocity);
+
+			if (whichVoice >= 0)
 			{
 				tADSR4_on(&polyEnvs[whichVoice], velocity * 0.0078125f);
 				tADSR4_on(&polyFiltEnvs[whichVoice], velocity * 0.0078125f);
+			}
+		}
+
+
+		else if (currentPreset == SamplerKeyboard)
+		{
+			if ((key >= LOWEST_SAMPLER_KEY) && key < (LOWEST_SAMPLER_KEY + NUM_SAMPLER_KEYS))
+			{
+				int whichVoice = tSimplePoly_noteOn(&poly, key, velocity);
+				if (whichVoice >= 0)
+				{
+
+					currentSamplerKey = key - LOWEST_SAMPLER_KEY;
+					if (!controlAllKeys)
+					{
+						setKnobValues(keyKnobValues[currentSamplerKey]);
+					}
+					if (tBuffer_getRecordedLength(&keyBuff[currentSamplerKey]) == 0)
+					{
+						tBuffer_record(&keyBuff[currentSamplerKey]);
+					}
+					else
+					{
+						tSampler_play(&keySampler[currentSamplerKey]);
+						tExpSmooth_setDest(&kSamplerGains[currentSamplerKey], 1.0f);
+					}
+					samplerKeyHeld[currentSamplerKey] = 1;
+				}
 			}
 		}
 		setLED_2(1);
@@ -3129,21 +3353,6 @@ void noteOff(int key, int velocity)
 {
 
 	if (chordArray[key%12] > 0) chordArray[key%12]--;
-
-	if (currentPreset == SamplerKeyboard)
-	{
-		if (key >= LOWEST_SAMPLER_KEY && key < LOWEST_SAMPLER_KEY + NUM_SAMPLER_KEYS)
-		{
-			if (tBuffer_getRecordedLength(&keyBuff[key-LOWEST_SAMPLER_KEY]) == 0)
-			{
-				tBuffer_stop(&keyBuff[key-LOWEST_SAMPLER_KEY]);
-				UISamplerKButtons(ButtonUp, ActionPress);
-			}
-			else tSampler_stop(&keySampler[key-LOWEST_SAMPLER_KEY]);
-			samplerKeyHeld[key-LOWEST_SAMPLER_KEY] = 0;
-			UISamplerKButtons(ButtonC, ActionHoldContinuous);
-		}
-	}
 
 
 	if (currentPreset == Rhodes)
@@ -3182,6 +3391,31 @@ void noteOff(int key, int velocity)
 		{
 			tADSR4_off(&polyEnvs[voice]);
 			tADSR4_off(&polyFiltEnvs[voice]);
+		}
+	}
+
+	else if (currentPreset == SamplerKeyboard)
+	{
+		int voice;
+
+
+		if (key >= LOWEST_SAMPLER_KEY && key < LOWEST_SAMPLER_KEY + NUM_SAMPLER_KEYS)
+		{
+			voice = tSimplePoly_markPendingNoteOff(&poly, key); //if we're polyphonic, we need to let release envelopes happen and not mark voices free when they are not
+
+
+			if (tBuffer_isActive(&keyBuff[key-LOWEST_SAMPLER_KEY]) == 1)
+			{
+				tBuffer_stop(&keyBuff[key-LOWEST_SAMPLER_KEY]);
+				UISamplerKButtons(ButtonUp, ActionPress);
+			}
+			else
+			{
+				tExpSmooth_setDest(&kSamplerGains[key-LOWEST_SAMPLER_KEY], 0.0f);
+			}
+			samplerKeyHeld[key-LOWEST_SAMPLER_KEY] = 0;
+			UISamplerKButtons(ButtonC, ActionHoldContinuous);
+			waitingForDeactivation[voice] = key;
 		}
 	}
 	else

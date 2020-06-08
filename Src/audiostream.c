@@ -224,21 +224,16 @@ void audioFrame(uint16_t buffer_offset)
 				if (previousPreset != PresetNil)
 				{
 					freeFunctions[previousPreset]();
-					setLED_A(0);
-					setLED_B(0);
-					setLED_C(0);
-				}
-				else
-				{
-					leaf.clearOnAllocation = 1;
+
 				}
 				setLED_A(0);
 				setLED_B(0);
+				setLED_C(0);
+				setLED_Edit(0);
 				setLED_1(0);
 				knobPage = 0;
 				resetKnobValues();
 				allocFunctions[currentPreset]();
-				setLED_Edit(0);
 				leaf.clearOnAllocation = 0;
 				loadingPreset = 0;
 			}
