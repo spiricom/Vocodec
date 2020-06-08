@@ -260,7 +260,7 @@ void initModeNames(void)
 	knobParamNames[LivingString][4] = "PICK POS";
 	knobParamNames[LivingString][5] = "PREP POS";
 	knobParamNames[LivingString][6] = "PREP INDEX";
-	knobParamNames[LivingString][7] = "";
+	knobParamNames[LivingString][7] = "LET RING";
 	knobParamNames[LivingString][8] = "";
 	knobParamNames[LivingString][9] = "";
 	knobParamNames[LivingString][10] = "FREQ2";
@@ -909,11 +909,18 @@ char* UILivingStringButtons(VocodecButton button, ButtonAction action)
 		writeString = (ignoreFreqKnobs > 0) ? "MIDI ONLY" : "MIDI OR KNOBS";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
-	if (buttonActionsUI[ButtonB][ActionPress] == 1)
+	if (buttonActionsUI[ButtonC][ActionPress] == 1)
 	{
 		writeString = (levMode > 0) ? "FB MODE" : "DECAY MODE";
+		buttonActionsUI[ButtonC][ActionPress] = 0;
+	}
+
+	if (buttonActionsUI[ButtonB][ActionPress] == 1)
+	{
+		writeString = (independentStrings > 0) ? "INDIV CONTROL" : "KNOB1=>ALL";
 		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
+
 	return writeString;
 }
 

@@ -238,7 +238,7 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[LivingString][4] = 0.5f; // pick pos
 	defaultPresetKnobValues[LivingString][5] = 0.25f; // prep pos
 	defaultPresetKnobValues[LivingString][6] = 0.0f; // prep index
-	defaultPresetKnobValues[LivingString][7] = 0.5f;
+	defaultPresetKnobValues[LivingString][7] = 0.0f; // let ring
 	defaultPresetKnobValues[LivingString][8] = 0.8f;
 	defaultPresetKnobValues[LivingString][9] = 0.5f;
 	defaultPresetKnobValues[LivingString][10] = 0.3f;// freq 2
@@ -352,6 +352,9 @@ void SFXVocoderAlloc()
 	}
 	setLED_A(numVoices == 1);
 	setLED_B(internalExternal);
+	vocFreezeLPC = 0;
+	setLED_C(vocFreezeLPC);
+
 }
 
 void SFXVocoderFrame()
@@ -2266,6 +2269,12 @@ void SFXReverb2Tick(float* input)
 		setLED_C(freeze);
 	}
 
+	if (buttonActionsSFX[ButtonA][ActionPress])
+	{
+		freeze = !freeze;
+		buttonActionsSFX[ButtonA][ActionPress] = 0;
+		setLED_C(freeze);
+	}
 
 	tNReverb_tickStereo(&reverb2, input[1], stereoOuts);
 	float leftOut = tSVF_tick(&lowpass, stereoOuts[0]);
@@ -2295,7 +2304,8 @@ void SFXReverb2Free(void)
 
 int ignoreFreqKnobs = 0;
 int levMode = 0;
-
+int independentStrings = 0;
+tExpSmooth stringGains[NUM_STRINGS];
 //Living String
 void SFXLivingStringAlloc()
 {
@@ -2307,10 +2317,12 @@ void SFXLivingStringAlloc()
 		myDetune[i] = (randomNumber() * 0.3f) - 0.15f;
 		//tComplexLivingString_init(&theString[i],  myFreq, 0.4f, 0.0f, 16000.0f, .999f, .5f, .5f, 0.1f, 0);
 		tComplexLivingString_init(&theString[i], 440.f, 0.8f, 0.3f, 0.f, 9000.f, 1.0f, 0.3f, 0.01f, 0.125f, levMode);
+		tExpSmooth_initToPool(&stringGains[i], 0.0f, 0.002f, &smallPool);
 	}
 	ignoreFreqKnobs = 0;
 	setLED_A(ignoreFreqKnobs);
 	setLED_B(levMode);
+	setLED_C(independentStrings);
 }
 
 void SFXLivingStringFrame()
@@ -2321,15 +2333,21 @@ void SFXLivingStringFrame()
 		buttonActionsSFX[ButtonA][ActionPress] = 0;
 		setLED_A(ignoreFreqKnobs);
 	}
-	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
+	if (buttonActionsSFX[ButtonC][ActionPress] == 1)
 	{
 		levMode = !levMode;
 		for (int i = 0; i < NUM_STRINGS; i++)
 		{
 			tComplexLivingString_setLevMode(&theString[i], levMode);
 		}
+		buttonActionsSFX[ButtonC][ActionPress] = 0;
+		setLED_C(levMode);
+	}
+	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
+	{
+		independentStrings = !independentStrings;
 		buttonActionsSFX[ButtonB][ActionPress] = 0;
-		setLED_B(levMode);
+		setLED_B(independentStrings);
 	}
 	displayValues[0] = LEAF_midiToFrequency((presetKnobValues[LivingString][0] * 90.0f)); //freq
 	displayValues[1] = presetKnobValues[LivingString][1]; //detune
@@ -2338,24 +2356,70 @@ void SFXLivingStringFrame()
 	displayValues[4] = (presetKnobValues[LivingString][4] * 0.48) + 0.5f;//pickPos
 	displayValues[5] = (presetKnobValues[LivingString][5] * 0.48) + 0.02f;//prepPos
 	displayValues[6] = ((tanhf((presetKnobValues[LivingString][6] * 8.0f) - 4.0f)) * 0.5f) + 0.5f;//prep Index
+	displayValues[7] = presetKnobValues[LivingString][7];// let ring
 
-	displayValues[10] = LEAF_midiToFrequency((presetKnobValues[LivingString][10] * 90.0f)); //freq
-	displayValues[11] = LEAF_midiToFrequency((presetKnobValues[LivingString][11] * 90.0f)); //freq
-	displayValues[12] = LEAF_midiToFrequency((presetKnobValues[LivingString][12] * 90.0f)); //freq
-	displayValues[13] = LEAF_midiToFrequency((presetKnobValues[LivingString][13] * 90.0f)); //freq
-	displayValues[14] = LEAF_midiToFrequency((presetKnobValues[LivingString][14] * 90.0f)); //freq
-
-	for (int i = 0; i < NUM_STRINGS; i++)
+	if (!independentStrings)
 	{
-		float freqVal = i == 0 ? displayValues[0] : displayValues[9+i];
-		int note = tSimplePoly_getPitchAndCheckActive(&poly, i);
-		if (note >= 0) freqVal = LEAF_midiToFrequency(note);
-		tComplexLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * displayValues[1]))) * freqVal);
-		tComplexLivingString_setDecay(&theString[i], (displayValues[2] * 0.015f) + 0.995f);
-		tComplexLivingString_setDampFreq(&theString[i], displayValues[3]);
-		tComplexLivingString_setPickPos(&theString[i], displayValues[4]);
-		tComplexLivingString_setPrepPos(&theString[i], displayValues[5]);
-		tComplexLivingString_setPrepIndex(&theString[i], displayValues[6]);
+		if (!ignoreFreqKnobs)
+		{
+
+
+
+			for (int i = 0; i < NUM_STRINGS; i++)
+			{
+				float freqVal = displayValues[0] * (i+1);
+				tComplexLivingString_setFreq(&theString[i], (1.0f + (myDetune[i] * displayValues[1])) * freqVal);
+				tComplexLivingString_setDecay(&theString[i], (displayValues[2] * 0.015f) + 0.995f);
+				tComplexLivingString_setDampFreq(&theString[i], displayValues[3]);
+				tComplexLivingString_setPickPos(&theString[i], displayValues[4]);
+				tComplexLivingString_setPrepPos(&theString[i], displayValues[5]);
+				tComplexLivingString_setPrepIndex(&theString[i], displayValues[6]);
+				tExpSmooth_setDest(&stringGains[i], 1.0f);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NUM_STRINGS; i++)
+			{
+
+				calculateFreq(i);
+				float freqVal = freq[i];
+				tComplexLivingString_setFreq(&theString[i], (1.0f + (myDetune[i] * displayValues[1])) * freqVal);
+				tComplexLivingString_setDecay(&theString[i], (displayValues[2] * 0.015f) + 0.995f);
+				tComplexLivingString_setDampFreq(&theString[i], displayValues[3]);
+				tComplexLivingString_setPickPos(&theString[i], displayValues[4]);
+				tComplexLivingString_setPrepPos(&theString[i], displayValues[5]);
+				tComplexLivingString_setPrepIndex(&theString[i], displayValues[6]);
+				if (tSimplePoly_isOn(&poly, i))
+				{
+					tExpSmooth_setDest(&stringGains[i], 1.0f);
+				}
+				else
+				{
+					tExpSmooth_setDest(&stringGains[i], displayValues[7]);
+				}
+			}
+		}
+	}
+	else
+	{
+		displayValues[10] = LEAF_midiToFrequency((presetKnobValues[LivingString][10] * 90.0f)); //freq
+		displayValues[11] = LEAF_midiToFrequency((presetKnobValues[LivingString][11] * 90.0f)); //freq
+		displayValues[12] = LEAF_midiToFrequency((presetKnobValues[LivingString][12] * 90.0f)); //freq
+		displayValues[13] = LEAF_midiToFrequency((presetKnobValues[LivingString][13] * 90.0f)); //freq
+		displayValues[14] = LEAF_midiToFrequency((presetKnobValues[LivingString][14] * 90.0f)); //freq
+
+		for (int i = 0; i < NUM_STRINGS; i++)
+		{
+			float freqVal = i == 0 ? displayValues[0] : displayValues[9+i];
+			tComplexLivingString_setFreq(&theString[i], (1.0f + (myDetune[i] * displayValues[1])) * freqVal);
+			tComplexLivingString_setDecay(&theString[i], (displayValues[2] * 0.015f) + 0.995f);
+			tComplexLivingString_setDampFreq(&theString[i], displayValues[3]);
+			tComplexLivingString_setPickPos(&theString[i], displayValues[4]);
+			tComplexLivingString_setPrepPos(&theString[i], displayValues[5]);
+			tComplexLivingString_setPrepIndex(&theString[i], displayValues[6]);
+			tExpSmooth_setDest(&stringGains[i], 1.0f);
+		}
 	}
 }
 
@@ -2366,13 +2430,10 @@ void SFXLivingStringTick(float* input)
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 		float tick = tComplexLivingString_tick(&theString[i], input[1]);
-		if ((ignoreFreqKnobs && tSimplePoly_isOn(&poly, i)) || !ignoreFreqKnobs)
-		{
-			sample += tick;
-		}
+		sample += tick * tExpSmooth_tick(&stringGains[i]);
 
 	}
-	sample *= 0.0625f;
+	sample *= 0.1625f;
 	input[0] = sample;
 	input[1] = sample;
 
@@ -2384,6 +2445,7 @@ void SFXLivingStringFree(void)
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 		tComplexLivingString_free(&theString[i]);
+		tExpSmooth_freeFromPool(&stringGains[i], &smallPool);
 	}
 }
 
