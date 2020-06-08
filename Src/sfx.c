@@ -3345,6 +3345,10 @@ void noteOn(int key, int velocity)
 				}
 			}
 		}
+		else
+		{
+			tSimplePoly_noteOn(&poly, key, velocity);
+		}
 		setLED_2(1);
 	}
 }
