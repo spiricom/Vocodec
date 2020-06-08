@@ -4,3 +4,5 @@
 [submodule "leaf"]
 	path = leaf
 	url = https://github.com/spiricom/leaf
+	branch = master
+	update = rebase
