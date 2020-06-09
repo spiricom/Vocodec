@@ -2321,8 +2321,9 @@ void SFXLivingStringAlloc()
 	}
 	ignoreFreqKnobs = 0;
 	setLED_A(ignoreFreqKnobs);
-	setLED_B(levMode);
-	setLED_C(independentStrings);
+	setLED_B(independentStrings);
+	setLED_C(levMode);
+
 }
 
 void SFXLivingStringFrame()
@@ -2449,7 +2450,16 @@ void SFXLivingStringFree(void)
 	}
 }
 
-
+int voicePluck = 0;
+tSlide stringOutEnvs[NUM_STRINGS];
+tSlide stringInEnvs[NUM_STRINGS];
+tADSR4 pluckEnvs[NUM_STRINGS];
+int levModeStr = 0;
+tNoise stringPluckNoise;
+tNoise stringPluckNoiseDark;
+float myOutGains[NUM_STRINGS];
+float myInGains[NUM_STRINGS];
+tVZFilter pluckFilt;
 //Living String Synth
 void SFXLivingStringSynthAlloc()
 {
@@ -2457,11 +2467,21 @@ void SFXLivingStringSynthAlloc()
 	tSimplePoly_setNumVoices(&poly, NUM_STRINGS);
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		tComplexLivingString_init(&theString[i], 440.f, 0.2f, 0.3f, 0.f, 9000.f, 1.0f, 0.0f, 0.01f, 0.125f, levMode);
+		tComplexLivingString_init(&theString[i], 440.f, 0.2f, 0.3f, 0.f, 9000.f, 1.0f, 0.0f, 0.01f, 0.125f, levModeStr);
+		tSlide_initToPool(&stringOutEnvs[i], 7.0f, 1000.0f, &smallPool);
+		tSlide_initToPool(&stringInEnvs[i], 7.0f, 1000.0f, &smallPool);
+		tADSR4_initToPool(&pluckEnvs[i], 4.0f, 70.0f, 0.0f, 70.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
+
 	}
+	tVZFilter_initToPool(&pluckFilt, BandpassPeak, 2000.0f, 4.0f, &smallPool);
+	tNoise_initToPool(&stringPluckNoise, WhiteNoise, &smallPool);
+	tNoise_initToPool(&stringPluckNoiseDark, PinkNoise, &smallPool);
 	setLED_A(numVoices == 1);
-	setLED_B(levMode);
+	setLED_B(voicePluck);
+	setLED_C(levModeStr);
 }
+
+
 
 void SFXLivingStringSynthFrame()
 {
@@ -2474,33 +2494,70 @@ void SFXLivingStringSynthFrame()
 	}
 	if (buttonActionsSFX[ButtonB][ActionPress] == 1)
 	{
-		levMode = !levMode;
+		voicePluck = !voicePluck;
+
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
+		setLED_B(voicePluck);
+	}
+
+	if (buttonActionsSFX[ButtonC][ActionPress] == 1)
+	{
+		levModeStr = !levModeStr;
 		for (int i = 0; i < NUM_STRINGS; i++)
 		{
-			tComplexLivingString_setLevMode(&theString[i], levMode);
+			tComplexLivingString_setLevMode(&theString[i], levModeStr);
 		}
-		buttonActionsSFX[ButtonB][ActionPress] = 0;
-		setLED_B(levMode);
+		buttonActionsSFX[ButtonC][ActionPress] = 0;
+		setLED_C(levModeStr);
 	}
-	//displayValues[0] = mtof((smoothedADC[0] * 135.0f)); //freq
-	//displayValues[1] = smoothedADC[1]; //detune
-	displayValues[2] = ((presetKnobValues[LivingStringSynth][2] * 0.09999999f) + 0.9f);
-	displayValues[3] = mtof((presetKnobValues[LivingStringSynth][3] * 130.0f)+12.0f); //lowpass
-	displayValues[4] = (presetKnobValues[LivingStringSynth][4] * 0.5) + 0.02f;//pickPos
+
+
+	displayValues[0] = presetKnobValues[LivingStringSynth][0] * 10.0f; //pluck volume
+	displayValues[1] = presetKnobValues[LivingStringSynth][1]; //lowpass
+	displayValues[2] = ((presetKnobValues[LivingStringSynth][2] * 0.021f) + 0.98f); //decay
+	displayValues[3] = faster_mtof((presetKnobValues[LivingStringSynth][3] * 117.0f)+20.0f); //lowpass
+	displayValues[4] = (presetKnobValues[LivingStringSynth][4] * 0.44) + 0.52f;//pick Pos
+	displayValues[5] = (presetKnobValues[LivingStringSynth][5] * 0.44) + 0.04f;//prep Pos
+	displayValues[6] = ((LEAF_tanh((presetKnobValues[LivingStringSynth][6] * 8.5f) - 4.25f)) * 0.5f) + 0.5f;//prep Index
+	displayValues[7] = presetKnobValues[LivingStringSynth][7];//let Ring
+	displayValues[8] = presetKnobValues[LivingStringSynth][8];//pickPos
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 		//tComplexLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * knobParams[1]))) * knobParams[0]);
 		tComplexLivingString_setDecay(&theString[i], displayValues[2]);
 		tComplexLivingString_setDampFreq(&theString[i], displayValues[3]);
 		tComplexLivingString_setPickPos(&theString[i], displayValues[4]);
-	}
+		tComplexLivingString_setPrepPos(&theString[i], displayValues[5]);
+		tComplexLivingString_setPrepIndex(&theString[i], displayValues[6]);
 
+	}
+	tVZFilter_setFreq(&pluckFilt, faster_mtof((displayValues[1] * 108.0f)+20.0f));
 	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
 		//tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
 		calculateFreq(i);
 		tComplexLivingString_setFreq(&theString[i], freq[i]);
-		tComplexLivingString_setTargetLev(&theString[i],(tSimplePoly_getVelocity(&poly, i) > 0));
+		//tComplexLivingString_setDampFreq(&theString[i], LEAF_clip(40.0f, freq[i] + displayValues[3], 23000.0f));
+		float voiceOn = (tSimplePoly_getVelocity(&poly, i) > 0);
+		if (levModeStr)
+		{
+			tComplexLivingString_setTargetLev(&theString[i],voiceOn);
+		}
+		else
+		{
+			tComplexLivingString_setTargetLev(&theString[i],1.0f);
+		}
+		if (voiceOn)
+		{
+			myOutGains[i] = 1.0f;
+			myInGains[i] = 1.0f;
+		}
+		else
+		{
+			myOutGains[i] = displayValues[7];
+			myInGains[i] = 0.0f;
+		}
+
 	}
 }
 
@@ -2508,11 +2565,21 @@ void SFXLivingStringSynthFrame()
 void SFXLivingStringSynthTick(float* input)
 {
 	float sample = 0.0f;
+
+	float inputSample = 0.0f;
+	//float pluck = (displayValues[1] * tNoise_tick(&stringPluckNoise)) + ((1.0f - displayValues[1]) * tNoise_tick(&stringPluckNoiseDark));
+	float pluck = tVZFilter_tick(&pluckFilt, (tNoise_tick(&stringPluckNoise)));
+
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		sample += tComplexLivingString_tick(&theString[i], input[1]);
+
+		//float pluck = tNoise_tick(&stringPluckNoise);
+		inputSample = (input[1] * voicePluck) + (pluck *  displayValues[0]) * tADSR4_tick(&pluckEnvs[i]);
+		//inputSample = (input[1] * voicePluck) + (tVZFilter_tick(&pluckFilt, (tNoise_tick(&stringPluckNoise))) * tADSR4_tick(&pluckEnvs[i]));
+		sample += tComplexLivingString_tick(&theString[i], (inputSample * tSlide_tick(&stringOutEnvs[i], myInGains[i]))) * tSlide_tick(&stringOutEnvs[i], myOutGains[i]);
 	}
-	sample *= 0.0625f;
+	sample *= 0.1625f;
+	sample = LEAF_tanh(sample) * 0.98f;
 	input[0] = sample;
 	input[1] = sample;
 }
@@ -2522,6 +2589,9 @@ void SFXLivingStringSynthFree(void)
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 		tComplexLivingString_free(&theString[i]);
+		tSlide_freeFromPool(&stringInEnvs[i], &smallPool);
+		tSlide_freeFromPool(&stringOutEnvs[i], &smallPool);
+		tADSR4_freeFromPool(&pluckEnvs[i], &smallPool);
 	}
 }
 
@@ -3407,6 +3477,14 @@ void noteOn(int key, int velocity)
 				}
 			}
 		}
+		else if (currentPreset == LivingStringSynth)
+		{
+			int whichVoice = tSimplePoly_noteOn(&poly, key, velocity);
+			if (whichVoice >= 0)
+			{
+				tADSR4_on(&pluckEnvs[whichVoice], velocity * 0.0078125f);
+			}
+		}
 		else
 		{
 			tSimplePoly_noteOn(&poly, key, velocity);
@@ -3482,6 +3560,17 @@ void noteOff(int key, int velocity)
 			samplerKeyHeld[key-LOWEST_SAMPLER_KEY] = 0;
 			UISamplerKButtons(ButtonC, ActionHoldContinuous);
 			waitingForDeactivation[voice] = key;
+		}
+	}
+	else if (currentPreset == LivingStringSynth)
+	{
+		int voice;
+
+		voice = tSimplePoly_noteOff(&poly, key); //if we're monophonic, we need to allow fast voice stealing and returning to previous stolen notes without regard for the release envelopes
+
+		if (voice >= 0)
+		{
+			tADSR4_off(&pluckEnvs[voice]);
 		}
 	}
 	else

@@ -164,6 +164,8 @@ void SFXLivingStringTick(float* input);
 void SFXLivingStringFree(void);
 
 // living string synth
+extern int voicePluck;
+extern int levModeStr;
 void SFXLivingStringSynthAlloc();
 void SFXLivingStringSynthFrame();
 void SFXLivingStringSynthTick(float* input);

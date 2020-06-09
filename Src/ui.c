@@ -259,7 +259,7 @@ void initModeNames(void)
 	knobParamNames[LivingString][3] = "DAMPING";
 	knobParamNames[LivingString][4] = "PICK POS";
 	knobParamNames[LivingString][5] = "PREP POS";
-	knobParamNames[LivingString][6] = "PREP INDEX";
+	knobParamNames[LivingString][6] = "PREP FORCE";
 	knobParamNames[LivingString][7] = "LET RING";
 	knobParamNames[LivingString][8] = "";
 	knobParamNames[LivingString][9] = "";
@@ -272,13 +272,15 @@ void initModeNames(void)
 	modeNames[LivingStringSynth] = "STRING2";
 	shortModeNames[LivingStringSynth] = "SS";
 	modeNamesDetails[LivingStringSynth] = "STRING SYNTH";
-	numPages[LivingStringSynth] = 1;
-	knobParamNames[LivingStringSynth][0] = "";
-	knobParamNames[LivingStringSynth][1] = "";
+	numPages[LivingStringSynth] = 2;
+	knobParamNames[LivingStringSynth][0] = "PLUCK VOL";
+	knobParamNames[LivingStringSynth][1] = "PLUCK TONE";
 	knobParamNames[LivingStringSynth][2] = "DECAY";
 	knobParamNames[LivingStringSynth][3] = "DAMPING";
 	knobParamNames[LivingStringSynth][4] = "PICK_POS";
-	knobParamNames[LivingStringSynth][5] = "";
+	knobParamNames[LivingStringSynth][5] = "PREP POS";
+	knobParamNames[LivingStringSynth][6] = "PREP FORCE";
+	knobParamNames[LivingStringSynth][7] = "LET RING";
 
 	modeNames[ClassicSynth] = "POLYSYNTH";
 	shortModeNames[ClassicSynth] = "CS";
@@ -934,8 +936,13 @@ char* UILivingStringSynthButtons(VocodecButton button, ButtonAction action)
 	}
 	if (buttonActionsUI[ButtonB][ActionPress] == 1)
 	{
-		writeString = (levMode > 0) ? "FB MODE" : "DECAY MODE";
+		writeString = (voicePluck > 0) ? "AUDIO IN" : "NO AUDIO IN";
 		buttonActionsUI[ButtonB][ActionPress] = 0;
+	}
+	if (buttonActionsUI[ButtonC][ActionPress] == 1)
+	{
+		writeString = (levModeStr > 0) ? "FB MODE" : "DECAY MODE";
+		buttonActionsUI[ButtonC][ActionPress] = 0;
 	}
 	return writeString;
 }
