@@ -281,6 +281,8 @@ void initModeNames(void)
 	knobParamNames[LivingStringSynth][5] = "PREP POS";
 	knobParamNames[LivingStringSynth][6] = "PREP FORCE";
 	knobParamNames[LivingStringSynth][7] = "LET RING";
+	knobParamNames[LivingStringSynth][8] = "FB LEVEL";
+	knobParamNames[LivingStringSynth][9] = "RELEASE";
 
 	modeNames[ClassicSynth] = "POLYSYNTH";
 	shortModeNames[ClassicSynth] = "CS";

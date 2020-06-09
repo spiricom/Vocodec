@@ -233,8 +233,8 @@ void audioFrame(uint16_t buffer_offset)
 				setLED_1(0);
 				knobPage = 0;
 				resetKnobValues();
-				allocFunctions[currentPreset]();
 				leaf.clearOnAllocation = 0;
+				allocFunctions[currentPreset]();
 				loadingPreset = 0;
 			}
 		}

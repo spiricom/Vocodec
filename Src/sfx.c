@@ -248,11 +248,15 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[LivingString][14] = 0.3f;// freq 6
 
 	defaultPresetKnobValues[LivingStringSynth][0] = 0.5f;
-	defaultPresetKnobValues[LivingStringSynth][1] = 0.25f;
-	defaultPresetKnobValues[LivingStringSynth][2] = 0.5f; // decay
-	defaultPresetKnobValues[LivingStringSynth][3] = 0.8f; // damping
-	defaultPresetKnobValues[LivingStringSynth][4] = 0.5f; // pick pos
-	defaultPresetKnobValues[LivingStringSynth][5] = 0.0f;
+	defaultPresetKnobValues[LivingStringSynth][1] = 0.5f;
+	defaultPresetKnobValues[LivingStringSynth][2] = .85f; // decay
+	defaultPresetKnobValues[LivingStringSynth][3] = 1.0f; // damping
+	defaultPresetKnobValues[LivingStringSynth][4] = 0.4f; // pick pos
+	defaultPresetKnobValues[LivingStringSynth][5] = 0.25f; // prep pos
+	defaultPresetKnobValues[LivingStringSynth][6] = 0.0f; // prep index
+	defaultPresetKnobValues[LivingStringSynth][7] = 0.0f; // let ring
+	defaultPresetKnobValues[LivingStringSynth][8] = 0.3f; // feedback volume
+	defaultPresetKnobValues[LivingStringSynth][9] = 0.4f; // release time
 
 	defaultPresetKnobValues[ClassicSynth][0] = 0.5f; // volume
 	defaultPresetKnobValues[ClassicSynth][1] = 0.5f; // lowpass
@@ -2457,20 +2461,21 @@ tADSR4 pluckEnvs[NUM_STRINGS];
 int levModeStr = 0;
 tNoise stringPluckNoise;
 tNoise stringPluckNoiseDark;
-float myOutGains[NUM_STRINGS];
-float myInGains[NUM_STRINGS];
 tVZFilter pluckFilt;
+float samplesPerMs = 1;
+
 //Living String Synth
 void SFXLivingStringSynthAlloc()
 {
 	levMode = 1;
+	leaf.clearOnAllocation = 0;
 	tSimplePoly_setNumVoices(&poly, NUM_STRINGS);
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 		tComplexLivingString_init(&theString[i], 440.f, 0.2f, 0.3f, 0.f, 9000.f, 1.0f, 0.0f, 0.01f, 0.125f, levModeStr);
-		tSlide_initToPool(&stringOutEnvs[i], 7.0f, 1000.0f, &smallPool);
-		tSlide_initToPool(&stringInEnvs[i], 7.0f, 1000.0f, &smallPool);
-		tADSR4_initToPool(&pluckEnvs[i], 4.0f, 70.0f, 0.0f, 70.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
+		tSlide_initToPool(&stringOutEnvs[i], 10.0f, 1000.0f, &smallPool);
+		tSlide_initToPool(&stringInEnvs[i], 12.0f, 1000.0f, &smallPool);
+		tADSR4_initToPool(&pluckEnvs[i], 4.0f, 70.0f, 0.0f, 5.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
 
 	}
 	tVZFilter_initToPool(&pluckFilt, BandpassPeak, 2000.0f, 4.0f, &smallPool);
@@ -2479,6 +2484,7 @@ void SFXLivingStringSynthAlloc()
 	setLED_A(numVoices == 1);
 	setLED_B(voicePluck);
 	setLED_C(levModeStr);
+	samplesPerMs = leaf.sampleRate / 1000.0f;
 }
 
 
@@ -2514,24 +2520,27 @@ void SFXLivingStringSynthFrame()
 
 	displayValues[0] = presetKnobValues[LivingStringSynth][0] * 10.0f; //pluck volume
 	displayValues[1] = presetKnobValues[LivingStringSynth][1]; //lowpass
-	displayValues[2] = ((presetKnobValues[LivingStringSynth][2] * 0.021f) + 0.98f); //decay
-	displayValues[3] = faster_mtof((presetKnobValues[LivingStringSynth][3] * 117.0f)+20.0f); //lowpass
+	displayValues[2] = presetKnobValues[LivingStringSynth][2]; //decay
+	displayValues[3] = faster_mtof((presetKnobValues[LivingStringSynth][3] * 119.0f)+20.0f); //lowpass
 	displayValues[4] = (presetKnobValues[LivingStringSynth][4] * 0.44) + 0.52f;//pick Pos
 	displayValues[5] = (presetKnobValues[LivingStringSynth][5] * 0.44) + 0.04f;//prep Pos
 	displayValues[6] = ((LEAF_tanh((presetKnobValues[LivingStringSynth][6] * 8.5f) - 4.25f)) * 0.5f) + 0.5f;//prep Index
 	displayValues[7] = presetKnobValues[LivingStringSynth][7];//let Ring
-	displayValues[8] = presetKnobValues[LivingStringSynth][8];//pickPos
+	displayValues[8] = presetKnobValues[LivingStringSynth][8];//feedback level
+	displayValues[9] = expBuffer[(int)(presetKnobValues[LivingStringSynth][9] * expBufferSizeMinusOne)] * 8192.0f;//release time
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 		//tComplexLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * knobParams[1]))) * knobParams[0]);
-		tComplexLivingString_setDecay(&theString[i], displayValues[2]);
+		tComplexLivingString_setDecay(&theString[i], ((displayValues[2]  * 0.02f) + 0.98f));
 		tComplexLivingString_setDampFreq(&theString[i], displayValues[3]);
 		tComplexLivingString_setPickPos(&theString[i], displayValues[4]);
 		tComplexLivingString_setPrepPos(&theString[i], displayValues[5]);
 		tComplexLivingString_setPrepIndex(&theString[i], displayValues[6]);
+		tSlide_setDownSlide(&stringOutEnvs[i], displayValues[9] * samplesPerMs);
+		//tADSR4_setDecay(&pluckEnvs[i], displayValues[9]);
 
 	}
-	tVZFilter_setFreq(&pluckFilt, faster_mtof((displayValues[1] * 108.0f)+20.0f));
+	tVZFilter_setFreq(&pluckFilt, faster_mtof((displayValues[1] * 100.0f)+20.0f));
 	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
 		//tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
@@ -2541,7 +2550,7 @@ void SFXLivingStringSynthFrame()
 		float voiceOn = (tSimplePoly_getVelocity(&poly, i) > 0);
 		if (levModeStr)
 		{
-			tComplexLivingString_setTargetLev(&theString[i],voiceOn);
+			tComplexLivingString_setTargetLev(&theString[i],voiceOn * displayValues[8]);
 		}
 		else
 		{
@@ -2549,13 +2558,13 @@ void SFXLivingStringSynthFrame()
 		}
 		if (voiceOn)
 		{
-			myOutGains[i] = 1.0f;
-			myInGains[i] = 1.0f;
+			tSlide_setDest(&stringOutEnvs[i], 1.0f);
+			tSlide_setDest(&stringInEnvs[i], 1.0f);
 		}
 		else
 		{
-			myOutGains[i] = displayValues[7];
-			myInGains[i] = 0.0f;
+			tSlide_setDest(&stringOutEnvs[i], displayValues[7]);
+			tSlide_setDest(&stringInEnvs[i], 0.0f);
 		}
 
 	}
@@ -2568,15 +2577,16 @@ void SFXLivingStringSynthTick(float* input)
 
 	float inputSample = 0.0f;
 	//float pluck = (displayValues[1] * tNoise_tick(&stringPluckNoise)) + ((1.0f - displayValues[1]) * tNoise_tick(&stringPluckNoiseDark));
-	float pluck = tVZFilter_tick(&pluckFilt, (tNoise_tick(&stringPluckNoise)));
+	float pluck = displayValues[0] * tNoise_tick(&stringPluckNoise);
+	pluck = tVZFilter_tick(&pluckFilt, pluck);
 
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 
 		//float pluck = tNoise_tick(&stringPluckNoise);
-		inputSample = (input[1] * voicePluck) + (pluck *  displayValues[0]) * tADSR4_tick(&pluckEnvs[i]);
+		inputSample = (input[1] * voicePluck) + (pluck * tADSR4_tick(&pluckEnvs[i]));
 		//inputSample = (input[1] * voicePluck) + (tVZFilter_tick(&pluckFilt, (tNoise_tick(&stringPluckNoise))) * tADSR4_tick(&pluckEnvs[i]));
-		sample += tComplexLivingString_tick(&theString[i], (inputSample * tSlide_tick(&stringOutEnvs[i], myInGains[i]))) * tSlide_tick(&stringOutEnvs[i], myOutGains[i]);
+		sample += tComplexLivingString_tick(&theString[i], (inputSample * tSlide_tickNoInput(&stringOutEnvs[i]))) * tSlide_tickNoInput(&stringOutEnvs[i]);
 	}
 	sample *= 0.1625f;
 	sample = LEAF_tanh(sample) * 0.98f;
