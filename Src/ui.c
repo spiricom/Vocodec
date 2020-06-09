@@ -908,7 +908,7 @@ char* UILivingStringButtons(VocodecButton button, ButtonAction action)
 	char* writeString = "";
 	if (buttonActionsUI[ButtonA][ActionPress] == 1)
 	{
-		writeString = (ignoreFreqKnobs > 0) ? "MIDI ONLY" : "MIDI OR KNOBS";
+		writeString = (ignoreFreqKnobs > 0) ? "MIDI PITCH" : "KNOB PITCH";
 		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
 	if (buttonActionsUI[ButtonC][ActionPress] == 1)

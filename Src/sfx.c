@@ -247,8 +247,8 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[LivingString][13] = 0.3f;// freq 5
 	defaultPresetKnobValues[LivingString][14] = 0.3f;// freq 6
 
-	defaultPresetKnobValues[LivingStringSynth][0] = 0.0f;
-	defaultPresetKnobValues[LivingStringSynth][1] = 0.0f;
+	defaultPresetKnobValues[LivingStringSynth][0] = 0.5f;
+	defaultPresetKnobValues[LivingStringSynth][1] = 0.25f;
 	defaultPresetKnobValues[LivingStringSynth][2] = 0.5f; // decay
 	defaultPresetKnobValues[LivingStringSynth][3] = 0.8f; // damping
 	defaultPresetKnobValues[LivingStringSynth][4] = 0.5f; // pick pos
