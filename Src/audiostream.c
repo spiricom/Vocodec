@@ -146,13 +146,13 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 
 void audioFrame(uint16_t buffer_offset)
 {
-	volatile uint32_t tempCount5 = 0;
-	volatile uint32_t tempCount6 = 0;
+	//volatile uint32_t tempCount5 = 0;
+	//volatile uint32_t tempCount6 = 0;
 	int i;
 	//int32_t current_sample;
 	uint32_t clipCatcher = 0;
 
-	tempCount5 = DWT->CYCCNT;
+	//tempCount5 = DWT->CYCCNT;
 
 	buttonCheck();
 
@@ -291,7 +291,7 @@ void audioFrame(uint16_t buffer_offset)
 		}
 	}
 
-
+/*
 	tempCount6 = DWT->CYCCNT;
 
 	cycleCountVals[0][2] = 0;
@@ -303,6 +303,7 @@ void audioFrame(uint16_t buffer_offset)
 		//overflow
 	}
 	CycleCounterTrackMinAndMax(0);
+	*/
 }
 
 
@@ -331,9 +332,9 @@ uint32_t audioTick(float* samples)
 		samples[1] = 0.0f;
 		return 0;
 	}
-	uint32_t tempCount5 = DWT->CYCCNT;
+	//uint32_t tempCount5 = DWT->CYCCNT;
 
-	cycleCountVals[1][2] = 0;
+	//cycleCountVals[1][2] = 0;
 
 
 	if ((samples[1] >= 0.999999f) || (samples[1] <= -0.999999f))
@@ -369,9 +370,9 @@ uint32_t audioTick(float* samples)
 	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[3], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, current_env);
 
-	uint32_t tempCount6 = DWT->CYCCNT;
-	cycleCountVals[1][1] = tempCount6-tempCount5;
-	CycleCounterTrackMinAndMax(1);
+	//uint32_t tempCount6 = DWT->CYCCNT;
+	//cycleCountVals[1][1] = tempCount6-tempCount5;
+	//CycleCounterTrackMinAndMax(1);
 	return clips;
 }
 

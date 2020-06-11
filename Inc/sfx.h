@@ -21,7 +21,7 @@
 
 #define NUM_AUTOTUNE 4
 #define NUM_RETUNE 1
-#define MAX_OVERSAMPLER_RATIO 8
+#define MAX_OVERSAMPLER_RATIO 4
 #define OVERSAMPLER_HQ FALSE
 
 #define NUM_SAMPLER_VOICES 6 // need to limit this because too many samplers going can take too long
@@ -45,7 +45,7 @@ void initGlobalSFXObjects();
 // vocoder
 extern uint8_t numVoices;
 extern uint8_t internalExternal;
-extern uint32_t vocChFreeze;
+
 extern int vocFreezeLPC;
 //LPC Vocoder
 void SFXVocoderAlloc();
@@ -53,6 +53,10 @@ void SFXVocoderFrame();
 void SFXVocoderTick(float* input);
 void SFXVocoderFree(void);
 
+#define MAX_VOCODER_FILTER_ORDER 2
+#define MAX_NUM_VOCODER_BANDS 24
+
+   extern int vocChFreeze;
 //channel Vocoder
 void SFXVocoderChAlloc();
 void SFXVocoderChFrame();
@@ -81,15 +85,14 @@ void SFXAutotuneFree(void);
 
 // sampler - button press
 extern uint8_t samplePlaying;
-
+extern int bpMode;
 void SFXSamplerBPAlloc();
 void SFXSamplerBPFrame();
 void SFXSamplerBPTick(float* input);
 void SFXSamplerBPFree(void);
 
 // sampler - keyboard
-extern int currentSamplerKey;
-extern int recordingSamplerKey;
+extern int currentSamplerKeyGlobal;
 extern int editingSamplerKey;
 extern float recSampleLength;
 extern float editSampleLength;

@@ -18,6 +18,7 @@
 float defaultPresetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
 float presetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
 uint8_t knobActive[NUM_ADC_CHANNELS];
+float prevDisplayValues[NUM_PRESET_KNOB_VALUES];
 
 //audio objects
 tFormantShifter fs;
@@ -27,7 +28,7 @@ tRetune retune;
 tRetune retune2;
 tRamp pitchshiftRamp;
 tRamp nearWetRamp;
-tRamp nearDryRamp;
+
 tSimplePoly poly;
 tExpSmooth polyRamp[NUM_VOC_VOICES];
 
@@ -50,8 +51,6 @@ tOversampler oversampler;
 
 tLockhartWavefolder wavefolder1;
 tLockhartWavefolder wavefolder2;
-tLockhartWavefolder wavefolder3;
-tLockhartWavefolder wavefolder4;
 tHighpass wfHP;
 tCrusher crush;
 tCrusher crush2;
@@ -71,8 +70,6 @@ tExpSmooth smoother3;
 
 tExpSmooth neartune_smoother;
 
-tStack noteOffStack;
-
 #define EXP_BUFFER_SIZE 128
 float expBuffer[EXP_BUFFER_SIZE];
 float expBufferSizeMinusOne = EXP_BUFFER_SIZE - 1;
@@ -85,18 +82,16 @@ float decayExpBufferSizeMinusOne = DECAY_EXP_BUFFER_SIZE - 1;
 #define NUM_STRINGS 6
 tComplexLivingString theString[NUM_STRINGS];
 
-float myFreq;
 float myDetune[NUM_STRINGS];
 float synthDetune[NUM_VOC_VOICES][NUM_OSC_PER_VOICE];
 //control objects
 float notes[128];
-float notePeriods[128];
-float noteFreqs[128];
 int chordArray[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int chromaticArray[12] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+int lockArray[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 
-int lockArray[12];
 float freq[NUM_VOC_VOICES];
+
 float oversamplerArray[MAX_OVERSAMPLER_RATIO];
 
 
@@ -114,7 +109,6 @@ void initGlobalSFXObjects()
 	}
 
 	tExpSmooth_init(&comp, 1.0f, 0.01f);
-	tStack_init(&noteOffStack);
 
 	LEAF_generate_exp(expBuffer, 1000.0f, -1.0f, 0.0f, -0.0008f, EXP_BUFFER_SIZE); //exponential buffer rising from 0 to 1
 	LEAF_generate_exp(decayExpBuffer, 0.001f, 0.0f, 1.0f, -0.0008f, DECAY_EXP_BUFFER_SIZE); // exponential decay buffer falling from 1 to 0
@@ -173,14 +167,16 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[SamplerButtonPress][0] = 0.0f; // start
 	defaultPresetKnobValues[SamplerButtonPress][1] = 1.0f; // end
 	defaultPresetKnobValues[SamplerButtonPress][2] = 0.75f; // speed
-	defaultPresetKnobValues[SamplerButtonPress][3] = 0.25f; // crossfade
-	defaultPresetKnobValues[SamplerButtonPress][4] = 0.0f;
+	defaultPresetKnobValues[SamplerButtonPress][3] = 0.5f; // speed mult
+	defaultPresetKnobValues[SamplerButtonPress][4] = 0.4f;//crossfade
 
 	defaultPresetKnobValues[SamplerKeyboard][0] = 0.0f; // start
 	defaultPresetKnobValues[SamplerKeyboard][1] = 1.0f; // end
 	defaultPresetKnobValues[SamplerKeyboard][2] = 0.75f; // speed
-	defaultPresetKnobValues[SamplerKeyboard][3] = 0.25f; // crossfade
-	defaultPresetKnobValues[SamplerKeyboard][4] = 0.0f;
+	defaultPresetKnobValues[SamplerKeyboard][3] = 0.5f; // speed mult
+	defaultPresetKnobValues[SamplerKeyboard][4] = 0.0f; //looping on
+	defaultPresetKnobValues[SamplerKeyboard][5] = 0.4f;//crossfade
+	defaultPresetKnobValues[SamplerKeyboard][6] = 0.0f;//velocity sensitivity
 
 	defaultPresetKnobValues[SamplerAutoGrab][0] = 0.95f; // thresh
 	defaultPresetKnobValues[SamplerAutoGrab][1] = 0.5f; // window
@@ -194,15 +190,15 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[SamplerAutoGrab][9] = 0.0f;
 
 	defaultPresetKnobValues[Distortion][0] = .25f; // pre gain
-	defaultPresetKnobValues[Distortion][1] = 0.5f; // tilt (low and high shelfs, opposing gains
+	defaultPresetKnobValues[Distortion][1] = 0.5f; // tilt (low and high shelves, opposing gains)
 	defaultPresetKnobValues[Distortion][2] = 0.5f; // mid gain
 	defaultPresetKnobValues[Distortion][3] = 0.5f; // mid freq
 	defaultPresetKnobValues[Distortion][4] = 0.25f; //post gain
 
-	defaultPresetKnobValues[Wavefolder][0] = 0.25f; // gain
+	defaultPresetKnobValues[Wavefolder][0] = 0.4f; // gain
 	defaultPresetKnobValues[Wavefolder][1] = 0.5f; // offset1
 	defaultPresetKnobValues[Wavefolder][2] = 0.5f; // offset2
-	defaultPresetKnobValues[Wavefolder][3] = 0.3f; // post gain
+	defaultPresetKnobValues[Wavefolder][3] = 0.75f; // post gain
 	defaultPresetKnobValues[Wavefolder][4] = 0.0f;
 
 	defaultPresetKnobValues[BitCrusher][0] = 0.1f; // quality
@@ -468,6 +464,8 @@ void SFXVocoderTick(float* input)
 	input[1] = sample;
 }
 
+
+
 void SFXVocoderFree(void)
 {
 	tTalkboxFloat_freeFromPool(&vocoder,  &smallPool);
@@ -491,16 +489,17 @@ void SFXVocoderFree(void)
 	}
 }
 
-#define MAX_VOCODER_FILTER_ORDER 2
-#define MAX_NUM_VOCODER_BANDS 24
+
 tVZFilter analysisBands[MAX_NUM_VOCODER_BANDS][MAX_VOCODER_FILTER_ORDER];
 tVZFilter synthesisBands[MAX_NUM_VOCODER_BANDS][MAX_VOCODER_FILTER_ORDER];
+
 tExpSmooth envFollowers[MAX_NUM_VOCODER_BANDS];
 uint8_t numberOfVocoderBands = 22;
-int filterOrder = 2;
 uint8_t prevNumberOfVocoderBands = 22;
 float invNumberOfVocoderBands = 0.03125f;
 
+
+int whichKnobThisTime = 0;
 
 int currentBandToAlter = 0;
 int analysisOrSynthesis = 0;
@@ -521,9 +520,14 @@ float prevMyTilt = 0.0f;
 float prevBarkPull = 0.0f;
 
 tVZFilter vocodec_highshelf;
-uint32_t vocChFreeze = 0;
+int vocChFreeze = 0;
+
 float barkBandFreqs[24] = {100.0f, 150.0f, 250.0f, 350.0f, 450.0f, 570.0f, 700.0f, 840.0f, 1000.0f, 1170.0f, 1370.0f, 1600.0f, 1850.0f, 2150.0f, 2500.0f, 2900.0f, 3400.0f, 4000.0f, 4800.0f, 5800.0f, 7000.0f, 8500.0f, 10500.0f, 12000.0f};
 float barkBandWidths[24] = {1.0f, 1.0f, 0.5849f, 0.4150f, 0.3505f, 0.304854f, 0.2895066175f, 0.256775415f, 0.231325545833333f, 0.233797185f, 0.220768679166667f, 0.216811389166667f, 0.217591435f, 0.214124805f, 0.218834601666667f, 0.222392421666667f, 0.2321734425f, 0.249978253333333f, 0.268488835833333f, 0.272079545833333f, 0.266786540833333f, 0.3030690675f, 0.3370349875f, 0.36923381f};
+
+tHighpass chVocFinalHP1;
+tHighpass chVocFinalHP2;
+
 void SFXVocoderChAlloc()
 {
 
@@ -576,29 +580,29 @@ void SFXVocoderChAlloc()
 
 		if (i == 0)
 		{
-			tVZFilter_init(&analysisBands[i][0], Lowpass, bandFreq, thisBandwidth);
-			tVZFilter_init(&analysisBands[i][1], Lowpass, bandFreq, thisBandwidth);
+			tVZFilter_initToPool(&analysisBands[i][0], Lowpass, bandFreq, thisBandwidth, &smallPool);
+			tVZFilter_initToPool(&analysisBands[i][1], Lowpass, bandFreq, thisBandwidth, &smallPool);
 
-			tVZFilter_init(&synthesisBands[i][0], Lowpass, bandFreq, thisBandwidth);
-			tVZFilter_init(&synthesisBands[i][1], Lowpass, bandFreq, thisBandwidth);
+			tVZFilter_initToPool(&synthesisBands[i][0], Lowpass, bandFreq,thisBandwidth, &smallPool);
+			tVZFilter_initToPool(&synthesisBands[i][1], Lowpass, bandFreq,thisBandwidth, &smallPool);
 
 		}
 		else if (i == (MAX_NUM_VOCODER_BANDS-1))
 		{
-			tVZFilter_init(&analysisBands[i][0], Highpass, bandFreq, thisBandwidth);
-			tVZFilter_init(&analysisBands[i][1], Highpass, bandFreq, thisBandwidth);
+			tVZFilter_initToPool(&analysisBands[i][0], Highpass, bandFreq, thisBandwidth, &smallPool);
+			tVZFilter_initToPool(&analysisBands[i][1], Highpass, bandFreq, thisBandwidth, &smallPool);
 
-			tVZFilter_init(&synthesisBands[i][0], Highpass, bandFreq, thisBandwidth);
-			tVZFilter_init(&synthesisBands[i][1], Highpass, bandFreq, thisBandwidth);
+			tVZFilter_initToPool(&synthesisBands[i][0], Highpass, bandFreq, thisBandwidth, &smallPool);
+			tVZFilter_initToPool(&synthesisBands[i][1], Highpass, bandFreq, thisBandwidth, &smallPool);
 
 		}
 		else
 		{
-			tVZFilter_init(&analysisBands[i][0], BandpassPeak, bandFreq, thisBandwidth);
-			tVZFilter_init(&analysisBands[i][1], BandpassPeak, bandFreq, thisBandwidth);
+			tVZFilter_initToPool(&analysisBands[i][0], BandpassPeak, bandFreq, thisBandwidth, &smallPool);
+			tVZFilter_initToPool(&analysisBands[i][1], BandpassPeak, bandFreq, thisBandwidth, &smallPool);
 
-			tVZFilter_init(&synthesisBands[i][0], BandpassPeak, bandFreq, thisBandwidth);
-			tVZFilter_init(&synthesisBands[i][1], BandpassPeak, bandFreq, thisBandwidth);
+			tVZFilter_initToPool(&synthesisBands[i][0], BandpassPeak, bandFreq, thisBandwidth, &smallPool);
+			tVZFilter_initToPool(&synthesisBands[i][1], BandpassPeak, bandFreq, thisBandwidth, &smallPool);
 
 		}
 		tExpSmooth_initToPool(&envFollowers[i], 0.0f, 0.001f, &smallPool); // factor of .001 is 10 ms?
@@ -609,6 +613,8 @@ void SFXVocoderChAlloc()
 	tSimplePoly_setNumVoices(&poly, numVoices);
 	tExpSmooth_initToPool(&noiseRamp, 0.0f, 0.05f, &smallPool);
 	tHighpass_initToPool(&noiseHP, 5000.0f, &smallPool);
+	tHighpass_initToPool(&chVocFinalHP1, 20.0f, &smallPool);
+	tHighpass_initToPool(&chVocFinalHP2, 20.0f, &smallPool);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 
@@ -627,9 +633,8 @@ void SFXVocoderChAlloc()
 
 }
 
-
-int whichKnobThisTime = 0;
-
+float oneMinusStereo = 1.0f;
+float chVocOutputGain = 1.0f;
 void SFXVocoderChFrame()
 {
 
@@ -655,55 +660,40 @@ void SFXVocoderChFrame()
 	}
 
 
-	switch(whichKnobThisTime++ % 15)
-	{
-		case 0:
-			displayValues[0] = presetKnobValues[VocoderCh][0]; //vocoder volume
-			break;
-		case 1:
-			displayValues[1] = (presetKnobValues[VocoderCh][1] * 0.8f) - 0.4f; //warp factor
-			break;
-		case 2:
-			displayValues[2] = (uint8_t)(presetKnobValues[VocoderCh][2] * 16.9f) + 8.0f; //quality
-			break;
-		case 3:
-			displayValues[3] = (presetKnobValues[VocoderCh][3]* 2.0f) + 0.1f; //band width
-			break;
-		case 4:
-			displayValues[4] = presetKnobValues[VocoderCh][4]; //noise thresh
-			break;
-		case 5:
-			displayValues[5] = presetKnobValues[VocoderCh][5]; //crossfade between sawtooth and glottal pulse
-			break;
-		case 6:
-			displayValues[6] = presetKnobValues[VocoderCh][6]; //pulse width
-			break;
-		case 7:
-			displayValues[7] = presetKnobValues[VocoderCh][7]; //pulse shape
-			break;
-		case 8:
-			displayValues[8] = presetKnobValues[VocoderCh][8]; //breathiness
-			break;
-		case 9:
-			displayValues[9] = presetKnobValues[VocoderCh][9]; //speed
-			break;
-		case 10:
-			displayValues[10] = presetKnobValues[VocoderCh][10] + 0.5f; //bandsquish
-			break;
-		case 11:
-			displayValues[11] = presetKnobValues[VocoderCh][11] * 60.0f; //bandoffset
-			break;
-		case 12:
-			displayValues[12] = (presetKnobValues[VocoderCh][12] * 4.0f) - 2.0f; //tilt
-			break;
-		case 13:
-			displayValues[13] = presetKnobValues[VocoderCh][13]; //stereo
-			break;
-		case 14:
-			displayValues[14] = presetKnobValues[VocoderCh][14]; //snap to bark scale
-			break;
 
-	}
+	displayValues[0] = presetKnobValues[VocoderCh][0]; //vocoder volume
+
+	displayValues[1] = (presetKnobValues[VocoderCh][1] * 0.8f) - 0.4f; //warp factor
+
+	displayValues[2] = (uint8_t)(presetKnobValues[VocoderCh][2] * 16.9f) + 8.0f; //quality
+
+	displayValues[3] = (presetKnobValues[VocoderCh][3]* 2.0f) + 0.1f; //band width
+
+	displayValues[4] = presetKnobValues[VocoderCh][4]; //noise thresh
+
+	displayValues[5] = presetKnobValues[VocoderCh][5]; //crossfade between sawtooth and glottal pulse
+
+	displayValues[6] = presetKnobValues[VocoderCh][6]; //pulse width
+
+	displayValues[7] = presetKnobValues[VocoderCh][7]; //pulse shape
+
+	displayValues[8] = presetKnobValues[VocoderCh][8]; //breathiness
+
+	displayValues[9] = presetKnobValues[VocoderCh][9]; //speed
+
+	displayValues[10] = presetKnobValues[VocoderCh][10] + 0.5f; //bandsquish
+
+	displayValues[11] = presetKnobValues[VocoderCh][11] * 60.0f; //bandoffset
+
+	displayValues[12] = (presetKnobValues[VocoderCh][12] * 4.0f) - 2.0f; //tilt
+
+	displayValues[13] = presetKnobValues[VocoderCh][13]; //stereo
+
+	displayValues[14] = presetKnobValues[VocoderCh][14]; //snap to bark scale
+
+
+	oneMinusStereo = 1.0f - displayValues[13];
+	chVocOutputGain = 9.0f * displayValues[0];
 
 	for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 	{
@@ -820,11 +810,9 @@ void SFXVocoderChFrame()
 }
 
 
-//freeze (maybe C button?)
 void SFXVocoderChTick(float* input)
 {
-	float zerocross = 0.0f;
-	float noiseRampVal = 0.0f;
+
 	float sample = 0.0f;
 
 	//a little treble emphasis
@@ -836,20 +824,20 @@ void SFXVocoderChTick(float* input)
 	}
 	else
 	{
-		zerocross = tZeroCrossing_tick(&zerox, input[1]);
+		float zerocross = tZeroCrossing_tick(&zerox, input[1]);
 
 		if (!vocChFreeze)
 		{
 			tExpSmooth_setDest(&noiseRamp,zerocross > ((displayValues[4])-0.1f));
 		}
-		noiseRampVal = tExpSmooth_tick(&noiseRamp);
+		float noiseRampVal = tExpSmooth_tick(&noiseRamp);
 
 		float noiseSample = tNoise_tick(&vocoderNoise) * noiseRampVal;
 
 		for (int i = 0; i < tSimplePoly_getNumVoices(&poly); i++)
 		{
 			float tempRamp = tExpSmooth_tick(&polyRamp[i]);
-			if (tempRamp > 0.001f)
+			if (tempRamp > 0.0001f)
 			{
 				if (displayValues[5] < 0.5f)
 				{
@@ -870,8 +858,6 @@ void SFXVocoderChTick(float* input)
 	}
 
 	sample = LEAF_tanh(sample);
-
-
 
 	float output[2] = {0.0f, 0.0f};
 	input[1] = input[1] * (displayValues[0] * 30.0f);
@@ -896,20 +882,25 @@ void SFXVocoderChTick(float* input)
 
 	}
 
-	input[0] = 0.98f * tanhf((output[0] + (output[1] * (1.0f - displayValues[13]))) * (displayValues[0] * 9.0f));
-	input[1] = 0.98f * tanhf((output[1] + (output[0] * (1.0f - displayValues[13]))) * (displayValues[0] * 9.0f));
+	float finalSample1 = tHighpass_tick(&chVocFinalHP1, (output[0] + (output[1] * oneMinusStereo)) * chVocOutputGain);
+	float finalSample2 = tHighpass_tick(&chVocFinalHP2, (output[1] + (output[0] * oneMinusStereo)) * chVocOutputGain);
+	input[0] = 0.98f * tanhf(finalSample1);
+	input[1] = 0.98f * tanhf(finalSample2);
 
 
 }
+
+
+
 
 void SFXVocoderChFree(void)
 {
 	for (int i = 0; i < MAX_NUM_VOCODER_BANDS; i++)
 	{
-		tVZFilter_free(&analysisBands[i][0]);
-		tVZFilter_free(&analysisBands[i][1]);
-		tVZFilter_free(&synthesisBands[i][0]);
-		tVZFilter_free(&synthesisBands[i][1]);
+		tVZFilter_freeFromPool(&analysisBands[i][0], &smallPool);
+		tVZFilter_freeFromPool(&analysisBands[i][1], &smallPool);
+		tVZFilter_freeFromPool(&synthesisBands[i][0], &smallPool);
+		tVZFilter_freeFromPool(&synthesisBands[i][1], &smallPool);
 		tExpSmooth_freeFromPool(&envFollowers[i], &smallPool);
 	}
 	tNoise_freeFromPool(&breathNoise, &smallPool);
@@ -918,6 +909,8 @@ void SFXVocoderChFree(void)
 	tExpSmooth_freeFromPool(&noiseRamp, &smallPool);
 	tHighpass_freeFromPool(&noiseHP, &smallPool);
 	tVZFilter_freeFromPool(&vocodec_highshelf, &smallPool);
+	tHighpass_freeFromPool(&chVocFinalHP1, &smallPool);
+	tHighpass_freeFromPool(&chVocFinalHP2, &smallPool);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
 		tSawtooth_freeFromPool(&osc[i], &smallPool);
@@ -929,7 +922,6 @@ void SFXVocoderChFree(void)
 
 void SFXPitchShiftAlloc()
 {
-	//tRetune_init(&retune, NUM_RETUNE, 2048, 1024);
 
 	tFormantShifter_initToPool(&fs, 7, &smallPool);
 	tRetune_init(&retune, NUM_RETUNE, 1024, 512);
@@ -1018,6 +1010,9 @@ void SFXPitchShiftTick(float* input)
 
 }
 
+
+
+
 void SFXPitchShiftFree(void)
 {
 	tFormantShifter_freeFromPool(&fs, &smallPool);
@@ -1038,8 +1033,12 @@ void SFXPitchShiftFree(void)
 uint8_t autotuneChromatic = 0;
 uint32_t autotuneLock = 0;
 float lastSnap = 1.0f;
-int updatePitch = 1;
-
+float detectedNote = 60.0f;
+float desiredSnap = 60.0f;
+float destinationNote = 60.0f;
+float destinationFactor = 1.0f;
+float factorDiff = 0.0f;
+float changeAmount = 0.0f;
 void SFXNeartuneAlloc()
 {
 	leaf.clearOnAllocation = 1;
@@ -1096,17 +1095,7 @@ void SFXNeartuneFrame()
 
 }
 
-float detectedNote = 60.0f;
-float desiredSnap = 60.0f;
-float destinationNote = 60.0f;
-float destinationFactor = 1.0f;
-float factorDiff = 0.0f;
-int diffCounter = 0;
-int maxDiffCounter = 48000;
-float lastDetectedNote = 60.0f;
-int stabilityCounter = 0;
-int stabilityCounterThresh = 4800;
-float changeAmount = 0.0f;
+
 
 void SFXNeartuneTick(float* input)
 {
@@ -1128,7 +1117,7 @@ void SFXNeartuneTick(float* input)
 	}
 	tExpSmooth_setFactor(&neartune_smoother, expBuffer[(int)(displayValues[2] * displayValues[2] * displayValues[2] * expBufferSizeMinusOne)]);
 	float destFactor = tExpSmooth_tick(&neartune_smoother);
-	stabilityCounterThresh = displayValues[3];
+
 	float detectedPeriod = tRetune_getInputPeriod(&autotuneMono);
 	if (detectedPeriod > 0.0f)
 	{
@@ -1179,8 +1168,6 @@ void SFXNeartuneTick(float* input)
 	input[0] = sample;
 	input[1] = sample;
 }
-
-
 
 void SFXNeartuneFree(void)
 {
@@ -1253,17 +1240,17 @@ int samplePlayLength = 0;
 float sampleLength = 0.0f;
 int crossfadeLength = 0;
 float samplerRate = 1.0f;
-float maxSampleSizeSeconds = 1.0f;
 uint8_t samplePlaying = 1;
 tExpSmooth startSmooth;
 tExpSmooth lengthSmooth;
+int bpMode = 0;
 
 void SFXSamplerBPAlloc()
 {
 	tBuffer_initToPool(&buff, leaf.sampleRate * 172.0f, &largePool);
 	tBuffer_setRecordMode(&buff, RecordOneShot);
 	tSampler_init(&sampler, &buff);
-	tSampler_setMode(&sampler, PlayLoop);
+	tSampler_setMode(&sampler, bpMode + 1);
 	tExpSmooth_initToPool(&startSmooth, 0.0f, 0.01f, &smallPool);
 	tExpSmooth_initToPool(&lengthSmooth, 0.0f, 0.01f, &smallPool);
 }
@@ -1272,14 +1259,16 @@ void SFXSamplerBPFrame()
 {
 
 }
-tExpSmooth startSmooth;
+
+
+
 void SFXSamplerBPTick(float* input)
 {
 	float sample = 0.0f;
 	int recordPosition = tBuffer_getRecordPosition(&buff);
 	float* knobs = presetKnobValues[SamplerButtonPress];
 
-	if (buttonActionsSFX[ButtonDown][ActionPress])
+	if (buttonActionsSFX[ButtonC][ActionPress])
 	{
 		if (samplePlaying)
 		{
@@ -1292,7 +1281,15 @@ void SFXSamplerBPTick(float* input)
 			samplePlaying = 1;
 			tSampler_play(&sampler);
 		}
-		buttonActionsSFX[ButtonDown][ActionPress] = 0;
+		buttonActionsSFX[ButtonC][ActionPress] = 0;
+	}
+
+	if (buttonActionsSFX[ButtonB][ActionPress])
+	{
+		bpMode = !bpMode;
+		tSampler_setMode(&sampler, bpMode + 1);
+		buttonActionsSFX[ButtonB][ActionPress] = 0;
+		setLED_B(bpMode);
 	}
 
 	if (buttonActionsSFX[ButtonA][ActionPress])
@@ -1316,15 +1313,27 @@ void SFXSamplerBPTick(float* input)
 	displayValues[0] = knobs[0] * sampleLength;
 	displayValues[1] = LEAF_clip(0.0f, knobs[1] * sampleLength, sampleLength * (1.0f - knobs[0]));
 	displayValues[2] = (knobs[2] - 0.5f) * 4.0f;
-	displayValues[3] = knobs[3] * 4000.0f;
+	float rate = roundf((knobs[3] - 0.5f) * 14.0f);
+	if (rate < 0.0f)
+	{
+		(rate = 1.0f / fabsf(rate-1.0f));
+	}
+	else
+	{
+		rate += 1.0f;
+	}
+	displayValues[3] = rate;
+
+	displayValues[4] = knobs[4] * 4000.0f;
+
+	samplerRate = displayValues[3] * displayValues[2];
 
 	tExpSmooth_setDest(&startSmooth, knobs[0] * recordPosition);
 	tExpSmooth_setDest(&lengthSmooth, knobs[1] * recordPosition);
 
 	samplePlayStart = tExpSmooth_tick(&startSmooth);
 	samplePlayLength = tExpSmooth_tick(&lengthSmooth);
-	samplerRate = displayValues[2];
-	crossfadeLength = displayValues[3];
+	crossfadeLength = displayValues[4];
 	tSampler_setStart(&sampler, samplePlayStart);
 	tSampler_setLength(&sampler, samplePlayLength);
 	tSampler_setRate(&sampler, samplerRate);
@@ -1345,23 +1354,28 @@ void SFXSamplerBPFree(void)
 }
 
 // keyboard sampler
-int currentSamplerKey = 60 - LOWEST_SAMPLER_KEY;
-int recordingSamplerKey = 60 - LOWEST_SAMPLER_KEY;
+int currentSamplerKeyGlobal = 60 - LOWEST_SAMPLER_KEY;
 uint8_t samplerKeyHeld[NUM_SAMPLER_KEYS];
-float keyKnobValues[NUM_SAMPLER_KEYS][KNOB_PAGE_SIZE];
+
 tExpSmooth kSamplerGains[NUM_SAMPLER_KEYS];
 int waitingForDeactivation[NUM_SAMPLER_VOICES];
 int controlAllKeys = 0;
 int prevSamplerKey = 60;
 
-float prevKnobs[5];
-
-
+float samp_thresh = 0.0f;
+int detectedAttackPos[NUM_SAMPLER_KEYS];
+float sampleRates[NUM_SAMPLER_KEYS];
+float sampleRatesMult[NUM_SAMPLER_KEYS];
+int loopOns[NUM_SAMPLER_KEYS];
+float samplePlayStarts[NUM_SAMPLER_KEYS];
+float samplePlayLengths[NUM_SAMPLER_KEYS];
+float crossfadeLengths[NUM_SAMPLER_KEYS];
+float prevKnobs[6];
 
 void SFXSamplerKAlloc()
 {
 	leaf.clearOnAllocation = 0; //needs this in case the box loads on this one first
-	currentSamplerKey = 60 - LOWEST_SAMPLER_KEY;
+	currentSamplerKeyGlobal = 60 - LOWEST_SAMPLER_KEY;
 
 	for (int i = 0; i < NUM_SAMPLER_KEYS; i++)
 	{
@@ -1369,16 +1383,18 @@ void SFXSamplerKAlloc()
 
 		tBuffer_initToPool(&keyBuff[i], leaf.sampleRate * 3.5f, &largePool);
 		tBuffer_setRecordMode(&keyBuff[i], RecordOneShot);
-		tSampler_init(&keySampler[i], &keyBuff[i]);
+		tSampler_initToPool(&keySampler[i], &keyBuff[i], &smallPool);
 		tSampler_setMode(&keySampler[i], PlayLoop);
 
-		for (int j = 0; j < KNOB_PAGE_SIZE; j++)
-		{
-			keyKnobValues[i][j] = defaultPresetKnobValues[currentPreset][j];
-		}
-
+		samplePlayStarts[i] = 0;
+		samplePlayLengths[i] = 0;
+		detectedAttackPos[i] = 0;
+		crossfadeLengths[i] = 1000;
 		samplerKeyHeld[i] = 0;
-		tExpSmooth_initToPool(&kSamplerGains[i], 0.0f, 0.01f, &smallPool);
+		tExpSmooth_initToPool(&kSamplerGains[i], 0.0f, 0.04f, &smallPool);
+		sampleRates[i] = 1.0f;
+		sampleRatesMult[i] = 1.0f;
+		loopOns[i] = 1;
 	}
 	tSimplePoly_setNumVoices(&poly, NUM_SAMPLER_VOICES);
 	for (int i = 0; i < NUM_SAMPLER_VOICES; i++)
@@ -1386,18 +1402,21 @@ void SFXSamplerKAlloc()
 		waitingForDeactivation[i] = -1;
 	}
 	setLED_B(controlAllKeys);
+	samp_thresh = 0.0002f;
 }
+
 
 
 
 void SFXSamplerKFrame()
 {
+	int currentSamplerKey = currentSamplerKeyGlobal;
 	if (samplerKeyHeld[currentSamplerKey])
 	{
 		if ((tBuffer_isActive(&keyBuff[currentSamplerKey])) || (currentSamplerKey != prevSamplerKey)) //only write if recording
 		{
-			buttonActionsUI[ButtonC][ActionHoldContinuous] = 1;
-			writeButtonFlag = ButtonC;
+			buttonActionsUI[ExtraMessage][ActionHoldContinuous] = 1;
+			writeButtonFlag = ExtraMessage;
 			writeActionFlag = ActionHoldContinuous;
 		}
 		prevSamplerKey = currentSamplerKey;
@@ -1415,24 +1434,135 @@ void SFXSamplerKFrame()
 		controlAllKeys = !controlAllKeys;
 		setLED_B(controlAllKeys);
 	}
+
+	if (buttonActionsSFX[ButtonC][ActionPress])
+	{
+		buttonActionsSFX[ButtonC][ActionPress] = 0;
+		if (!controlAllKeys)
+		{
+
+			float currentPower = 0.0f;
+			float previousPower = 0.0f;
+			int buffLength = tBuffer_getRecordedLength(&keyBuff[currentSamplerKey]);
+			if (detectedAttackPos[currentSamplerKey] > 0)
+			{
+				detectedAttackPos[currentSamplerKey] += 4800;
+				previousPower = tBuffer_get(&keyBuff[currentSamplerKey], (detectedAttackPos[currentSamplerKey] -1) % buffLength);
+			}
+
+			int foundAttack = 0;
+			int i = 0;
+			while(foundAttack == 0)
+			{
+				//starts at previous detected attack position, and wraps around to read the whole buffer
+				float testSample = tBuffer_get(&keyBuff[currentSamplerKey], (i + detectedAttackPos[currentSamplerKey]) % buffLength);
+				currentPower = testSample*testSample;
+
+				if ((currentPower > samp_thresh) && (currentPower > (previousPower + 0.0005f)))
+				{
+					//found one!
+
+					//back up a few samples to catch the full attack
+					int thePos = (i + detectedAttackPos[currentSamplerKey] - 480) % buffLength;
+					if (thePos < 0)
+					{
+						thePos = 0;
+					}
+					samplePlayStarts[currentSamplerKey] = thePos;
+					detectedAttackPos[currentSamplerKey] = thePos;
+					foundAttack = 1;
+					OLEDclearLine(SecondLine);
+					OLEDwriteString("ATKDETECT ", 10, 0, SecondLine);
+					OLEDwriteFloat((samplePlayStarts[currentSamplerKey] / (float)buffLength) * (buffLength * leaf.invSampleRate), OLEDgetCursor(), SecondLine);
+				}
+				i++;
+
+				//if finished searching the whole buffer
+				if (i >= buffLength)
+				{
+					// didn't find one, put it back at the start
+					detectedAttackPos[currentSamplerKey] = 0;
+					OLEDclearLine(SecondLine);
+					OLEDwriteString("NO ATK FOUND ", 10, 0, SecondLine);
+					foundAttack = 1;
+				}
+			}
+		}
+
+		else
+		{
+			for (int i = 0; i < NUM_SAMPLER_VOICES; i++)
+			{
+				for (int key = 0; key < NUM_SAMPLER_KEYS; key++)
+				{
+
+					int buffLength = tBuffer_getRecordedLength(&keyBuff[key]);
+					if (buffLength > 0)
+					{
+						float currentPower = 0.0f;
+						float previousPower = 0.0f;
+						int foundAttack = 0;
+						int i = 0;
+						if (detectedAttackPos[key] > 0)
+						{
+							detectedAttackPos[key] += 4800;
+							previousPower = tBuffer_get(&keyBuff[key], (detectedAttackPos[key] -1) % buffLength);
+						}
+
+						while(foundAttack == 0)
+						{
+							//starts at previous detected attack position, and wraps around to read the whole buffer
+							float testSample = tBuffer_get(&keyBuff[key], (i + detectedAttackPos[key]) % buffLength);
+							currentPower = testSample*testSample;
+
+							if ((currentPower > samp_thresh) && (currentPower > (previousPower + 0.0005f)))
+							{
+								//found one!
+
+								//back up a few samples to catch the full attack
+								int thePos = (i + detectedAttackPos[key] - 480) % buffLength;
+								if (thePos < 0)
+								{
+									thePos = 0;
+								}
+								samplePlayStarts[key] = thePos;
+								detectedAttackPos[key] = thePos;
+								foundAttack = 1;
+							}
+							i++;
+
+							//if finished searching the whole buffer
+							if (i >= buffLength)
+							{
+								// didn't find one, put it back at the start
+								//detectedAttackPos[key] = 0;
+								foundAttack = 1;
+							}
+						}
+					}
+				}
+			}
+
+		}
+	}
 }
 
 //TODO:  marking this spot
 
 
-//TODO: add smoothers to length/start to avoid clicks. Need only 6 (one for each voice) or 49 (one per sampler key)?
+
 
 void SFXSamplerKTick(float* input)
 {
 	float sample = 0.0f;
+	float* knobs = presetKnobValues[SamplerKeyboard];
+
+	int currentSamplerKey = currentSamplerKeyGlobal;
 
 	if (!controlAllKeys)
 	{
-		int recordPosition = tBuffer_getRecordPosition(&keyBuff[currentSamplerKey]);
-		sampleLength = recordPosition * leaf.invSampleRate;
-
-		float* knobs = presetKnobValues[SamplerKeyboard];
-
+		int recordedLength = tBuffer_getRecordedLength(&keyBuff[currentSamplerKey]);
+		sampleLength = recordedLength * leaf.invSampleRate;
 
 		displayValues[0] = knobs[0] * sampleLength;
 
@@ -1440,23 +1570,71 @@ void SFXSamplerKTick(float* input)
 
 		displayValues[2] = (knobs[2] - 0.5f) * 4.0f;
 
-		displayValues[3] = knobs[3] * 4000.0f;
 
-
-		for (int i = 0; i < KNOB_PAGE_SIZE; i++)
+		float rate = roundf((knobs[3] - 0.5f) * 14.0f);
+		if (rate < 0.0f)
 		{
-			keyKnobValues[currentSamplerKey][i] = knobs[i];
+			(rate = 1.0f / fabsf(rate-1.0f));
+		}
+		else
+		{
+			rate += 1.0f;
+		}
+		displayValues[3] = rate;
+
+		displayValues[4] = roundf(knobs[4]);
+
+
+		displayValues[5] = knobs[5] * 4000.0f;
+
+		displayValues[6] = knobs[6];
+
+		//check if display values are new
+		if (fabsf(knobs[0]-prevKnobs[0]) > 0.0001f)
+		{
+			samplePlayStarts[currentSamplerKey]= (knobs[0] * recordedLength);// + detectedAttackPos[currentSamplerKey];
+
 		}
 
-		samplePlayStart = knobs[0] * recordPosition;
-		samplePlayLength = knobs[1] * recordPosition;
-		samplerRate = displayValues[2];
-		crossfadeLength = displayValues[3];
+		if (fabsf(knobs[1]-prevKnobs[1])  > 0.0001f)
+		{
+			samplePlayLengths[currentSamplerKey] = (knobs[1] * recordedLength);// - detectedAttackPos[currentSamplerKey];
 
-		tSampler_setStart(&keySampler[currentSamplerKey], samplePlayStart);
-		tSampler_setLength(&keySampler[currentSamplerKey], samplePlayLength);
-		tSampler_setRate(&keySampler[currentSamplerKey], samplerRate);
-		tSampler_setCrossfadeLength(&keySampler[currentSamplerKey], crossfadeLength);
+		}
+
+		if (fabsf(knobs[2]-prevKnobs[2])  > 0.0001f)
+		{
+			sampleRates[currentSamplerKey] = displayValues[2];
+
+		}
+
+		if (fabsf(knobs[3]-prevKnobs[3])  > 0.0001f)
+		{
+			sampleRatesMult[currentSamplerKey] = displayValues[3];
+
+		}
+
+
+
+		if (fabsf(knobs[4]-prevKnobs[4]) > 0.0001f)
+		{
+
+			loopOns[currentSamplerKey] = roundf(knobs[4]);
+
+		}
+
+		if (fabsf(knobs[5]-prevKnobs[5])> 0.0001f)
+		{
+
+			crossfadeLengths[currentSamplerKey] = displayValues[5];
+		}
+
+
+		tSampler_setStart(&keySampler[currentSamplerKey], samplePlayStarts[currentSamplerKey]);
+		tSampler_setLength(&keySampler[currentSamplerKey], samplePlayLengths[currentSamplerKey]);
+		tSampler_setCrossfadeLength(&keySampler[currentSamplerKey], crossfadeLengths[currentSamplerKey]);
+		tSampler_setRate(&keySampler[currentSamplerKey], sampleRates[currentSamplerKey] * sampleRatesMult[currentSamplerKey]);
+		tSampler_setMode(&keySampler[currentSamplerKey], loopOns[currentSamplerKey]);
 
 		for (int i = 0; i < NUM_SAMPLER_VOICES; ++i)
 		{
@@ -1476,6 +1654,31 @@ void SFXSamplerKTick(float* input)
 
 		for (int i = 0; i < NUM_SAMPLER_VOICES; i++)
 		{
+			displayValues[0] = knobs[0];
+
+			displayValues[1] = LEAF_clip(0.0f, knobs[1], (1.0f - knobs[0]));
+
+			displayValues[2] = (knobs[2] - 0.5f) * 4.0f;
+
+
+
+			float rate = roundf((knobs[3] - 0.5f) * 14.0f);
+			if (rate < 0.0f)
+			{
+				(rate = 1.0f / fabsf(rate-1.0f));
+			}
+			else
+			{
+				rate += 1.0f;
+			}
+			displayValues[3] = rate;
+
+			displayValues[4] = roundf(knobs[4]);
+
+			displayValues[5] = knobs[5] * 4000.0f;
+
+			displayValues[6] = knobs[6];
+
 			//get the keys sounding right now
 			if (tSimplePoly_isOn(&poly, i) > 0)
 			{
@@ -1484,36 +1687,67 @@ void SFXSamplerKTick(float* input)
 				{
 					tBuffer_tick(&keyBuff[key], input[1]);
 
-					int recordPosition = tBuffer_getRecordPosition(&keyBuff[key]);
-					sampleLength = recordPosition * leaf.invSampleRate;
+					int recordedLength = tBuffer_getRecordedLength(&keyBuff[key]);
+					sampleLength = recordedLength * leaf.invSampleRate;
 
-					float* knobs = presetKnobValues[SamplerKeyboard];
-
-					displayValues[0] = knobs[0] * sampleLength;
-					displayValues[1] = LEAF_clip(0.0f, knobs[1] * sampleLength, sampleLength * (1.0f - knobs[0]));
-					displayValues[2] = (knobs[2] - 0.5f) * 4.0f;
-					displayValues[3] = knobs[3] * 4000.0f;
-
-					samplePlayStart = knobs[0] * recordPosition;
-					samplePlayLength = knobs[1] * recordPosition;
-					samplerRate = displayValues[2];
-					crossfadeLength = displayValues[3];
-
-					tSampler_setStart(&keySampler[key], samplePlayStart);
-					tSampler_setLength(&keySampler[key], samplePlayLength);
-					tSampler_setRate(&keySampler[key], samplerRate);
-					tSampler_setCrossfadeLength(&keySampler[key], crossfadeLength);
-
-					for (int i = 0; i < KNOB_PAGE_SIZE; i++)
+					//check if display values are new
+					if (knobs[0] != prevKnobs[0])
 					{
-						keyKnobValues[key][i] = knobs[i];
+						samplePlayStarts[key]= (knobs[0] * recordedLength);
+
 					}
+
+					if (knobs[1] != prevKnobs[1])
+					{
+						samplePlayLengths[key] = (knobs[1] * recordedLength);
+
+					}
+
+					if (knobs[2] != prevKnobs[2])
+					{
+						sampleRates[key] = displayValues[2];
+
+					}
+
+					if (knobs[3] != prevKnobs[3])
+					{
+						sampleRatesMult[key] = displayValues[3];
+
+					}
+
+
+
+					if (knobs[4] != prevKnobs[4])
+					{
+
+						loopOns[key] = roundf(knobs[4]);
+
+					}
+
+					if (knobs[5] != prevKnobs[5])
+					{
+
+						crossfadeLengths[key] = displayValues[5];
+					}
+
+					tSampler_setStart(&keySampler[key], samplePlayStarts[key]);
+					tSampler_setLength(&keySampler[key], samplePlayLengths[key]);
+					tSampler_setCrossfadeLength(&keySampler[key], crossfadeLengths[key]);
+					tSampler_setRate(&keySampler[key], sampleRates[key] * sampleRatesMult[key]);
+					tSampler_setMode(&keySampler[key], loopOns[key]);
+
 				}
+
 			}
 		}
+
 	}
 
 
+	for (int i = 0; i < 6; i++)
+	{
+		prevKnobs[i] = knobs[i];
+	}
 
 	for (int i = 0; i < NUM_SAMPLER_KEYS; i++)
 	{
@@ -1535,17 +1769,19 @@ void SFXSamplerKTick(float* input)
 		}
 	}
 
+
 	sample = tanhf(sample) * 0.98;
 	input[0] = sample;
 	input[1] = sample;
 }
+
 
 void SFXSamplerKFree(void)
 {
 	for (int i = 0; i < NUM_SAMPLER_KEYS; i++)
 	{
 		tBuffer_freeFromPool(&keyBuff[i], &largePool);
-		tSampler_free(&keySampler[i]);
+		tSampler_freeFromPool(&keySampler[i], &smallPool);
 		tExpSmooth_freeFromPool(&kSamplerGains[i], &smallPool);
 	}
 }
@@ -1556,20 +1792,17 @@ void SFXSamplerKFree(void)
 
 volatile float currentPower = 0.0f;
 volatile float previousPower = 0.0f;
-float samp_thresh = 0.0f;
+
 volatile int samp_triggered = 0;
 uint32_t sample_countdown = 0;
 PlayMode samplerMode = PlayLoop;
-uint32_t powerCounter = 0;
 uint8_t triggerChannel = 0;
 uint8_t currentSampler = 0;
 int pitchQuantization = 0;
 int randLengthVal = 0;
 float randRateVal = 0.0f;
-tRamp asFade;
 
-float lastSample = 0.0f;
-int firstTime = 1;
+
 tExpSmooth cfxSmooth;
 #define MAX_AUTOSAMP_LENGTH 192000
 
@@ -1604,12 +1837,14 @@ void SFXSamplerAutoFrame()
 		pitchQuantization = !pitchQuantization;
 		buttonActionsSFX[ButtonC][ActionPress] = 0;
 		setLED_C(pitchQuantization);
-		firstTime = 1;
 	}
+
+
 }
 
 int fadeDone = 0;
 int finalWindowSize = 5000;
+
 void SFXSamplerAutoTick(float* input)
 {
 	float sample = 0.0f;
@@ -1650,8 +1885,8 @@ void SFXSamplerAutoTick(float* input)
 	if (randLengthAmount < 20.0f) randLengthAmount = 0.0f;
 	displayValues[5] = randLengthAmount;
 
-
 	float randRateAmount;
+
 	if (pitchQuantization)
 	{
 		randRateAmount = roundf(knobs[6] * 8.0f);
@@ -1661,6 +1896,7 @@ void SFXSamplerAutoTick(float* input)
 		randRateAmount = knobs[6] * 2.0f;
 		if (randRateAmount < 0.01) randRateAmount = 0.0f;
 	}
+
 	displayValues[6] = randRateAmount;
 
 
@@ -1668,7 +1904,7 @@ void SFXSamplerAutoTick(float* input)
 	tSampler_setCrossfadeLength(&asSampler[1], crossfadeLength);
 
 
-	if ((currentPower > (samp_thresh)) && (currentPower > previousPower + 0.001f) && (samp_triggered == 0) && (sample_countdown == 0) && (fadeDone == 1))
+	if ((currentPower > (samp_thresh)) && (currentPower > (previousPower + 0.001f)) && (samp_triggered == 0) && (sample_countdown == 0) && (fadeDone == 1))
 	{
 		randLengthVal = (randomNumber() - 0.5f) * randLengthAmount * 2.0f;
 		if (pitchQuantization) randRateVal = roundf(randomNumber() * randRateAmount) + 1.0f;
@@ -1704,7 +1940,6 @@ void SFXSamplerAutoTick(float* input)
 		samp_triggered = 0;
 		fadeDone = 0;
 	}
-
 
 	if (pitchQuantization)
 	{
@@ -1758,7 +1993,7 @@ void SFXSamplerAutoTick(float* input)
 	previousPower = currentPower;
 	input[0] = sample * 0.99f;
 	input[1] = sample * 0.99f;
-	lastSample = sample;
+
 }
 
 void SFXSamplerAutoFree(void)
@@ -1773,7 +2008,6 @@ void SFXSamplerAutoFree(void)
 
 //10 distortion tanh
 uint8_t distortionMode = 0;
-tDiodeFilter dFilt;
 tVZFilter shelf1;
 tVZFilter shelf2;
 tVZFilter bell1;
@@ -1782,7 +2016,7 @@ int distOS_ratio = 4;
 void SFXDistortionAlloc()
 {
 	leaf.clearOnAllocation = 1;
-	tOversampler_init(&oversampler, distOS_ratio, 0);
+	tOversampler_initToPool(&oversampler, distOS_ratio, 0, &smallPool);
 	tVZFilter_initToPool(&shelf1, Lowshelf, 80.0f, 6.0f, &smallPool);
 	tVZFilter_initToPool(&shelf2, Highshelf, 12000.0f, 6.0f, &smallPool);
 	tVZFilter_initToPool(&bell1, Bell, 1000.0f, 1.9f, &smallPool);
@@ -1841,7 +2075,7 @@ void SFXDistortionTick(float* input)
 
 void SFXDistortionFree(void)
 {
-	tOversampler_free(&oversampler);
+	tOversampler_freeFromPool(&oversampler, &smallPool);
 	tVZFilter_freeFromPool(&shelf1, &smallPool);
 	tVZFilter_freeFromPool(&shelf2, &smallPool);
 	tVZFilter_freeFromPool(&bell1, &smallPool);
@@ -1860,7 +2094,7 @@ void SFXWaveFolderAlloc()
 	tLockhartWavefolder_initToPool(&wavefolder1, &smallPool);
 	tLockhartWavefolder_initToPool(&wavefolder2, &smallPool);
 	tHighpass_initToPool(&wfHP, 10.0f, &smallPool);
-	tOversampler_init(&oversampler, 2, 0);
+	tOversampler_initToPool(&oversampler, 2, 0, &smallPool);
 	setLED_A(foldMode);
 	leaf.clearOnAllocation = 0;
 }
@@ -1954,7 +2188,7 @@ void SFXWaveFolderFree(void)
 	tLockhartWavefolder_freeFromPool(&wavefolder1, &smallPool);
 	tLockhartWavefolder_freeFromPool(&wavefolder2, &smallPool);
 	tHighpass_freeFromPool(&wfHP, &smallPool);
-	tOversampler_free(&oversampler);
+	tOversampler_freeFromPool(&oversampler, &smallPool);
 }
 
 uint32_t crusherStereo = 0;
@@ -2203,6 +2437,7 @@ void SFXReverbTick(float* input)
 void SFXReverbFree(void)
 {
 	tDattorroReverb_free(&reverb);
+	tExpSmooth_free(&sizeSmoother);
 }
 
 
@@ -2317,7 +2552,6 @@ void SFXLivingStringAlloc()
 	tSimplePoly_setNumVoices(&poly, NUM_STRINGS);
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
-		myFreq = (randomNumber() * 300.0f) + 60.0f;
 		myDetune[i] = (randomNumber() * 0.3f) - 0.15f;
 		//tComplexLivingString_init(&theString[i],  myFreq, 0.4f, 0.0f, 16000.0f, .999f, .5f, .5f, 0.1f, 0);
 		tComplexLivingString_init(&theString[i], 440.f, 0.8f, 0.3f, 0.f, 9000.f, 1.0f, 0.3f, 0.01f, 0.125f, levMode);
@@ -2460,7 +2694,7 @@ tSlide stringInEnvs[NUM_STRINGS];
 tADSR4 pluckEnvs[NUM_STRINGS];
 int levModeStr = 0;
 tNoise stringPluckNoise;
-tNoise stringPluckNoiseDark;
+
 tVZFilter pluckFilt;
 float samplesPerMs = 1;
 
@@ -2480,7 +2714,6 @@ void SFXLivingStringSynthAlloc()
 	}
 	tVZFilter_initToPool(&pluckFilt, BandpassPeak, 2000.0f, 4.0f, &smallPool);
 	tNoise_initToPool(&stringPluckNoise, WhiteNoise, &smallPool);
-	tNoise_initToPool(&stringPluckNoiseDark, PinkNoise, &smallPool);
 	setLED_A(numVoices == 1);
 	setLED_B(voicePluck);
 	setLED_C(levModeStr);
@@ -2603,6 +2836,8 @@ void SFXLivingStringSynthFree(void)
 		tSlide_freeFromPool(&stringOutEnvs[i], &smallPool);
 		tADSR4_freeFromPool(&pluckEnvs[i], &smallPool);
 	}
+	tVZFilter_freeFromPool(&pluckFilt,&smallPool);
+	tNoise_freeFromPool(&stringPluckNoise, &smallPool);
 }
 
 
@@ -2871,6 +3106,8 @@ void SFXClassicSynthTick(float* input)
 	input[1] = sample;
 }
 
+
+
 void SFXClassicSynthFree(void)
 {
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
@@ -2897,12 +3134,9 @@ void SFXClassicSynthFree(void)
 tCycle FM_sines[NUM_VOC_VOICES][6];
 float FM_freqRatios[5][6] = {{1.0f, 1.00001f, 1.0f, 3.0f, 1.0f, 1.0f}, {2.0f, 2.0001f, .99999f, 3.0f, 5.0f, 8.0f},  {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}, {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}, {1.0f, 2.0f, 1.0f, 7.0f, 3.0f, 4.0f}};
 float FM_indices[5][6] = {{800.0f, 0.0f, 120.0f, 32.0f, 3.0f, 1.0f}, {100.0f, 100.0f, 300.0f, 300.0f, 10.0f, 5.0f}, {500.0f, 50.0f, 500.0f, 10.0f,0.0f, 0.0f}, {50.0f, 128.0f, 1016.0f, 528.0f, 4.0f, 0.0f},{50.0f, 128.0f, 1016.0f, 528.0f, 4.0f, 0.0f}};
-//float FM_decays[5][6] = {{64.0f, 2000.0f, 3000.0f, 3400.0f, 3200.0f, 3100.0f}, {2000.0f, 300.0f, 800.0f, 3000.0f, 340.0f, 50.0f}, {20.0f, 50.0f, 50.0f, 10.0f, 30.0f, 20.0f}, {584.0f, 1016.0f, 1016.0f, 1000.0f, 600.0f, 500.0f},{584.0f, 1016.0f, 1016.0f, 1000.0f, 600.0f, 500.0f}};
-//float FM_sustains[5][6] = {{0.9f, 0.9f, 0.9f, 0.8f, 0.7f, 0.7f}, {0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f}, {0.3f, 0.3f, 0.3f, 0.3f, 0.0f, 0.0f},{0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f},{0.5f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f}};
-//float FM_attacks[5][6] = {{7.0f, 7.0f, 7.0f, 7.0f, 7.0f, 7.0f}, {7.0f, 7.0f, 7.0f, 7.0f, 7.0f,7.0f}, {10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f},{1000.0f, 680.0f, 250.0f, 1300.0f, 750.0f, 820.0f},{1000.0f, 680.0f, 250.0f, 1300.0f, 750.0f, 820.0f}};
 tADSR4 FM_envs[NUM_VOC_VOICES][6];
 float feedback_output = 0.0f;
-float prevDisplayValues[NUM_PRESET_KNOB_VALUES];
+
 float panValues[NUM_VOC_VOICES];
 tCycle tremolo;
 uint8_t tremoloStereo = 0;
@@ -2911,7 +3145,11 @@ int Rsound = 0;
 
 char* soundNames[5];
 tExpSmooth susSmoothers[6];
-
+float prevKnobValues[25];
+float overtoneSnap = 1.0f;
+float randomDecays[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+float randomSustains[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+float sustainsFinal[6];
 
 //FM Rhodes
 void SFXRhodesAlloc()
@@ -2948,10 +3186,7 @@ void SFXRhodesAlloc()
 
 }
 
-float prevKnobValues[25];
-float overtoneSnap = 1.0f;
-float randomDecays[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
-float randomSustains[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+
 
 void SFXRhodesFrame()
 {
@@ -3137,7 +3372,6 @@ void SFXRhodesFrame()
 	tCycle_setFreq(&tremolo, displayValues[2]);
 }
 
-float sustainsFinal[6];
 void SFXRhodesTick(float* input)
 {
 	float leftSample = 0.0f;
@@ -3287,8 +3521,6 @@ float nearestNote(float note)
 
 
 int lastNearNote = -1;
-float upperNearHyst = 0.0f;
-float lowerNearHyst = 0.0f;
 
 
 float nearestNoteWithHysteresis(float note, float hysteresis)
@@ -3378,8 +3610,8 @@ float nearestNoteWithHysteresis(float note, float hysteresis)
 			}
 			//now should have adjacent notes in array available
 			//calculate the differences that should be necessary to move away
-			upperNearHyst = (notes[upNote] - notes[lastNearNote]) * hysteresis;
-			lowerNearHyst = (notes[lastNearNote] - notes[downNote]) * -hysteresis;
+			float upperNearHyst = (notes[upNote] - notes[lastNearNote]) * hysteresis;
+			float lowerNearHyst = (notes[lastNearNote] - notes[downNote]) * -hysteresis;
 
 			float theDifference = note - notes[lastNearNote];
 			if ((theDifference > upperNearHyst) || (theDifference < lowerNearHyst))
@@ -3405,6 +3637,7 @@ float nearestNoteWithHysteresis(float note, float hysteresis)
 	return output;
 }
 
+int newBuffer[NUM_SAMPLER_KEYS];
 
 void noteOn(int key, int velocity)
 {
@@ -3426,7 +3659,6 @@ void noteOn(int key, int velocity)
 			{
 				lockArray[key%12]++;
 			}
-			updatePitch = 1;
 		}
 
 
@@ -3469,21 +3701,31 @@ void noteOn(int key, int velocity)
 				if (whichVoice >= 0)
 				{
 
-					currentSamplerKey = key - LOWEST_SAMPLER_KEY;
-					if (!controlAllKeys)
+					currentSamplerKeyGlobal = key - LOWEST_SAMPLER_KEY;
+					///if (!controlAllKeys)
+					//{
+						//setKnobValues(keyKnobValues[currentSamplerKey]);
+						//prevKnob2 = keyKnobValues[currentSamplerKey][2];
+						//prevKnob4 = keyKnobValues[currentSamplerKey][4];
+					//}
+					if (tBuffer_getRecordedLength(&keyBuff[currentSamplerKeyGlobal]) == 0)
 					{
-						setKnobValues(keyKnobValues[currentSamplerKey]);
-					}
-					if (tBuffer_getRecordedLength(&keyBuff[currentSamplerKey]) == 0)
-					{
-						tBuffer_record(&keyBuff[currentSamplerKey]);
+						tBuffer_record(&keyBuff[currentSamplerKeyGlobal]);
+						newBuffer[currentSamplerKeyGlobal] = 1;
 					}
 					else
 					{
-						tSampler_play(&keySampler[currentSamplerKey]);
-						tExpSmooth_setDest(&kSamplerGains[currentSamplerKey], 1.0f);
+						tSampler_play(&keySampler[currentSamplerKeyGlobal]);
+						if (newBuffer[currentSamplerKeyGlobal])
+						{
+							int recordLength = tBuffer_getRecordedLength(&keyBuff[currentSamplerKeyGlobal]);
+							samplePlayLengths[currentSamplerKeyGlobal] = recordLength;
+							newBuffer[currentSamplerKeyGlobal] = 0;
+						}
+						float tempGain = (velocity * 0.0078125f * displayValues[6]) + (1.0f - displayValues[6]);
+						tExpSmooth_setDest(&kSamplerGains[currentSamplerKeyGlobal], tempGain);
 					}
-					samplerKeyHeld[currentSamplerKey] = 1;
+					samplerKeyHeld[currentSamplerKeyGlobal] = 1;
 				}
 			}
 		}
@@ -3505,8 +3747,9 @@ void noteOn(int key, int velocity)
 
 void noteOff(int key, int velocity)
 {
-
+	UNUSED(velocity);
 	if (chordArray[key%12] > 0) chordArray[key%12]--;
+
 
 
 	if (currentPreset == Rhodes)
@@ -3569,6 +3812,7 @@ void noteOff(int key, int velocity)
 			}
 			samplerKeyHeld[key-LOWEST_SAMPLER_KEY] = 0;
 			UISamplerKButtons(ButtonC, ActionHoldContinuous);
+			tSampler_stop(&keySampler[key-LOWEST_SAMPLER_KEY]);
 			waitingForDeactivation[voice] = key;
 		}
 	}

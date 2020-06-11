@@ -47,8 +47,8 @@ char* knobParamNames[PresetNil][NUM_PRESET_KNOB_VALUES];
 int8_t currentParamIndex = -1;
 uint8_t orderedParams[8];
 
-uint8_t buttonActionsSFX[NUM_BUTTONS][ActionNil];
-uint8_t buttonActionsUI[NUM_BUTTONS][ActionNil];
+uint8_t buttonActionsSFX[NUM_BUTTONS+1][ActionNil];
+uint8_t buttonActionsUI[NUM_BUTTONS+1][ActionNil];
 float displayValues[NUM_PRESET_KNOB_VALUES];
 int8_t cvAddParam[PresetNil];
 char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
@@ -134,9 +134,9 @@ void initModeNames(void)
 	shortModeNames[AutotunePoly] = "AT";
 	modeNamesDetails[AutotunePoly] = "";
 	numPages[AutotunePoly] = 1;
-	knobParamNames[AutotunePoly][0] = "FID THRESH";
-	knobParamNames[AutotunePoly][1] = "ALPHA";
-	knobParamNames[AutotunePoly][2] = "TOLERANCE";
+	knobParamNames[AutotunePoly][0] = "PICKINESS";
+	knobParamNames[AutotunePoly][1] = "";
+	knobParamNames[AutotunePoly][2] = "";
 	knobParamNames[AutotunePoly][3] = "";
 	knobParamNames[AutotunePoly][4] = "";
 
@@ -148,19 +148,25 @@ void initModeNames(void)
 	knobParamNames[SamplerButtonPress][0] = "START";
 	knobParamNames[SamplerButtonPress][1] = "LENGTH";
 	knobParamNames[SamplerButtonPress][2] = "SPEED";
-	knobParamNames[SamplerButtonPress][3] = "CROSSFADE";
-	knobParamNames[SamplerButtonPress][4] = "";
+	knobParamNames[SamplerButtonPress][3] = "SPEEDMULT";
+	knobParamNames[SamplerButtonPress][4] = "CROSSFADE";
+
 
 
 	modeNames[SamplerKeyboard] = "KEYSAMPLER";
 	shortModeNames[SamplerKeyboard] = "KS";
-	modeNamesDetails[SamplerKeyboard] = "A OR KEY TO REC";
-	numPages[SamplerKeyboard] = 1;
+	modeNamesDetails[SamplerKeyboard] = "KEY TO REC";
+	numPages[SamplerKeyboard] = 2;
 	knobParamNames[SamplerKeyboard][0] = "START";
 	knobParamNames[SamplerKeyboard][1] = "LENGTH";
 	knobParamNames[SamplerKeyboard][2] = "SPEED";
-	knobParamNames[SamplerKeyboard][3] = "CROSSFADE";
-	knobParamNames[SamplerKeyboard][4] = "";
+	knobParamNames[SamplerKeyboard][3] = "SPEEDMULT";
+	knobParamNames[SamplerKeyboard][4] = "LOOP ON";
+	knobParamNames[SamplerKeyboard][5] = "CROSSFADE";
+	knobParamNames[SamplerKeyboard][6] = "VELO SENS";
+	knobParamNames[SamplerKeyboard][7] = "";
+	knobParamNames[SamplerKeyboard][8] = "";
+	knobParamNames[SamplerKeyboard][9] = "";
 
 
 	modeNames[SamplerAutoGrab] = "AUTOSAMP";
@@ -344,6 +350,7 @@ void buttonCheck(void)
 {
 	if (codecReady)
 	{
+		/*
 		buttonValues[0] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13); //edit
 		buttonValues[1] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12); //left
 		buttonValues[2] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14); //right
@@ -354,6 +361,19 @@ void buttonCheck(void)
 		buttonValues[7] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11); // C
 		buttonValues[8] = !HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_11); // D
 		buttonValues[9] = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10); // E
+		 */
+
+		//A little more efficient since it avoids a function call
+		buttonValues[0] =!(GPIOB->IDR & GPIO_PIN_13);
+		buttonValues[1] =!(GPIOB->IDR & GPIO_PIN_12);
+		buttonValues[2] =!(GPIOB->IDR & GPIO_PIN_14);
+		buttonValues[3] =!(GPIOD->IDR & GPIO_PIN_11);
+		buttonValues[4] =!(GPIOB->IDR & GPIO_PIN_15);
+		buttonValues[5] =!(GPIOB->IDR & GPIO_PIN_1);
+		buttonValues[6] =!(GPIOD->IDR & GPIO_PIN_7);
+		buttonValues[7] =!(GPIOB->IDR & GPIO_PIN_11);
+		buttonValues[8] =!(GPIOG->IDR & GPIO_PIN_11);
+		buttonValues[9] =!(GPIOB->IDR & GPIO_PIN_10);
 
 		for (int i = 0; i < NUM_BUTTONS; i++)
 		{
@@ -404,7 +424,6 @@ void buttonCheck(void)
 		}
 
 		// make some if statements if you want to find the "attack" of the buttons (getting the "press" action)
-		// we'll need if statements for each button  - maybe should go to functions that are dedicated to each button?
 
 		/// DEFINE GLOBAL BUTTON BEHAVIOR HERE
 
@@ -420,7 +439,6 @@ void buttonCheck(void)
 			writeCurrentPresetToFlash();
 			clearButtonActions();
 		}
-		// right press
 		if (buttonActionsUI[ButtonRight][ActionPress] == 1)
 		{
 			previousPreset = currentPreset;
@@ -477,12 +495,15 @@ void buttonCheck(void)
 				buttonActionsUI[ButtonDown][ActionPress] = 0;
 				buttonActionsSFX[ButtonDown][ActionPress] = 0;
 			}
+			buttonActionsUI[ButtonEdit][ActionHoldContinuous] = 0;
 //			OLEDdrawFloatArray(audioDisplayBuffer, -1.0f, 1.0f, 128, displayBufferIndex, 0, BothLines);
 		}
 		if (buttonActionsUI[ButtonEdit][ActionRelease] == 1)
 		{
 			OLED_writePreset();
+			buttonActionsSFX[ButtonEdit][ActionRelease] = 0;
 			buttonActionsUI[ButtonEdit][ActionRelease] = 0;
+
 		}
 		if (buttonActionsUI[ButtonDown][ActionPress] == 1)
 		{
@@ -751,12 +772,19 @@ char* UIAutotuneButtons(VocodecButton button, ButtonAction action)
 char* UISamplerBPButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
-	if (buttonActionsUI[ButtonDown][ActionPress])
+	if (buttonActionsUI[ButtonC][ActionPress])
 	{
 		OLEDclearLine(SecondLine);
 		OLEDwriteFloat(sampleLength, 0, SecondLine);
 		OLEDwriteString(samplePlaying ? "PLAYING" : "STOPPED", 7, 48, SecondLine);
-		buttonActionsUI[ButtonDown][ActionPress] = 0;
+		buttonActionsUI[ButtonC][ActionPress] = 0;
+	}
+
+	if (buttonActionsUI[ButtonB][ActionPress])
+	{
+		OLEDclearLine(SecondLine);
+		OLEDwriteString(bpMode ? "BACKANDFORTH" : "FORWARD     ", 12, 0, SecondLine);
+		buttonActionsUI[ButtonB][ActionPress] = 0;
 	}
 	if (buttonActionsUI[ButtonA][ActionHoldContinuous])
 	{
@@ -779,14 +807,14 @@ char* UISamplerKButtons(VocodecButton button, ButtonAction action)
 {
 	char* writeString = "";
 
-	// should try to clean this up somehow...
-	if (buttonActionsUI[ButtonC][ActionHoldContinuous] || buttonActionsUI[ButtonA][ActionPress])
-		// ^ these are some dummy values that get set in sfx.c frame so we can trigger this based on midi
+
+	if (buttonActionsUI[ExtraMessage][ActionHoldContinuous] || buttonActionsUI[ButtonA][ActionPress])
+
 	{
 		OLEDclearLine(SecondLine);
-		OLEDwritePitch(currentSamplerKey + LOWEST_SAMPLER_KEY, 0, SecondLine, false);
+		OLEDwritePitch(currentSamplerKeyGlobal + LOWEST_SAMPLER_KEY, 0, SecondLine, false);
 		OLEDwriteFloat(sampleLength, OLEDgetCursor(), SecondLine);
-		buttonActionsUI[ButtonC][ActionHoldContinuous] = 0;
+		buttonActionsUI[ExtraMessage][ActionHoldContinuous] = 0;
 		buttonActionsUI[ButtonA][ActionPress] = 0;
 	}
 

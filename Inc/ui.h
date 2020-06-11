@@ -48,6 +48,7 @@ typedef enum _VocodecButton
 	ButtonC,
 	ButtonD,
 	ButtonE,
+	ExtraMessage,
 	ButtonNil
 } VocodecButton;
 
@@ -83,8 +84,8 @@ extern char* knobParamNames[PresetNil][NUM_PRESET_KNOB_VALUES];
 extern float displayValues[NUM_PRESET_KNOB_VALUES];
 extern int8_t cvAddParam[PresetNil];
 extern uint8_t knobPage;
-extern uint8_t buttonActionsUI[NUM_BUTTONS][ActionNil];
-extern uint8_t buttonActionsSFX[NUM_BUTTONS][ActionNil];
+extern uint8_t buttonActionsUI[NUM_BUTTONS+1][ActionNil];
+extern uint8_t buttonActionsSFX[NUM_BUTTONS+1][ActionNil];
 extern char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
 
 void initModeNames(void);
