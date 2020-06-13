@@ -117,7 +117,7 @@ void initGlobalSFXObjects()
 	// Note that these are the actual knob values
 	// not the parameter value
 	// (i.e. 0.5 for fine pitch is actually 0.0 fine pitch)
-	defaultPresetKnobValues[Vocoder][0] = 0.5f; // volume
+	defaultPresetKnobValues[Vocoder][0] = 0.4f; // volume
 	defaultPresetKnobValues[Vocoder][1] = 0.5f; // warp factor
 	defaultPresetKnobValues[Vocoder][2] = 0.85f; // quality
 	defaultPresetKnobValues[Vocoder][3] = 0.0f; // sawToPulse
@@ -129,7 +129,7 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[Vocoder][9] = 0.0f;
 
 
-	defaultPresetKnobValues[VocoderCh][0] = 0.5f; // volume
+	defaultPresetKnobValues[VocoderCh][0] = 0.4f; // volume
 	defaultPresetKnobValues[VocoderCh][1] = 0.5f; // warp factor
 	defaultPresetKnobValues[VocoderCh][2] = 1.0f; // quality
 	defaultPresetKnobValues[VocoderCh][3] = 0.5f; //band width
@@ -150,7 +150,8 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[Pitchshift][1] = 0.5f; // fine pitch
 	defaultPresetKnobValues[Pitchshift][2] = 0.0f; // f amount
 	defaultPresetKnobValues[Pitchshift][3] = 0.5f; // formant
-	defaultPresetKnobValues[Pitchshift][4] = 0.0f;
+	defaultPresetKnobValues[Pitchshift][4] = 0.5f; //range
+	defaultPresetKnobValues[Pitchshift][5] = 0.25f; //offset
 
 	defaultPresetKnobValues[AutotuneMono][0] = 0.0f; // pickiness
 	defaultPresetKnobValues[AutotuneMono][1] = 1.0f; // amount
@@ -919,6 +920,8 @@ void SFXVocoderChFree(void)
 }
 
 // pitch shift
+float pitchShiftRange = 2.0f;
+float pitchShiftOffset = -1.0f;
 
 void SFXPitchShiftAlloc()
 {
@@ -945,6 +948,7 @@ void SFXPitchShiftTick(float* input)
 {
 	//pitchFactor = (smoothedADC[0]*3.75f)+0.25f;
 	float sample = 0.0f;
+
 
 	float myPitchFactorCoarse = (presetKnobValues[Pitchshift][0]*2.0f) - 1.0f;
 	float myPitchFactorFine = ((presetKnobValues[Pitchshift][1]*2.0f) - 1.0f) * 0.1f;

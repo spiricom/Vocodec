@@ -111,13 +111,13 @@ void initModeNames(void)
 	modeNames[Pitchshift] = "PITCHSHIFT";
 	shortModeNames[Pitchshift] = "PS";
 	modeNamesDetails[Pitchshift] = "";
-	numPages[Pitchshift] = 1;
+	numPages[Pitchshift] = 2;
 	knobParamNames[Pitchshift][0] = "SHIFT";
 	knobParamNames[Pitchshift][1] = "FINE";
 	knobParamNames[Pitchshift][2] = "F AMT";
 	knobParamNames[Pitchshift][3] = "FORMANT";
-	knobParamNames[Pitchshift][4] = "";
-
+	knobParamNames[Pitchshift][4] = "RANGE";
+	knobParamNames[Pitchshift][5] = "OFFSET";
 
 	modeNames[AutotuneMono] = "AUTOTUNE";
 	shortModeNames[AutotuneMono] = "NT";
@@ -476,6 +476,7 @@ void buttonCheck(void)
 		if (buttonActionsUI[ButtonEdit][ActionPress])
 		{
 			OLED_writeEditScreen();
+			setLED_Edit(1);
 			buttonActionsUI[ButtonEdit][ActionPress] = 0;
 		}
 		if (buttonActionsUI[ButtonEdit][ActionHoldContinuous] == 1)
@@ -488,21 +489,26 @@ void buttonCheck(void)
 				OLEDwritePitchClass(keyCenter+60, 64, SecondLine);
 				buttonActionsUI[ButtonC][ActionPress] = 0;
 				buttonActionsSFX[ButtonC][ActionPress] = 0;
+				buttonActionsUI[ButtonEdit][ActionHoldContinuous] = 0;
 			}
 			if (buttonActionsUI[ButtonDown][ActionPress])
 			{
 				cvAddParam[currentPreset] = -1;
 				buttonActionsUI[ButtonDown][ActionPress] = 0;
 				buttonActionsSFX[ButtonDown][ActionPress] = 0;
+				buttonActionsUI[ButtonEdit][ActionHoldContinuous] = 0;
 			}
-			buttonActionsUI[ButtonEdit][ActionHoldContinuous] = 0;
+
 //			OLEDdrawFloatArray(audioDisplayBuffer, -1.0f, 1.0f, 128, displayBufferIndex, 0, BothLines);
 		}
 		if (buttonActionsUI[ButtonEdit][ActionRelease] == 1)
 		{
 			OLED_writePreset();
+			setLED_Edit(0);
 			buttonActionsSFX[ButtonEdit][ActionRelease] = 0;
 			buttonActionsUI[ButtonEdit][ActionRelease] = 0;
+			buttonActionsUI[ButtonEdit][ActionHoldContinuous] = 0;
+			buttonActionsSFX[ButtonEdit][ActionHoldContinuous] = 0;
 
 		}
 		if (buttonActionsUI[ButtonDown][ActionPress] == 1)
@@ -578,6 +584,7 @@ void adcCheck()
 		}
 		if (knobActive[i]) tExpSmooth_setDest(&adc[i], floatADC[i]);
 	}
+
 }
 
 void clearButtonActions()

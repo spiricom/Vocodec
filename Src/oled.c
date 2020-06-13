@@ -306,9 +306,9 @@ void OLED_writeTuning()
 {
 	GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
 	OLEDclearLine(SecondLine);
-	OLEDwriteString("T ", 2, 0, SecondLine);
+	OLEDwriteString("T", 2, 0, SecondLine);
 	OLEDwriteInt(currentTuning, 2, 12, SecondLine);
-	OLEDwriteString(tuningNames[currentTuning], 6, 40, SecondLine);
+	OLEDwriteString(tuningNames[currentTuning], 12, 36, SecondLine);
 }
 
 void OLED_draw()
@@ -352,7 +352,7 @@ void OLEDclearLine(OLEDLine line)
 void OLEDwriteString(char* myCharArray, uint8_t arrayLength, uint8_t startCursor, OLEDLine line)
 {
 	uint8_t cursorX = startCursor;
-	uint8_t cursorY = 13 + (16 * (line%2));
+	uint8_t cursorY = 12 + (16 * (line%2));
 	GFXsetCursor(&theGFX, cursorX, cursorY);
 
 	GFXfillRect(&theGFX, startCursor, line*16, arrayLength*12, (line*16)+16, 0);

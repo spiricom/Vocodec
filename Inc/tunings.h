@@ -8,13 +8,13 @@
 #ifndef TUNINGS_H_
 #define TUNINGS_H_
 
-#define NUM_TUNINGS 66
+#define NUM_TUNINGS 63
 
 extern float centsDeviation[12];
-extern float tuningPresets[NUM_TUNINGS][12];
+extern const float tuningPresets[NUM_TUNINGS][12];
 extern uint32_t currentTuning;
 extern uint8_t keyCenter;
-extern char tuningNames[NUM_TUNINGS][6];
+extern const char tuningNames[NUM_TUNINGS][12];
 
 
 #endif /* TUNINGS_H_ */
