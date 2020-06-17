@@ -96,8 +96,6 @@ float oversamplerArray[MAX_OVERSAMPLER_RATIO];
 
 
 
-
-
 void initGlobalSFXObjects()
 {
 	calculateNoteArray();
@@ -152,6 +150,10 @@ void initGlobalSFXObjects()
 	defaultPresetKnobValues[Pitchshift][3] = 0.5f; // formant
 	defaultPresetKnobValues[Pitchshift][4] = 0.5f; //range
 	defaultPresetKnobValues[Pitchshift][5] = 0.25f; //offset
+	defaultPresetKnobValues[Pitchshift][6] = 0.25f;
+	defaultPresetKnobValues[Pitchshift][7] = 0.25f;
+	defaultPresetKnobValues[Pitchshift][8] = 0.25f;
+	defaultPresetKnobValues[Pitchshift][9] = 0.25f;
 
 	defaultPresetKnobValues[AutotuneMono][0] = 0.0f; // pickiness
 	defaultPresetKnobValues[AutotuneMono][1] = 1.0f; // amount
@@ -949,7 +951,6 @@ void SFXPitchShiftTick(float* input)
 	//pitchFactor = (smoothedADC[0]*3.75f)+0.25f;
 	float sample = 0.0f;
 
-
 	float myPitchFactorCoarse = (presetKnobValues[Pitchshift][0]*2.0f) - 1.0f;
 	float myPitchFactorFine = ((presetKnobValues[Pitchshift][1]*2.0f) - 1.0f) * 0.1f;
 	float myPitchFactorCombined = myPitchFactorFine + myPitchFactorCoarse;
@@ -1008,9 +1009,9 @@ void SFXPitchShiftTick(float* input)
 
 	formantsample = tanhf(tFormantShifter_add(&fs, formantsample)) * tExpSmooth_tick(&smoother2) ;
 	sample = (sample * (tExpSmooth_tick(&smoother1))) +  formantsample;
+
 	input[0] = sample;
 	input[1] = sample;
-
 
 }
 

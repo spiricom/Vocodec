@@ -118,6 +118,10 @@ void initModeNames(void)
 	knobParamNames[Pitchshift][3] = "FORMANT";
 	knobParamNames[Pitchshift][4] = "RANGE";
 	knobParamNames[Pitchshift][5] = "OFFSET";
+	knobParamNames[Pitchshift][6] = "";
+	knobParamNames[Pitchshift][7] = "";
+	knobParamNames[Pitchshift][8] = "";
+	knobParamNames[Pitchshift][9] = "";
 
 	modeNames[AutotuneMono] = "AUTOTUNE";
 	shortModeNames[AutotuneMono] = "NT";
