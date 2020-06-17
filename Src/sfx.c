@@ -471,24 +471,24 @@ void SFXVocoderTick(float* input)
 
 void SFXVocoderFree(void)
 {
-	tTalkboxFloat_freeFromPool(&vocoder,  &smallPool);
-	tNoise_freeFromPool(&vocoderNoise, &smallPool);
-	tZeroCrossing_freeFromPool(&zerox, &smallPool);
-	tExpSmooth_freeFromPool(&noiseRamp, &smallPool);
+	tTalkboxFloat_free(&vocoder);
+	tNoise_free(&vocoderNoise);
+	tZeroCrossing_free(&zerox);
+	tExpSmooth_free(&noiseRamp);
 
-	tNoise_freeFromPool(&breathNoise, &smallPool);
-	tHighpass_freeFromPool(&noiseHP, &smallPool);
+	tNoise_free(&breathNoise);
+	tHighpass_free(&noiseHP);
 
 
-	tVZFilter_freeFromPool(&shelf1, &smallPool);
-	tVZFilter_freeFromPool(&shelf2, &smallPool);
+	tVZFilter_free(&shelf1);
+	tVZFilter_free(&shelf2);
 
 
 
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
-		tSawtooth_freeFromPool(&osc[i], &smallPool);
-		tRosenbergGlottalPulse_freeFromPool(&glottal[i], &smallPool);
+		tSawtooth_free(&osc[i]);
+		tRosenbergGlottalPulse_free(&glottal[i]);
 	}
 }
 
@@ -900,24 +900,24 @@ void SFXVocoderChFree(void)
 {
 	for (int i = 0; i < MAX_NUM_VOCODER_BANDS; i++)
 	{
-		tVZFilter_freeFromPool(&analysisBands[i][0], &smallPool);
-		tVZFilter_freeFromPool(&analysisBands[i][1], &smallPool);
-		tVZFilter_freeFromPool(&synthesisBands[i][0], &smallPool);
-		tVZFilter_freeFromPool(&synthesisBands[i][1], &smallPool);
-		tExpSmooth_freeFromPool(&envFollowers[i], &smallPool);
+		tVZFilter_free(&analysisBands[i][0]);
+		tVZFilter_free(&analysisBands[i][1]);
+		tVZFilter_free(&synthesisBands[i][0]);
+		tVZFilter_free(&synthesisBands[i][1]);
+		tExpSmooth_free(&envFollowers[i]);
 	}
-	tNoise_freeFromPool(&breathNoise, &smallPool);
-	tNoise_freeFromPool(&vocoderNoise, &smallPool);
-	tZeroCrossing_freeFromPool(&zerox, &smallPool);
-	tExpSmooth_freeFromPool(&noiseRamp, &smallPool);
-	tHighpass_freeFromPool(&noiseHP, &smallPool);
-	tVZFilter_freeFromPool(&vocodec_highshelf, &smallPool);
-	tHighpass_freeFromPool(&chVocFinalHP1, &smallPool);
-	tHighpass_freeFromPool(&chVocFinalHP2, &smallPool);
+	tNoise_free(&breathNoise);
+	tNoise_free(&vocoderNoise);
+	tZeroCrossing_free(&zerox);
+	tExpSmooth_free(&noiseRamp);
+	tHighpass_free(&noiseHP);
+	tVZFilter_free(&vocodec_highshelf);
+	tHighpass_free(&chVocFinalHP1);
+	tHighpass_free(&chVocFinalHP2);
 	for (int i = 0; i < NUM_VOC_VOICES; i++)
 	{
-		tSawtooth_freeFromPool(&osc[i], &smallPool);
-		tRosenbergGlottalPulse_freeFromPool(&glottal[i], &smallPool);
+		tSawtooth_free(&osc[i]);
+		tRosenbergGlottalPulse_free(&glottal[i]);
 	}
 }
 
@@ -1020,7 +1020,7 @@ void SFXPitchShiftTick(float* input)
 
 void SFXPitchShiftFree(void)
 {
-	tFormantShifter_freeFromPool(&fs, &smallPool);
+	tFormantShifter_free(&fs);
 	tRetune_free(&retune);
 	tRetune_free(&retune2);
 
@@ -1352,10 +1352,10 @@ void SFXSamplerBPTick(float* input)
 
 void SFXSamplerBPFree(void)
 {
-	tBuffer_freeFromPool(&buff, &largePool);
+	tBuffer_free(&buff);
 	tSampler_free(&sampler);
-	tExpSmooth_freeFromPool(&startSmooth, &smallPool);
-	tExpSmooth_freeFromPool(&lengthSmooth, &smallPool);
+	tExpSmooth_free(&startSmooth);
+	tExpSmooth_free(&lengthSmooth);
 }
 
 // keyboard sampler
@@ -1785,9 +1785,9 @@ void SFXSamplerKFree(void)
 {
 	for (int i = 0; i < NUM_SAMPLER_KEYS; i++)
 	{
-		tBuffer_freeFromPool(&keyBuff[i], &largePool);
-		tSampler_freeFromPool(&keySampler[i], &smallPool);
-		tExpSmooth_freeFromPool(&kSamplerGains[i], &smallPool);
+		tBuffer_free(&keyBuff[i]);
+		tSampler_free(&keySampler[i]);
+		tExpSmooth_free(&kSamplerGains[i]);
 	}
 }
 
@@ -2003,12 +2003,12 @@ void SFXSamplerAutoTick(float* input)
 
 void SFXSamplerAutoFree(void)
 {
-	tBuffer_freeFromPool(&asBuff[0], &largePool);
-	tBuffer_freeFromPool(&asBuff[1], &largePool);
-	tSampler_freeFromPool(&asSampler[0], &smallPool);
-	tSampler_freeFromPool(&asSampler[1], &smallPool);
-	tEnvelopeFollower_freeFromPool(&envfollow, &smallPool);
-	tExpSmooth_freeFromPool(&cfxSmooth, &smallPool);
+	tBuffer_free(&asBuff[0]);
+	tBuffer_free(&asBuff[1]);
+	tSampler_free(&asSampler[0]);
+	tSampler_free(&asSampler[1]);
+	tEnvelopeFollower_free(&envfollow);
+	tExpSmooth_free(&cfxSmooth);
 }
 
 //10 distortion tanh
@@ -2080,10 +2080,10 @@ void SFXDistortionTick(float* input)
 
 void SFXDistortionFree(void)
 {
-	tOversampler_freeFromPool(&oversampler, &smallPool);
-	tVZFilter_freeFromPool(&shelf1, &smallPool);
-	tVZFilter_freeFromPool(&shelf2, &smallPool);
-	tVZFilter_freeFromPool(&bell1, &smallPool);
+	tOversampler_free(&oversampler);
+	tVZFilter_free(&shelf1);
+	tVZFilter_free(&shelf2);
+	tVZFilter_free(&bell1);
 }
 
 // distortion wave folder
@@ -2190,10 +2190,10 @@ void SFXWaveFolderTick(float* input)
 
 void SFXWaveFolderFree(void)
 {
-	tLockhartWavefolder_freeFromPool(&wavefolder1, &smallPool);
-	tLockhartWavefolder_freeFromPool(&wavefolder2, &smallPool);
-	tHighpass_freeFromPool(&wfHP, &smallPool);
-	tOversampler_freeFromPool(&oversampler, &smallPool);
+	tLockhartWavefolder_free(&wavefolder1);
+	tLockhartWavefolder_free(&wavefolder2);
+	tHighpass_free(&wfHP);
+	tOversampler_free(&oversampler);
 }
 
 uint32_t crusherStereo = 0;
@@ -2256,8 +2256,8 @@ void SFXBitcrusherTick(float* input)
 
 void SFXBitcrusherFree(void)
 {
-	tCrusher_freeFromPool(&crush, &smallPool);
-	tCrusher_freeFromPool(&crush2, &smallPool);
+	tCrusher_free(&crush);
+	tCrusher_free(&crush2);
 }
 
 
@@ -2689,7 +2689,7 @@ void SFXLivingStringFree(void)
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 		tComplexLivingString_free(&theString[i]);
-		tExpSmooth_freeFromPool(&stringGains[i], &smallPool);
+		tExpSmooth_free(&stringGains[i]);
 	}
 }
 
@@ -2837,12 +2837,12 @@ void SFXLivingStringSynthFree(void)
 	for (int i = 0; i < NUM_STRINGS; i++)
 	{
 		tComplexLivingString_free(&theString[i]);
-		tSlide_freeFromPool(&stringInEnvs[i], &smallPool);
-		tSlide_freeFromPool(&stringOutEnvs[i], &smallPool);
-		tADSR4_freeFromPool(&pluckEnvs[i], &smallPool);
+		tSlide_free(&stringInEnvs[i]);
+		tSlide_free(&stringOutEnvs[i]);
+		tADSR4_free(&pluckEnvs[i]);
 	}
-	tVZFilter_freeFromPool(&pluckFilt,&smallPool);
-	tNoise_freeFromPool(&stringPluckNoise, &smallPool);
+	tVZFilter_free(&pluckFilt);
+	tNoise_free(&stringPluckNoise);
 }
 
 
@@ -3119,16 +3119,16 @@ void SFXClassicSynthFree(void)
 	{
 		for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
 		{
-			tSawtooth_freeFromPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
-			tRosenbergGlottalPulse_freeFromPool(&glottal[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
+			tSawtooth_free(&osc[(i * NUM_OSC_PER_VOICE) + j]);
+			tRosenbergGlottalPulse_free(&glottal[(i * NUM_OSC_PER_VOICE) + j]);
 		}
-		tEfficientSVF_freeFromPool(&synthLP[i], &smallPool);
-		tADSR4_freeFromPool(&polyEnvs[i], &smallPool);
-		tADSR4_freeFromPool(&polyFiltEnvs[i], &smallPool);
+		tEfficientSVF_free(&synthLP[i]);
+		tADSR4_free(&polyEnvs[i]);
+		tADSR4_free(&polyFiltEnvs[i]);
 	}
 
-	tCycle_freeFromPool(&pwmLFO1, &smallPool);
-	tCycle_freeFromPool(&pwmLFO2, &smallPool);
+	tCycle_free(&pwmLFO1);
+	tCycle_free(&pwmLFO2);
 }
 
 
@@ -3444,16 +3444,16 @@ void SFXRhodesFree(void)
 	{
 		for (int j = 0; j < 6; j++)
 		{
-			tCycle_freeFromPool(&FM_sines[i][j],&smallPool);
-			tADSR4_freeFromPool(&FM_envs[i][j],&smallPool);
+			tCycle_free(&FM_sines[i][j]);
+			tADSR4_free(&FM_envs[i][j]);
 		}
 
 	}
 	for (int i = 0; i < 6; i++)
 	{
-		tExpSmooth_freeFromPool(&susSmoothers[i], &smallPool);
+		tExpSmooth_free(&susSmoothers[i]);
 	}
-	tCycle_freeFromPool(&tremolo,&smallPool);
+	tCycle_free(&tremolo);
 
 }
 
