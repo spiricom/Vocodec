@@ -1636,8 +1636,8 @@ void SFXSamplerKTick(float* input)
 		}
 
 
-		tSampler_forceStart(&keySampler[currentSamplerKey], samplePlayStarts[currentSamplerKey]);
-		tSampler_forceLength(&keySampler[currentSamplerKey], samplePlayLengths[currentSamplerKey]);
+		tSampler_setStart(&keySampler[currentSamplerKey], samplePlayStarts[currentSamplerKey]);
+		tSampler_setLength(&keySampler[currentSamplerKey], samplePlayLengths[currentSamplerKey]);
 		tSampler_setCrossfadeLength(&keySampler[currentSamplerKey], crossfadeLengths[currentSamplerKey]);
 		tSampler_setRate(&keySampler[currentSamplerKey], sampleRates[currentSamplerKey] * sampleRatesMult[currentSamplerKey]);
 		tSampler_setMode(&keySampler[currentSamplerKey], loopOns[currentSamplerKey]);
@@ -3721,8 +3721,8 @@ void noteOn(int key, int velocity)
 					else
 					{
 						keySampler[currentSamplerKeyGlobal]->active = -1;
-						tSampler_forceStart(&keySampler[currentSamplerKeyGlobal], samplePlayStarts[currentSamplerKeyGlobal]);
-						tSampler_forceLength(&keySampler[currentSamplerKeyGlobal], samplePlayLengths[currentSamplerKeyGlobal]);
+						tSampler_setStart(&keySampler[currentSamplerKeyGlobal], samplePlayStarts[currentSamplerKeyGlobal]);
+						tSampler_setLength(&keySampler[currentSamplerKeyGlobal], samplePlayLengths[currentSamplerKeyGlobal]);
 						tSampler_setCrossfadeLength(&keySampler[currentSamplerKeyGlobal], crossfadeLengths[currentSamplerKeyGlobal]);
 						tSampler_setRate(&keySampler[currentSamplerKeyGlobal], sampleRates[currentSamplerKeyGlobal] * sampleRatesMult[currentSamplerKeyGlobal]);
 						tSampler_setMode(&keySampler[currentSamplerKeyGlobal], loopOns[currentSamplerKeyGlobal]);
