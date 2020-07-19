@@ -347,8 +347,17 @@ static USBH_StatusTypeDef USBH_MIDI_SOFProcess (USBH_HandleTypeDef *phost)
 						//stuff the data into my little FIFO
 						for (int i = 0; i < length; i++)
 						{
-							myUSB_FIFO[myUSB_FIFO_writePointer] = MIDI_RX_Buffer[MIDI_read_buffer][i];
-							myUSB_FIFO_writePointer++;
+							if ((i % 4) == 0)
+							{
+								if (MIDI_RX_Buffer[MIDI_read_buffer][i] > 0)
+								{
+									myUSB_FIFO[myUSB_FIFO_writePointer] = MIDI_RX_Buffer[MIDI_read_buffer][i];
+									myUSB_FIFO[myUSB_FIFO_writePointer+1] = MIDI_RX_Buffer[MIDI_read_buffer][i+1];
+									myUSB_FIFO[myUSB_FIFO_writePointer+2] = MIDI_RX_Buffer[MIDI_read_buffer][i+2];
+									myUSB_FIFO[myUSB_FIFO_writePointer+3] = MIDI_RX_Buffer[MIDI_read_buffer][i+3];
+									myUSB_FIFO_writePointer+=4;
+								}
+							}
 							//handle wrapping of the array index and turn on the overflow bit to notify the reader when that happens
 							if (myUSB_FIFO_writePointer >= 256)
 							{

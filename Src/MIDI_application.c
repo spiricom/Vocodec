@@ -118,7 +118,7 @@ void parse_MIDI_Message(void)
 	}
 
 }
-
+volatile testInt = 0;
 /*-----------------------------------------------------------------------------*/
 void ProcessReceivedMidiDatas(void)
 {
@@ -141,6 +141,10 @@ void ProcessReceivedMidiDatas(void)
 			myUSB_FIFO_readPointer = 0;
 		}
 		processed++;
+	}
+	if (processed >= 32)
+	{
+		testInt = 1;
 	}
 }
 

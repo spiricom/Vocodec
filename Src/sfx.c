@@ -331,6 +331,7 @@ tVZFilter shelf2;
 
 void SFXVocoderAlloc()
 {
+	leaf.clearOnAllocation = 1;
 	tTalkboxFloat_initToPool(&vocoder, 1024,  &smallPool);
 	tTalkboxFloat_setWarpOn(&vocoder, 1);
 	tNoise_initToPool(&vocoderNoise, WhiteNoise, &smallPool);
@@ -1635,21 +1636,18 @@ void SFXSamplerKTick(float* input)
 		}
 
 
-		tSampler_setStart(&keySampler[currentSamplerKey], samplePlayStarts[currentSamplerKey]);
-		tSampler_setLength(&keySampler[currentSamplerKey], samplePlayLengths[currentSamplerKey]);
+		tSampler_forceStart(&keySampler[currentSamplerKey], samplePlayStarts[currentSamplerKey]);
+		tSampler_forceLength(&keySampler[currentSamplerKey], samplePlayLengths[currentSamplerKey]);
 		tSampler_setCrossfadeLength(&keySampler[currentSamplerKey], crossfadeLengths[currentSamplerKey]);
 		tSampler_setRate(&keySampler[currentSamplerKey], sampleRates[currentSamplerKey] * sampleRatesMult[currentSamplerKey]);
 		tSampler_setMode(&keySampler[currentSamplerKey], loopOns[currentSamplerKey]);
 
-		for (int i = 0; i < NUM_SAMPLER_VOICES; ++i)
+		for (int i = 0; i < NUM_SAMPLER_KEYS; ++i)
 		{
-			if (tSimplePoly_isOn(&poly, i) > 0)
+			//if (tSimplePoly_isOn(&poly, i) > 0)
+			if (samplerKeyHeld[i] > 0)
 			{
-				int key = tSimplePoly_getPitch(&poly, i) - LOWEST_SAMPLER_KEY;
-				if ((0 <= key) && (key < NUM_SAMPLER_KEYS))
-				{
-					tBuffer_tick(&keyBuff[key], input[1]);
-				}
+				tBuffer_tick(&keyBuff[i], input[1]);
 			}
 		}
 	}
@@ -1757,12 +1755,13 @@ void SFXSamplerKTick(float* input)
 	for (int i = 0; i < NUM_SAMPLER_KEYS; i++)
 	{
 		float tempGain = tExpSmooth_tick(&kSamplerGains[i]);
-		if ( tempGain > 0.001f)
+		if ( tempGain > 0.0001f)
 		{
 			sample += tSampler_tick(&keySampler[i]) * tempGain;
 		}
 		else
 		{
+			/*
 			for (int j = 0; j< NUM_SAMPLER_VOICES; j++)
 			{
 				if (waitingForDeactivation[j] == (i + LOWEST_SAMPLER_KEY))
@@ -1771,6 +1770,7 @@ void SFXSamplerKTick(float* input)
 					waitingForDeactivation[j] = -1;
 				}
 			}
+			*/
 		}
 	}
 
@@ -3702,8 +3702,8 @@ void noteOn(int key, int velocity)
 		{
 			if ((key >= LOWEST_SAMPLER_KEY) && key < (LOWEST_SAMPLER_KEY + NUM_SAMPLER_KEYS))
 			{
-				int whichVoice = tSimplePoly_noteOn(&poly, key, velocity);
-				if (whichVoice >= 0)
+				//int whichVoice = tSimplePoly_noteOn(&poly, key, velocity);
+				//if (whichVoice >= 0)
 				{
 
 					currentSamplerKeyGlobal = key - LOWEST_SAMPLER_KEY;
@@ -3720,6 +3720,12 @@ void noteOn(int key, int velocity)
 					}
 					else
 					{
+						keySampler[currentSamplerKeyGlobal]->active = -1;
+						tSampler_forceStart(&keySampler[currentSamplerKeyGlobal], samplePlayStarts[currentSamplerKeyGlobal]);
+						tSampler_forceLength(&keySampler[currentSamplerKeyGlobal], samplePlayLengths[currentSamplerKeyGlobal]);
+						tSampler_setCrossfadeLength(&keySampler[currentSamplerKeyGlobal], crossfadeLengths[currentSamplerKeyGlobal]);
+						tSampler_setRate(&keySampler[currentSamplerKeyGlobal], sampleRates[currentSamplerKeyGlobal] * sampleRatesMult[currentSamplerKeyGlobal]);
+						tSampler_setMode(&keySampler[currentSamplerKeyGlobal], loopOns[currentSamplerKeyGlobal]);
 						tSampler_play(&keySampler[currentSamplerKeyGlobal]);
 						if (newBuffer[currentSamplerKeyGlobal])
 						{
@@ -3803,7 +3809,7 @@ void noteOff(int key, int velocity)
 
 		if (key >= LOWEST_SAMPLER_KEY && key < LOWEST_SAMPLER_KEY + NUM_SAMPLER_KEYS)
 		{
-			voice = tSimplePoly_markPendingNoteOff(&poly, key); //if we're polyphonic, we need to let release envelopes happen and not mark voices free when they are not
+			//voice = tSimplePoly_markPendingNoteOff(&poly, key); //if we're polyphonic, we need to let release envelopes happen and not mark voices free when they are not
 
 
 			if (tBuffer_isActive(&keyBuff[key-LOWEST_SAMPLER_KEY]) == 1)
@@ -3818,7 +3824,7 @@ void noteOff(int key, int velocity)
 			samplerKeyHeld[key-LOWEST_SAMPLER_KEY] = 0;
 			UISamplerKButtons(ButtonC, ActionHoldContinuous);
 			tSampler_stop(&keySampler[key-LOWEST_SAMPLER_KEY]);
-			waitingForDeactivation[voice] = key;
+			//waitingForDeactivation[voice] = key;
 		}
 	}
 	else if (currentPreset == LivingStringSynth)

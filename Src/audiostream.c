@@ -21,6 +21,9 @@
 #include "usbh_MIDI.h"
 #include "MIDI_application.h"
 
+
+
+
 //the audio buffers are put in the D2 RAM area because that is a memory location that the DMA has access to.
 int32_t audioOutBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
 int32_t audioInBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
@@ -76,7 +79,6 @@ int numBuffersCleared = 0;
 float atodbTable[ATODB_TABLE_SIZE];
 
 
-
 /**********************************************/
 
 void (*allocFunctions[PresetNil])(void);
@@ -105,7 +107,7 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 	{
 		tEnvelopeFollower_init(&LED_envelope[i], 0.0001f, .9995f);
 	}
-	LEAF_generate_atodbPositiveClipped(atodbTable, -120.0f, 380.f, ATODB_TABLE_SIZE);
+	LEAF_generate_atodbPositiveClipped(atodbTable, -120.0f, 380.0f, ATODB_TABLE_SIZE);
 	initGlobalSFXObjects();
 
 	loadingPreset = 1;
@@ -352,6 +354,7 @@ uint32_t audioTick(float* samples)
 	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, current_env);
 	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[2], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, current_env);
+
 
 	tickFunctions[currentPreset](samples);
 

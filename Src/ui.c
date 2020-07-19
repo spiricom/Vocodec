@@ -17,7 +17,7 @@ uint16_t ADC_values[NUM_ADC_CHANNELS] __ATTR_RAM_D2;
 float floatADC[NUM_ADC_CHANNELS];
 float lastFloatADC[NUM_ADC_CHANNELS];
 float floatADCUI[NUM_ADC_CHANNELS];
-float adcHysteresisThreshold = 0.004f;
+float adcHysteresisThreshold = 0.006f;
 
 uint8_t knobPage = 0;
 uint8_t numPages[PresetNil];

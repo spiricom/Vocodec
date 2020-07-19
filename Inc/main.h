@@ -79,7 +79,7 @@ extern  volatile int64_t cycleCountVals[4][3];
 
 
 float randomNumber(void);
-static void HardFault_Handler(void) __attribute__ ((naked));
+static void HardFault_Handler( void ) __attribute__( ( naked ) );
 void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress );
 void writeIntToFlash(uint32_t data, uint32_t location);
 uint32_t readIntFromFlash (uint32_t location);
