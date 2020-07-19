@@ -40,11 +40,7 @@
 
 extern int32_t audioOutBuffer[AUDIO_BUFFER_SIZE];
 extern int32_t audioInBuffer[AUDIO_BUFFER_SIZE];
-extern tMempool smallPool;
-extern tMempool largePool;
 extern uint8_t codecReady;
-extern tExpSmooth adc[6];
-extern float smoothedADC[6];
 extern float audioDisplayBuffer[128];
 extern uint8_t displayBufferIndex;
 

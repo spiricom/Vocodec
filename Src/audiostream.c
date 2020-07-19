@@ -28,20 +28,11 @@
 int32_t audioOutBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
 int32_t audioInBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
 
-//#define SMALL_MEM_SIZE 16328
-#define SMALL_MEM_SIZE 80328
-#define MED_MEM_SIZE 519000
-#define LARGE_MEM_SIZE 33554432 //32 MBytes - size of SDRAM IC
-char small_memory[SMALL_MEM_SIZE];
-char medium_memory[MED_MEM_SIZE]__ATTR_RAM_D1;
-char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
-
 //#define DISPLAY_BLOCK_SIZE 512
 //float audioDisplayBuffer[128];
 //uint8_t displayBufferIndex = 0;
 //float displayBlockVal = 0.0f;
 //uint32_t displayBlockCount = 0;
-
 
 void audioFrame(uint16_t buffer_offset);
 uint32_t audioTick(float* samples);
@@ -54,14 +45,8 @@ uint8_t codecReady = 0;
 
 uint16_t frameCounter = 0;
 
-tMempool smallPool;
-tMempool largePool;
-
-tExpSmooth adc[6];
-
 tNoise myNoise;
 tCycle mySine[2];
-float smoothedADC[6];
 tEnvelopeFollower LED_envelope[4];
 
 uint32_t clipCounter[4] = {0,0,0,0};
