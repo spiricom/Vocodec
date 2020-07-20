@@ -7,39 +7,8 @@
 #ifndef SFX_H_
 #define SFX_H_
 
-#ifndef __cplusplus
 #include "audiostream.h"
-#else
-#include <JuceHeader.h>
-#include "PluginEditor.h"
-#endif
-
 #include "ui.h"
-
-#ifdef __cplusplus
-namespace vocodec
-{
-    extern "C"
-    {
-#endif
-
-        //#define SMALL_MEM_SIZE 16328
-#define SMALL_MEM_SIZE 80328
-#define MED_MEM_SIZE 519000
-#define LARGE_MEM_SIZE 33554432 //32 MBytes - size of SDRAM IC
-
-#ifdef __cplusplus
-        extern char small_memory[SMALL_MEM_SIZE];
-        extern char medium_memory[MED_MEM_SIZE];
-        extern char large_memory[LARGE_MEM_SIZE];
-#else
-        extern char small_memory[SMALL_MEM_SIZE];
-        extern char medium_memory[MED_MEM_SIZE] __ATTR_RAM_D1;
-        extern char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
-#endif
-
-        extern tMempool smallPool;
-        extern tMempool largePool;
 
 #define NUM_VOC_VOICES 8
 #define INV_NUM_VOC_VOICES 0.125
@@ -59,197 +28,191 @@ namespace vocodec
 #define NUM_SAMPLER_KEYS 49
 #define LOWEST_SAMPLER_KEY 36
 
-        extern float presetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
-        extern uint8_t knobActive[NUM_ADC_CHANNELS];
+extern float presetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
+extern uint8_t knobActive[NUM_ADC_CHANNELS];
 
-        extern tSimplePoly poly;
-        extern tExpSmooth polyRamp[NUM_VOC_VOICES];
-        extern tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
+extern tSimplePoly poly;
+extern tExpSmooth polyRamp[NUM_VOC_VOICES];
+extern tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
 
-        extern PlayMode samplerMode;
-        extern float sampleLength;
+extern PlayMode samplerMode;
+extern float sampleLength;
 
-        extern uint32_t freeze;
+extern uint32_t freeze;
 
-        void initGlobalSFXObjects();
+void initGlobalSFXObjects();
 
-        // vocoder
-        extern uint8_t numVoices;
-        extern uint8_t internalExternal;
+// vocoder
+extern uint8_t numVoices;
+extern uint8_t internalExternal;
 
-        extern int vocFreezeLPC;
-        //LPC Vocoder
-        void SFXVocoderAlloc();
-        void SFXVocoderFrame();
-        void SFXVocoderTick(float* input);
-        void SFXVocoderFree(void);
+extern int vocFreezeLPC;
+//LPC Vocoder
+void SFXVocoderAlloc();
+void SFXVocoderFrame();
+void SFXVocoderTick(float* input);
+void SFXVocoderFree(void);
 
 #define MAX_VOCODER_FILTER_ORDER 2
 #define MAX_NUM_VOCODER_BANDS 24
 
-        extern int vocChFreeze;
-        //channel Vocoder
-        void SFXVocoderChAlloc();
-        void SFXVocoderChFrame();
-        void SFXVocoderChTick(float* input);
-        void SFXVocoderChFree(void);
+   extern int vocChFreeze;
+//channel Vocoder
+void SFXVocoderChAlloc();
+void SFXVocoderChFrame();
+void SFXVocoderChTick(float* input);
+void SFXVocoderChFree(void);
 
-        // pitch shift
-        void SFXPitchShiftAlloc();
-        void SFXPitchShiftFrame();
-        void SFXPitchShiftTick(float* input);
-        void SFXPitchShiftFree(void);
+// pitch shift
+void SFXPitchShiftAlloc();
+void SFXPitchShiftFrame();
+void SFXPitchShiftTick(float* input);
+void SFXPitchShiftFree(void);
 
-        // neartune
-        extern uint8_t autotuneChromatic;
-        extern uint32_t autotuneLock;
-        void SFXNeartuneAlloc();
-        void SFXNeartuneFrame();
-        void SFXNeartuneTick(float* input);
-        void SFXNeartuneFree(void);
+// neartune
+extern uint8_t autotuneChromatic;
+extern uint32_t autotuneLock;
+void SFXNeartuneAlloc();
+void SFXNeartuneFrame();
+void SFXNeartuneTick(float* input);
+void SFXNeartuneFree(void);
 
-        // autotune
-        void SFXAutotuneAlloc();
-        void SFXAutotuneFrame();
-        void SFXAutotuneTick(float* input);
-        void SFXAutotuneFree(void);
+// autotune
+void SFXAutotuneAlloc();
+void SFXAutotuneFrame();
+void SFXAutotuneTick(float* input);
+void SFXAutotuneFree(void);
 
-        // sampler - button press
-        extern uint8_t samplePlaying;
-        extern int bpMode;
-        void SFXSamplerBPAlloc();
-        void SFXSamplerBPFrame();
-        void SFXSamplerBPTick(float* input);
-        void SFXSamplerBPFree(void);
+// sampler - button press
+extern uint8_t samplePlaying;
+extern int bpMode;
+void SFXSamplerBPAlloc();
+void SFXSamplerBPFrame();
+void SFXSamplerBPTick(float* input);
+void SFXSamplerBPFree(void);
 
-        // sampler - keyboard
-        extern int currentSamplerKeyGlobal;
-        extern int editingSamplerKey;
-        extern float recSampleLength;
-        extern float editSampleLength;
-        extern int controlAllKeys;
+// sampler - keyboard
+extern int currentSamplerKeyGlobal;
+extern int editingSamplerKey;
+extern float recSampleLength;
+extern float editSampleLength;
+extern int controlAllKeys;
 
-        void SFXSamplerKAlloc();
-        void SFXSamplerKFrame();
-        void SFXSamplerKTick(float* input);
-        void SFXSamplerKFree(void);
+void SFXSamplerKAlloc();
+void SFXSamplerKFrame();
+void SFXSamplerKTick(float* input);
+void SFXSamplerKFree(void);
 
-        // sampler - auto ch1
-        extern uint8_t triggerChannel;
-        extern int pitchQuantization;
+// sampler - auto ch1
+extern uint8_t triggerChannel;
+extern int pitchQuantization;
 
-        void SFXSamplerAutoAlloc();
-        void SFXSamplerAutoFrame();
-        void SFXSamplerAutoTick(float* input);
-        void SFXSamplerAutoFree(void);
+void SFXSamplerAutoAlloc();
+void SFXSamplerAutoFrame();
+void SFXSamplerAutoTick(float* input);
+void SFXSamplerAutoFree(void);
 
-        // distortion tanh
-        extern uint8_t distortionMode;
+// distortion tanh
+extern uint8_t distortionMode;
 
-        void SFXDistortionAlloc();
-        void SFXDistortionFrame();
-        void SFXDistortionTick(float* input);
-        void SFXDistortionFree(void);
+void SFXDistortionAlloc();
+void SFXDistortionFrame();
+void SFXDistortionTick(float* input);
+void SFXDistortionFree(void);
 
-        // distortion wave folder
-        extern int foldMode;
-        void SFXWaveFolderAlloc();
-        void SFXWaveFolderFrame();
-        void SFXWaveFolderTick(float* input);
-        void SFXWaveFolderFree(void);
+// distortion wave folder
+extern int foldMode;
+void SFXWaveFolderAlloc();
+void SFXWaveFolderFrame();
+void SFXWaveFolderTick(float* input);
+void SFXWaveFolderFree(void);
 
-        extern uint32_t crusherStereo;
-        // bitcrusher
-        void SFXBitcrusherAlloc();
-        void SFXBitcrusherFrame();
-        void SFXBitcrusherTick(float* input);
-        void SFXBitcrusherFree(void);
-
-
-        // delay
-        extern int delayShaper;
-        extern uint8_t capFeedback;
-
-        void SFXDelayAlloc();
-        void SFXDelayFrame();
-        void SFXDelayTick(float* input);
-        void SFXDelayFree(void);
+extern uint32_t crusherStereo;
+// bitcrusher
+void SFXBitcrusherAlloc();
+void SFXBitcrusherFrame();
+void SFXBitcrusherTick(float* input);
+void SFXBitcrusherFree(void);
 
 
-        // reverb
-        void SFXReverbAlloc();
-        void SFXReverbFrame();
-        void SFXReverbTick(float* input);
-        void SFXReverbFree(void);
+// delay
+extern int delayShaper;
+extern uint8_t capFeedback;
 
-        // reverb2
-        void SFXReverb2Alloc();
-        void SFXReverb2Frame();
-        void SFXReverb2Tick(float* input);
-        void SFXReverb2Free(void);
-
-        // living string
-        extern int levMode;
-        extern int ignoreFreqKnobs;
-        extern int independentStrings;
-        void SFXLivingStringAlloc();
-        void SFXLivingStringFrame();
-        void SFXLivingStringTick(float* input);
-        void SFXLivingStringFree(void);
-
-        // living string synth
-        extern int voicePluck;
-        extern int levModeStr;
-        void SFXLivingStringSynthAlloc();
-        void SFXLivingStringSynthFrame();
-        void SFXLivingStringSynthTick(float* input);
-        void SFXLivingStringSynthFree(void);
+void SFXDelayAlloc();
+void SFXDelayFrame();
+void SFXDelayTick(float* input);
+void SFXDelayFree(void);
 
 
-        // classic synth
-        extern uint8_t csKnobPage;
-        void SFXClassicSynthAlloc();
-        void SFXClassicSynthFrame();
-        void SFXClassicSynthTick(float* input);
-        void SFXClassicSynthFree(void);
+// reverb
+void SFXReverbAlloc();
+void SFXReverbFrame();
+void SFXReverbTick(float* input);
+void SFXReverbFree(void);
 
-        // rhodes
-        extern const char* soundNames[5];
-        extern int Rsound;
-        extern uint8_t tremoloStereo;
-        void SFXRhodesAlloc();
-        void SFXRhodesFrame();
-        void SFXRhodesTick(float* input);
-        void SFXRhodesFree(void);
+// reverb2
+void SFXReverb2Alloc();
+void SFXReverb2Frame();
+void SFXReverb2Tick(float* input);
+void SFXReverb2Free(void);
 
+// living string
+extern int levMode;
+extern int ignoreFreqKnobs;
+extern int independentStrings;
+void SFXLivingStringAlloc();
+void SFXLivingStringFrame();
+void SFXLivingStringTick(float* input);
+void SFXLivingStringFree(void);
 
-        // MIDI FUNCTIONS
-        void noteOn(int key, int velocity);
-        void noteOff(int key, int velocity);
-        void pitchBend(int data);
-        void sustainOn(void);
-        void sustainOff(void);
-        void toggleBypass(void);
-        void toggleSustain(void);
-
-        void calculateFreq(int voice);
-
-        float calculateTunedMidiNote(float tempNote);
-
-
-        void calculateNoteArray(void);
-        float nearestNote(float period);
-        float nearestNoteWithHysteresis(float note, float hysteresis);
-
-        void clearNotes(void);
-
-        void ctrlInput(int ctrl, int value);
+// living string synth
+extern int voicePluck;
+extern int levModeStr;
+void SFXLivingStringSynthAlloc();
+void SFXLivingStringSynthFrame();
+void SFXLivingStringSynthTick(float* input);
+void SFXLivingStringSynthFree(void);
 
 
-#ifdef __cplusplus
-    }
-} // extern "C"
-#endif
+// classic synth
+extern uint8_t csKnobPage;
+void SFXClassicSynthAlloc();
+void SFXClassicSynthFrame();
+void SFXClassicSynthTick(float* input);
+void SFXClassicSynthFree(void);
+
+// rhodes
+extern char* soundNames[5];
+extern int Rsound;
+extern uint8_t tremoloStereo;
+void SFXRhodesAlloc();
+void SFXRhodesFrame();
+void SFXRhodesTick(float* input);
+void SFXRhodesFree(void);
+
+
+// MIDI FUNCTIONS
+void noteOn(int key, int velocity);
+void noteOff(int key, int velocity);
+void pitchBend(int data);
+void sustainOn(void);
+void sustainOff(void);
+void toggleBypass(void);
+void toggleSustain(void);
+
+void calculateFreq(int voice);
+
+float calculateTunedMidiNote(float tempNote);
+
+
+void calculateNoteArray(void);
+float nearestNote(float period);
+float nearestNoteWithHysteresis(float note, float hysteresis);
+
+void clearNotes(void);
+
+void ctrlInput(int ctrl, int value);
 
 
 #endif /* SFX_H_ */

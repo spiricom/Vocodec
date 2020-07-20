@@ -349,7 +349,7 @@ void OLEDclearLine(OLEDLine line)
 	//ssd1306_display_full_buffer();
 }
 
-void OLEDwriteString(const char* myCharArray, uint8_t arrayLength, uint8_t startCursor, OLEDLine line)
+void OLEDwriteString(char* myCharArray, uint8_t arrayLength, uint8_t startCursor, OLEDLine line)
 {
 	uint8_t cursorX = startCursor;
 	uint8_t cursorY = 12 + (16 * (line%2));
@@ -363,7 +363,7 @@ void OLEDwriteString(const char* myCharArray, uint8_t arrayLength, uint8_t start
 	//ssd1306_display_full_buffer();
 }
 
-void OLEDwriteLine(const char* myCharArray, uint8_t arrayLength, OLEDLine line)
+void OLEDwriteLine(char* myCharArray, uint8_t arrayLength, OLEDLine line)
 {
 	if (line == FirstLine)
 	{

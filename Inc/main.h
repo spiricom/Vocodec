@@ -38,8 +38,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-#define OTRUE 1
-#define OFALSE 0
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

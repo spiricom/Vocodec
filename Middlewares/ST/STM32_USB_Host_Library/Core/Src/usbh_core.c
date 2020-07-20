@@ -389,7 +389,7 @@ USBH_StatusTypeDef  USBH_Start(USBH_HandleTypeDef *phost)
   USBH_LL_Start(phost);
 
   /* Activate VBUS on the port */
-  USBH_LL_DriverVBUS(phost, OTRUE);
+  USBH_LL_DriverVBUS(phost, 1);
 
   return USBH_OK;
 }

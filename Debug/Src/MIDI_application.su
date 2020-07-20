@@ -1,0 +1,4 @@
+MIDI_application.c:36:6:MIDI_Application	8	static
+MIDI_application.c:68:6:parse_MIDI_Message	8	static
+MIDI_application.c:123:6:ProcessReceivedMidiDatas	32	static
+MIDI_application.c:159:6:USBH_MIDI_ReceiveCallback	0	static

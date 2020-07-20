@@ -1,0 +1,5 @@
+d_fft_mayer.c:220:6:mayer_fht	88	static
+d_fft_mayer.c:369:6:mayer_fft	32	static
+d_fft_mayer.c:384:6:mayer_ifft	16	static
+d_fft_mayer.c:399:6:mayer_realfft	16	static
+d_fft_mayer.c:412:6:mayer_realifft	4	static
