@@ -51,7 +51,7 @@ Src/main.o: ../Src/main.c ../Inc/main.h \
  ../Middlewares/Third_Party/FatFs/src/diskio.h \
  ../Middlewares/Third_Party/FatFs/src/ff.h ../Inc/sd_diskio.h \
  ../Inc/i2c.h ../Inc/rng.h ../Inc/sai.h ../Inc/sdmmc.h ../Inc/tim.h \
- ../Inc/usb_host.h ../Inc/gpio.h ../Inc/fmc.h ../Inc/ui.h ../Inc/oled.h \
+ ../Inc/usb_host.h ../Inc/gpio.h ../Inc/fmc.h ../Inc/ui.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/leaf.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-global.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-mempool.h \
@@ -81,7 +81,7 @@ Src/main.o: ../Src/main.c ../Inc/main.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-sampling.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-physical.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-electrical.h \
- ../Inc/audiostream.h ../Inc/eeprom.h
+ ../Inc/oled.h ../Inc/audiostream.h ../Inc/eeprom.h
 
 ../Inc/main.h:
 
@@ -219,8 +219,6 @@ Src/main.o: ../Src/main.c ../Inc/main.h \
 
 ../Inc/ui.h:
 
-../Inc/oled.h:
-
 /Users/josnyder/dev/Vocodec/leaf/leaf/leaf.h:
 
 /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-global.h:
@@ -278,6 +276,8 @@ Src/main.o: ../Src/main.c ../Inc/main.h \
 /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-physical.h:
 
 /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-electrical.h:
+
+../Inc/oled.h:
 
 ../Inc/audiostream.h:
 

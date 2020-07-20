@@ -8,7 +8,7 @@ ff.c:1351:7:create_chain	64	static
 ff.c:2292:9:dir_register	72	static
 ff.c:2813:9:follow_path	64	static
 ff.c:2131:9:dir_read.constprop	40	static
-ff.c:2993:9:find_volume	48	static
+ff.c:2993:9:find_volume	56	static
 ff.c:3260:9:f_mount	16	static
 ff.c:3308:9:f_open	104	static
 ff.c:3511:9:f_read	80	static

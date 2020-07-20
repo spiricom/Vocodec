@@ -72,8 +72,8 @@ Src/ui.o: ../Src/ui.c ../Inc/main.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-sampling.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-physical.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-electrical.h \
- ../Inc/main.h ../Inc/sfx.h ../Inc/audiostream.h ../Inc/ui.h \
- ../Inc/oled.h ../Inc/ui.h ../Inc/tunings.h ../Inc/eeprom.h
+ ../Inc/main.h ../Inc/oled.h ../Inc/eeprom.h ../Inc/sfx.h \
+ ../Inc/audiostream.h ../Inc/ui.h ../Inc/ui.h ../Inc/tunings.h
 
 ../Inc/main.h:
 
@@ -227,16 +227,16 @@ Src/ui.o: ../Src/ui.c ../Inc/main.h \
 
 ../Inc/main.h:
 
+../Inc/oled.h:
+
+../Inc/eeprom.h:
+
 ../Inc/sfx.h:
 
 ../Inc/audiostream.h:
 
 ../Inc/ui.h:
 
-../Inc/oled.h:
-
 ../Inc/ui.h:
 
 ../Inc/tunings.h:
-
-../Inc/eeprom.h:

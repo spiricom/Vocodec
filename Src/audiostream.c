@@ -21,27 +21,15 @@
 #include "usbh_MIDI.h"
 #include "MIDI_application.h"
 
-
-
-
 //the audio buffers are put in the D2 RAM area because that is a memory location that the DMA has access to.
 int32_t audioOutBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
 int32_t audioInBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
-
-//#define SMALL_MEM_SIZE 16328
-#define SMALL_MEM_SIZE 80328
-#define MED_MEM_SIZE 519000
-#define LARGE_MEM_SIZE 33554432 //32 MBytes - size of SDRAM IC
-char small_memory[SMALL_MEM_SIZE];
-char medium_memory[MED_MEM_SIZE]__ATTR_RAM_D1;
-char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
 
 //#define DISPLAY_BLOCK_SIZE 512
 //float audioDisplayBuffer[128];
 //uint8_t displayBufferIndex = 0;
 //float displayBlockVal = 0.0f;
 //uint32_t displayBlockCount = 0;
-
 
 void audioFrame(uint16_t buffer_offset);
 uint32_t audioTick(float* samples);
@@ -54,14 +42,8 @@ uint8_t codecReady = 0;
 
 uint16_t frameCounter = 0;
 
-tMempool smallPool;
-tMempool largePool;
-
-tExpSmooth adc[6];
-
 tNoise myNoise;
 tCycle mySine[2];
-float smoothedADC[6];
 tEnvelopeFollower LED_envelope[4];
 
 uint32_t clipCounter[4] = {0,0,0,0};
@@ -77,6 +59,7 @@ int numBuffersCleared = 0;
 #define ATODB_TABLE_SIZE 512
 #define ATODB_TABLE_SIZE_MINUS_ONE 511
 float atodbTable[ATODB_TABLE_SIZE];
+
 
 
 /**********************************************/
@@ -107,7 +90,7 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 	{
 		tEnvelopeFollower_init(&LED_envelope[i], 0.0001f, .9995f);
 	}
-	LEAF_generate_atodbPositiveClipped(atodbTable, -120.0f, 380.0f, ATODB_TABLE_SIZE);
+	LEAF_generate_atodbPositiveClipped(atodbTable, -120.0f, 380.f, ATODB_TABLE_SIZE);
 	initGlobalSFXObjects();
 
 	loadingPreset = 1;
@@ -354,7 +337,6 @@ uint32_t audioTick(float* samples)
 	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, current_env);
 	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[2], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, current_env);
-
 
 	tickFunctions[currentPreset](samples);
 

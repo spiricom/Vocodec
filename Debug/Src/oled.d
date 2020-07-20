@@ -43,9 +43,7 @@ Src/oled.o: ../Src/oled.c ../Inc/main.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim_ex.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_hcd.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_usb.h ../Inc/oled.h \
- ../Inc/ui.h ../Inc/ssd1306.h ../Inc/main.h ../Inc/gfx.h \
- ../Inc/gfx_font.h ../Inc/ssd1306.h ../Inc/custom_fonts.h \
- ../Inc/audiostream.h /Users/josnyder/dev/Vocodec/leaf/leaf/leaf.h \
+ ../Inc/ui.h /Users/josnyder/dev/Vocodec/leaf/leaf/leaf.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-global.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-mempool.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-math.h \
@@ -74,6 +72,8 @@ Src/oled.o: ../Src/oled.c ../Inc/main.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-sampling.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-physical.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-electrical.h \
+ ../Inc/ssd1306.h ../Inc/main.h ../Inc/gfx.h ../Inc/gfx_font.h \
+ ../Inc/ssd1306.h ../Inc/custom_fonts.h ../Inc/audiostream.h \
  ../Inc/tunings.h
 
 ../Inc/main.h:
@@ -170,20 +170,6 @@ Src/oled.o: ../Src/oled.c ../Inc/main.h \
 
 ../Inc/ui.h:
 
-../Inc/ssd1306.h:
-
-../Inc/main.h:
-
-../Inc/gfx.h:
-
-../Inc/gfx_font.h:
-
-../Inc/ssd1306.h:
-
-../Inc/custom_fonts.h:
-
-../Inc/audiostream.h:
-
 /Users/josnyder/dev/Vocodec/leaf/leaf/leaf.h:
 
 /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-global.h:
@@ -241,5 +227,19 @@ Src/oled.o: ../Src/oled.c ../Inc/main.h \
 /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-physical.h:
 
 /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-electrical.h:
+
+../Inc/ssd1306.h:
+
+../Inc/main.h:
+
+../Inc/gfx.h:
+
+../Inc/gfx_font.h:
+
+../Inc/ssd1306.h:
+
+../Inc/custom_fonts.h:
+
+../Inc/audiostream.h:
 
 ../Inc/tunings.h:

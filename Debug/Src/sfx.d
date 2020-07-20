@@ -42,8 +42,11 @@ Src/sfx.o: ../Src/sfx.c ../Inc/main.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim_ex.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_hcd.h \
- ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_usb.h ../Inc/sfx.h \
- ../Inc/audiostream.h /Users/josnyder/dev/Vocodec/leaf/leaf/leaf.h \
+ ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_usb.h ../Inc/oled.h \
+ ../Inc/MIDI_application.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h \
+ ../Inc/usbh_conf.h ../Inc/main.h \
+ /Users/josnyder/dev/Vocodec/leaf/leaf/leaf.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-global.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-mempool.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-math.h \
@@ -72,16 +75,13 @@ Src/sfx.o: ../Src/sfx.c ../Inc/main.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-sampling.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-physical.h \
  /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-electrical.h \
- ../Inc/main.h ../Inc/ui.h ../Inc/oled.h ../Inc/tunings.h \
- ../Inc/MIDI_application.h \
- ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h \
- ../Inc/usbh_conf.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_def.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ioreq.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h \
- ../Inc/usbh_MIDI.h ../Inc/sfx.h
+ ../Inc/usbh_MIDI.h ../Inc/sfx.h ../Inc/audiostream.h ../Inc/ui.h \
+ ../Inc/sfx.h ../Inc/tunings.h
 
 ../Inc/main.h:
 
@@ -173,9 +173,15 @@ Src/sfx.o: ../Src/sfx.c ../Inc/main.h \
 
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_usb.h:
 
-../Inc/sfx.h:
+../Inc/oled.h:
 
-../Inc/audiostream.h:
+../Inc/MIDI_application.h:
+
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h:
+
+../Inc/usbh_conf.h:
+
+../Inc/main.h:
 
 /Users/josnyder/dev/Vocodec/leaf/leaf/leaf.h:
 
@@ -235,20 +241,6 @@ Src/sfx.o: ../Src/sfx.c ../Inc/main.h \
 
 /Users/josnyder/dev/Vocodec/leaf/leaf/./Inc/leaf-electrical.h:
 
-../Inc/main.h:
-
-../Inc/ui.h:
-
-../Inc/oled.h:
-
-../Inc/tunings.h:
-
-../Inc/MIDI_application.h:
-
-../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h:
-
-../Inc/usbh_conf.h:
-
 ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_def.h:
 
 ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ioreq.h:
@@ -262,3 +254,11 @@ Src/sfx.o: ../Src/sfx.c ../Inc/main.h \
 ../Inc/usbh_MIDI.h:
 
 ../Inc/sfx.h:
+
+../Inc/audiostream.h:
+
+../Inc/ui.h:
+
+../Inc/sfx.h:
+
+../Inc/tunings.h:
