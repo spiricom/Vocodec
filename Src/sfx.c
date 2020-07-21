@@ -882,7 +882,7 @@ namespace vocodec
 
             }
 
-            sample = LEAF_tanh(sample);
+            sample = fast_tanh4(sample);
 
             float output[2] = {0.0f, 0.0f};
             input[1] = input[1] * (displayValues[0] * 30.0f);
@@ -909,10 +909,8 @@ namespace vocodec
 
             float finalSample1 = tHighpass_tick(&chVocFinalHP1, (output[0] + (output[1] * oneMinusStereo)) * chVocOutputGain);
             float finalSample2 = tHighpass_tick(&chVocFinalHP2, (output[1] + (output[0] * oneMinusStereo)) * chVocOutputGain);
-            input[0] = 0.98f * LEAF_tanh(finalSample1);
-            input[1] = 0.98f * LEAF_tanh(finalSample2);
-
-
+            input[0] = 0.98f * fast_tanh4(finalSample1);
+            input[1] = 0.98f * fast_tanh4(finalSample2);
         }
 
 
@@ -1429,7 +1427,7 @@ namespace vocodec
                 waitingForDeactivation[i] = -1;
             }
             setLED_B(controlAllKeys);
-            samp_thresh = 0.0002f;
+            samp_thresh = 0.02f;
         }
 
 
@@ -1617,25 +1615,25 @@ namespace vocodec
                 displayValues[6] = knobs[6];
 
                 //check if display values are new
-                if (fabsf(knobs[0]-prevKnobs[0]) > 0.0001f)
+                if (fabsf(knobs[0]-prevKnobs[0]) > 0.0005f)
                 {
                     samplePlayStarts[currentSamplerKey]= (knobs[0] * recordedLength);// + detectedAttackPos[currentSamplerKey];
 
                 }
 
-                if (fabsf(knobs[1]-prevKnobs[1])  > 0.0001f)
+                if (fabsf(knobs[1]-prevKnobs[1])  > 0.0005f)
                 {
                     samplePlayLengths[currentSamplerKey] = (knobs[1] * recordedLength);// - detectedAttackPos[currentSamplerKey];
 
                 }
 
-                if (fabsf(knobs[2]-prevKnobs[2])  > 0.0001f)
+                if (fabsf(knobs[2]-prevKnobs[2])  > 0.0005f)
                 {
                     sampleRates[currentSamplerKey] = displayValues[2];
 
                 }
 
-                if (fabsf(knobs[3]-prevKnobs[3])  > 0.0001f)
+                if (fabsf(knobs[3]-prevKnobs[3])  > 0.0005f)
                 {
                     sampleRatesMult[currentSamplerKey] = displayValues[3];
 
@@ -1643,14 +1641,14 @@ namespace vocodec
 
 
 
-                if (fabsf(knobs[4]-prevKnobs[4]) > 0.0001f)
+                if (fabsf(knobs[4]-prevKnobs[4]) > 0.0005f)
                 {
 
                     loopOns[currentSamplerKey] = roundf(knobs[4]);
 
                 }
 
-                if (fabsf(knobs[5]-prevKnobs[5])> 0.0001f)
+                if (fabsf(knobs[5]-prevKnobs[5])> 0.0005f)
                 {
 
                     crossfadeLengths[currentSamplerKey] = displayValues[5];
