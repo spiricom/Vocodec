@@ -909,8 +909,8 @@ namespace vocodec
 
             float finalSample1 = tHighpass_tick(&chVocFinalHP1, (output[0] + (output[1] * oneMinusStereo)) * chVocOutputGain);
             float finalSample2 = tHighpass_tick(&chVocFinalHP2, (output[1] + (output[0] * oneMinusStereo)) * chVocOutputGain);
-            input[0] = 0.98f * tanhf(finalSample1);
-            input[1] = 0.98f * tanhf(finalSample2);
+            input[0] = 0.98f * LEAF_tanh(finalSample1);
+            input[1] = 0.98f * LEAF_tanh(finalSample2);
 
 
         }

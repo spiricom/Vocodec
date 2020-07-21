@@ -15709,6 +15709,10 @@ Discarded input sections
                 0x0000000000000000       0x18 leaf/leaf/Src/leaf-math.o
  .text.LEAF_softClip
                 0x0000000000000000       0x4c leaf/leaf/Src/leaf-math.o
+ .text.waveshape_distort
+                0x0000000000000000       0x20 leaf/leaf/Src/leaf-math.o
+ .text.waveshape_distort2
+                0x0000000000000000       0x20 leaf/leaf/Src/leaf-math.o
  .text.LEAF_generate_sine
                 0x0000000000000000       0x5c leaf/leaf/Src/leaf-math.o
  .text.LEAF_generate_sawtooth
@@ -21286,7 +21290,7 @@ LOAD /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.id
                 0x0000000000001940       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/crtn.o
 OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
 
-.debug_info     0x0000000000000000    0xc8c42
+.debug_info     0x0000000000000000    0xc8c95
  .debug_info    0x0000000000000000     0x213a Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
  .debug_info    0x000000000000213a     0x44b2 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.o
  .debug_info    0x00000000000065ec     0x3bae Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.o
@@ -21357,15 +21361,15 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_info    0x000000000009e4db     0x6446 leaf/leaf/Src/leaf-effects.o
  .debug_info    0x00000000000a4921     0x3ea8 leaf/leaf/Src/leaf-envelopes.o
  .debug_info    0x00000000000a87c9     0x6a4e leaf/leaf/Src/leaf-filters.o
- .debug_info    0x00000000000af217     0x240f leaf/leaf/Src/leaf-math.o
- .debug_info    0x00000000000b1626     0x1cc2 leaf/leaf/Src/leaf-mempool.o
- .debug_info    0x00000000000b32e8     0x2eae leaf/leaf/Src/leaf-midi.o
- .debug_info    0x00000000000b6196     0x4759 leaf/leaf/Src/leaf-oscillators.o
- .debug_info    0x00000000000ba8ef     0x62d3 leaf/leaf/Src/leaf-physical.o
- .debug_info    0x00000000000c0bc2     0x371f leaf/leaf/Src/leaf-reverb.o
- .debug_info    0x00000000000c42e1     0x2cba leaf/leaf/Src/leaf-sampling.o
- .debug_info    0x00000000000c6f9b      0xe45 leaf/leaf/Src/leaf-tables.o
- .debug_info    0x00000000000c7de0      0xe62 leaf/leaf/Src/leaf.o
+ .debug_info    0x00000000000af217     0x2462 leaf/leaf/Src/leaf-math.o
+ .debug_info    0x00000000000b1679     0x1cc2 leaf/leaf/Src/leaf-mempool.o
+ .debug_info    0x00000000000b333b     0x2eae leaf/leaf/Src/leaf-midi.o
+ .debug_info    0x00000000000b61e9     0x4759 leaf/leaf/Src/leaf-oscillators.o
+ .debug_info    0x00000000000ba942     0x62d3 leaf/leaf/Src/leaf-physical.o
+ .debug_info    0x00000000000c0c15     0x371f leaf/leaf/Src/leaf-reverb.o
+ .debug_info    0x00000000000c4334     0x2cba leaf/leaf/Src/leaf-sampling.o
+ .debug_info    0x00000000000c6fee      0xe45 leaf/leaf/Src/leaf-tables.o
+ .debug_info    0x00000000000c7e33      0xe62 leaf/leaf/Src/leaf.o
 
 .debug_abbrev   0x0000000000000000    0x11080
  .debug_abbrev  0x0000000000000000      0x349 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
@@ -21448,7 +21452,7 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_abbrev  0x0000000000010c4d      0x1c1 leaf/leaf/Src/leaf-tables.o
  .debug_abbrev  0x0000000000010e0e      0x272 leaf/leaf/Src/leaf.o
 
-.debug_loc      0x0000000000000000    0x67b56
+.debug_loc      0x0000000000000000    0x67b9e
  .debug_loc     0x0000000000000000      0x63b Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
  .debug_loc     0x000000000000063b     0x25b1 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.o
  .debug_loc     0x0000000000002bec     0x210a Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.o
@@ -21510,16 +21514,16 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_loc     0x000000000004a758     0x52e3 leaf/leaf/Src/leaf-effects.o
  .debug_loc     0x000000000004fa3b     0x2c9a leaf/leaf/Src/leaf-envelopes.o
  .debug_loc     0x00000000000526d5     0x52c1 leaf/leaf/Src/leaf-filters.o
- .debug_loc     0x0000000000057996     0x1e4e leaf/leaf/Src/leaf-math.o
- .debug_loc     0x00000000000597e4      0xe73 leaf/leaf/Src/leaf-mempool.o
- .debug_loc     0x000000000005a657     0x2185 leaf/leaf/Src/leaf-midi.o
- .debug_loc     0x000000000005c7dc     0x3a5c leaf/leaf/Src/leaf-oscillators.o
- .debug_loc     0x0000000000060238     0x3a72 leaf/leaf/Src/leaf-physical.o
- .debug_loc     0x0000000000063caa     0x1642 leaf/leaf/Src/leaf-reverb.o
- .debug_loc     0x00000000000652ec     0x2748 leaf/leaf/Src/leaf-sampling.o
- .debug_loc     0x0000000000067a34      0x122 leaf/leaf/Src/leaf.o
+ .debug_loc     0x0000000000057996     0x1e96 leaf/leaf/Src/leaf-math.o
+ .debug_loc     0x000000000005982c      0xe73 leaf/leaf/Src/leaf-mempool.o
+ .debug_loc     0x000000000005a69f     0x2185 leaf/leaf/Src/leaf-midi.o
+ .debug_loc     0x000000000005c824     0x3a5c leaf/leaf/Src/leaf-oscillators.o
+ .debug_loc     0x0000000000060280     0x3a72 leaf/leaf/Src/leaf-physical.o
+ .debug_loc     0x0000000000063cf2     0x1642 leaf/leaf/Src/leaf-reverb.o
+ .debug_loc     0x0000000000065334     0x2748 leaf/leaf/Src/leaf-sampling.o
+ .debug_loc     0x0000000000067a7c      0x122 leaf/leaf/Src/leaf.o
 
-.debug_aranges  0x0000000000000000     0x4480
+.debug_aranges  0x0000000000000000     0x4490
  .debug_aranges
                 0x0000000000000000      0x1b0 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
  .debug_aranges
@@ -21661,25 +21665,25 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_aranges
                 0x00000000000033f0      0x420 leaf/leaf/Src/leaf-filters.o
  .debug_aranges
-                0x0000000000003810      0x1d0 leaf/leaf/Src/leaf-math.o
+                0x0000000000003810      0x1e0 leaf/leaf/Src/leaf-math.o
  .debug_aranges
-                0x00000000000039e0       0xa0 leaf/leaf/Src/leaf-mempool.o
+                0x00000000000039f0       0xa0 leaf/leaf/Src/leaf-mempool.o
  .debug_aranges
-                0x0000000000003a80      0x1a0 leaf/leaf/Src/leaf-midi.o
+                0x0000000000003a90      0x1a0 leaf/leaf/Src/leaf-midi.o
  .debug_aranges
-                0x0000000000003c20      0x318 leaf/leaf/Src/leaf-oscillators.o
+                0x0000000000003c30      0x318 leaf/leaf/Src/leaf-oscillators.o
  .debug_aranges
-                0x0000000000003f38      0x278 leaf/leaf/Src/leaf-physical.o
+                0x0000000000003f48      0x278 leaf/leaf/Src/leaf-physical.o
  .debug_aranges
-                0x00000000000041b0      0x110 leaf/leaf/Src/leaf-reverb.o
+                0x00000000000041c0      0x110 leaf/leaf/Src/leaf-reverb.o
  .debug_aranges
-                0x00000000000042c0      0x160 leaf/leaf/Src/leaf-sampling.o
+                0x00000000000042d0      0x160 leaf/leaf/Src/leaf-sampling.o
  .debug_aranges
-                0x0000000000004420       0x18 leaf/leaf/Src/leaf-tables.o
+                0x0000000000004430       0x18 leaf/leaf/Src/leaf-tables.o
  .debug_aranges
-                0x0000000000004438       0x48 leaf/leaf/Src/leaf.o
+                0x0000000000004448       0x48 leaf/leaf/Src/leaf.o
 
-.debug_ranges   0x0000000000000000    0x10888
+.debug_ranges   0x0000000000000000    0x10898
  .debug_ranges  0x0000000000000000      0x1a0 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
  .debug_ranges  0x00000000000001a0      0xb98 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.o
  .debug_ranges  0x0000000000000d38      0x5a8 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.o
@@ -21749,14 +21753,14 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_ranges  0x000000000000c3f0      0xb48 leaf/leaf/Src/leaf-effects.o
  .debug_ranges  0x000000000000cf38      0x610 leaf/leaf/Src/leaf-envelopes.o
  .debug_ranges  0x000000000000d548      0xf18 leaf/leaf/Src/leaf-filters.o
- .debug_ranges  0x000000000000e460      0x4a8 leaf/leaf/Src/leaf-math.o
- .debug_ranges  0x000000000000e908      0x438 leaf/leaf/Src/leaf-mempool.o
- .debug_ranges  0x000000000000ed40      0x5a0 leaf/leaf/Src/leaf-midi.o
- .debug_ranges  0x000000000000f2e0      0x870 leaf/leaf/Src/leaf-oscillators.o
- .debug_ranges  0x000000000000fb50      0x728 leaf/leaf/Src/leaf-physical.o
- .debug_ranges  0x0000000000010278      0x178 leaf/leaf/Src/leaf-reverb.o
- .debug_ranges  0x00000000000103f0      0x460 leaf/leaf/Src/leaf-sampling.o
- .debug_ranges  0x0000000000010850       0x38 leaf/leaf/Src/leaf.o
+ .debug_ranges  0x000000000000e460      0x4b8 leaf/leaf/Src/leaf-math.o
+ .debug_ranges  0x000000000000e918      0x438 leaf/leaf/Src/leaf-mempool.o
+ .debug_ranges  0x000000000000ed50      0x5a0 leaf/leaf/Src/leaf-midi.o
+ .debug_ranges  0x000000000000f2f0      0x870 leaf/leaf/Src/leaf-oscillators.o
+ .debug_ranges  0x000000000000fb60      0x728 leaf/leaf/Src/leaf-physical.o
+ .debug_ranges  0x0000000000010288      0x178 leaf/leaf/Src/leaf-reverb.o
+ .debug_ranges  0x0000000000010400      0x460 leaf/leaf/Src/leaf-sampling.o
+ .debug_ranges  0x0000000000010860       0x38 leaf/leaf/Src/leaf.o
 
 .debug_macro    0x0000000000000000    0x4a3e2
  .debug_macro   0x0000000000000000      0x35c Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
@@ -21969,7 +21973,7 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_macro   0x0000000000049dc0      0x2a6 leaf/leaf/Src/leaf-tables.o
  .debug_macro   0x000000000004a066      0x37c leaf/leaf/Src/leaf.o
 
-.debug_line     0x0000000000000000    0x537ba
+.debug_line     0x0000000000000000    0x537de
  .debug_line    0x0000000000000000      0xede Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
  .debug_line    0x0000000000000ede     0x20a9 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.o
  .debug_line    0x0000000000002f87     0x1b2c Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.o
@@ -22040,17 +22044,17 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_line    0x00000000000449a0     0x230e leaf/leaf/Src/leaf-effects.o
  .debug_line    0x0000000000046cae     0x173b leaf/leaf/Src/leaf-envelopes.o
  .debug_line    0x00000000000483e9     0x257f leaf/leaf/Src/leaf-filters.o
- .debug_line    0x000000000004a968      0xe01 leaf/leaf/Src/leaf-math.o
- .debug_line    0x000000000004b769      0xe00 leaf/leaf/Src/leaf-mempool.o
- .debug_line    0x000000000004c569     0x10ea leaf/leaf/Src/leaf-midi.o
- .debug_line    0x000000000004d653     0x1a0a leaf/leaf/Src/leaf-oscillators.o
- .debug_line    0x000000000004f05d     0x14d7 leaf/leaf/Src/leaf-physical.o
- .debug_line    0x0000000000050534      0xf78 leaf/leaf/Src/leaf-reverb.o
- .debug_line    0x00000000000514ac     0x1296 leaf/leaf/Src/leaf-sampling.o
- .debug_line    0x0000000000052742      0x767 leaf/leaf/Src/leaf-tables.o
- .debug_line    0x0000000000052ea9      0x911 leaf/leaf/Src/leaf.o
+ .debug_line    0x000000000004a968      0xe25 leaf/leaf/Src/leaf-math.o
+ .debug_line    0x000000000004b78d      0xe00 leaf/leaf/Src/leaf-mempool.o
+ .debug_line    0x000000000004c58d     0x10ea leaf/leaf/Src/leaf-midi.o
+ .debug_line    0x000000000004d677     0x1a0a leaf/leaf/Src/leaf-oscillators.o
+ .debug_line    0x000000000004f081     0x14d7 leaf/leaf/Src/leaf-physical.o
+ .debug_line    0x0000000000050558      0xf78 leaf/leaf/Src/leaf-reverb.o
+ .debug_line    0x00000000000514d0     0x1296 leaf/leaf/Src/leaf-sampling.o
+ .debug_line    0x0000000000052766      0x767 leaf/leaf/Src/leaf-tables.o
+ .debug_line    0x0000000000052ecd      0x911 leaf/leaf/Src/leaf.o
 
-.debug_str      0x0000000000000000   0x18c8f0
+.debug_str      0x0000000000000000   0x18c915
  .debug_str     0x0000000000000000   0x172000 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
                                      0x1728ef (size before relaxing)
  .debug_str     0x0000000000172000     0x1006 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.o
@@ -22191,23 +22195,23 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
                                        0xa872 (size before relaxing)
  .debug_str     0x000000000018a328      0x8b7 leaf/leaf/Src/leaf-filters.o
                                        0xaaf3 (size before relaxing)
- .debug_str     0x000000000018abdf      0x274 leaf/leaf/Src/leaf-math.o
-                                       0x9e2c (size before relaxing)
- .debug_str     0x000000000018ae53      0x181 leaf/leaf/Src/leaf-mempool.o
+ .debug_str     0x000000000018abdf      0x299 leaf/leaf/Src/leaf-math.o
+                                       0x9e51 (size before relaxing)
+ .debug_str     0x000000000018ae78      0x181 leaf/leaf/Src/leaf-mempool.o
                                        0x9f4c (size before relaxing)
- .debug_str     0x000000000018afd4      0x3fe leaf/leaf/Src/leaf-midi.o
+ .debug_str     0x000000000018aff9      0x3fe leaf/leaf/Src/leaf-midi.o
                                        0xa274 (size before relaxing)
- .debug_str     0x000000000018b3d2      0x6d1 leaf/leaf/Src/leaf-oscillators.o
+ .debug_str     0x000000000018b3f7      0x6d1 leaf/leaf/Src/leaf-oscillators.o
                                        0xa6fc (size before relaxing)
- .debug_str     0x000000000018baa3      0x8bf leaf/leaf/Src/leaf-physical.o
+ .debug_str     0x000000000018bac8      0x8bf leaf/leaf/Src/leaf-physical.o
                                        0xad34 (size before relaxing)
- .debug_str     0x000000000018c362      0x219 leaf/leaf/Src/leaf-reverb.o
+ .debug_str     0x000000000018c387      0x219 leaf/leaf/Src/leaf-reverb.o
                                        0xa645 (size before relaxing)
- .debug_str     0x000000000018c57b      0x290 leaf/leaf/Src/leaf-sampling.o
+ .debug_str     0x000000000018c5a0      0x290 leaf/leaf/Src/leaf-sampling.o
                                        0xa4e5 (size before relaxing)
- .debug_str     0x000000000018c80b       0x1f leaf/leaf/Src/leaf-tables.o
+ .debug_str     0x000000000018c830       0x1f leaf/leaf/Src/leaf-tables.o
                                        0x9935 (size before relaxing)
- .debug_str     0x000000000018c82a       0xc6 leaf/leaf/Src/leaf.o
+ .debug_str     0x000000000018c84f       0xc6 leaf/leaf/Src/leaf.o
                                        0x9e79 (size before relaxing)
 
 .comment        0x0000000000000000       0x7b
@@ -22291,7 +22295,7 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .comment       0x000000000000007b       0x7c leaf/leaf/Src/leaf-tables.o
  .comment       0x000000000000007b       0x7c leaf/leaf/Src/leaf.o
 
-.debug_frame    0x0000000000000000    0x1024c
+.debug_frame    0x0000000000000000    0x1026c
  .debug_frame   0x0000000000000000      0x428 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o
  .debug_frame   0x0000000000000428      0x358 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.o
  .debug_frame   0x0000000000000780      0x3ac Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.o
@@ -22360,52 +22364,52 @@ OUTPUT(cube_for_new_genera_brain4.elf elf32-littlearm)
  .debug_frame   0x000000000000a848      0xbe4 leaf/leaf/Src/leaf-effects.o
  .debug_frame   0x000000000000b42c      0x970 leaf/leaf/Src/leaf-envelopes.o
  .debug_frame   0x000000000000bd9c      0xf24 leaf/leaf/Src/leaf-filters.o
- .debug_frame   0x000000000000ccc0      0x678 leaf/leaf/Src/leaf-math.o
- .debug_frame   0x000000000000d338      0x238 leaf/leaf/Src/leaf-mempool.o
- .debug_frame   0x000000000000d570      0x508 leaf/leaf/Src/leaf-midi.o
- .debug_frame   0x000000000000da78      0x974 leaf/leaf/Src/leaf-oscillators.o
- .debug_frame   0x000000000000e3ec      0xb38 leaf/leaf/Src/leaf-physical.o
- .debug_frame   0x000000000000ef24      0x4f0 leaf/leaf/Src/leaf-reverb.o
- .debug_frame   0x000000000000f414      0x4b4 leaf/leaf/Src/leaf-sampling.o
- .debug_frame   0x000000000000f8c8       0x8c leaf/leaf/Src/leaf.o
- .debug_frame   0x000000000000f954       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-errno.o)
- .debug_frame   0x000000000000f974       0x2c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-init.o)
- .debug_frame   0x000000000000f9a0       0x38 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-itoa.o)
- .debug_frame   0x000000000000f9d8       0x28 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-memcpy-stub.o)
- .debug_frame   0x000000000000fa00       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-memset.o)
- .debug_frame   0x000000000000fa20       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-stpcpy.o)
- .debug_frame   0x000000000000fa40       0x48 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-utoa.o)
- .debug_frame   0x000000000000fa88       0x2c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_atan.o)
- .debug_frame   0x000000000000fab4       0x2c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_cos.o)
- .debug_frame   0x000000000000fae0       0x50 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_exp.o)
- .debug_frame   0x000000000000fb30       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_fabs.o)
- .debug_frame   0x000000000000fb50       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_log.o)
- .debug_frame   0x000000000000fb8c       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_log2.o)
- .debug_frame   0x000000000000fbc8       0x80 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_pow.o)
- .debug_frame   0x000000000000fc48       0x2c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_tan.o)
- .debug_frame   0x000000000000fc74       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_tanh.o)
- .debug_frame   0x000000000000fcb0       0x4c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_exp.o)
- .debug_frame   0x000000000000fcfc       0x40 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-wf_fmod.o)
- .debug_frame   0x000000000000fd3c       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-wf_log10.o)
- .debug_frame   0x000000000000fd78       0x44 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-wf_sinh.o)
- .debug_frame   0x000000000000fdbc       0x2c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_exp.o)
- .debug_frame   0x000000000000fde8       0x30 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_fmod.o)
- .debug_frame   0x000000000000fe18       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_log10.o)
- .debug_frame   0x000000000000fe54       0x38 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_rem_pio2.o)
- .debug_frame   0x000000000000fe8c       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_sinh.o)
- .debug_frame   0x000000000000fec8       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_cos.o)
- .debug_frame   0x000000000000fee8       0x5c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_rem_pio2.o)
- .debug_frame   0x000000000000ff44       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_sin.o)
- .debug_frame   0x000000000000ff64       0x28 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_tan.o)
- .debug_frame   0x000000000000ff8c       0x98 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-math_errf.o)
- .debug_frame   0x0000000000010024       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_finite.o)
- .debug_frame   0x0000000000010044       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_matherr.o)
- .debug_frame   0x0000000000010064       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_nan.o)
- .debug_frame   0x0000000000010084       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_expm1.o)
- .debug_frame   0x00000000000100a4       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_finite.o)
- .debug_frame   0x00000000000100c4       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_floor.o)
- .debug_frame   0x00000000000100e4       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_scalbn.o)
- .debug_frame   0x0000000000010120       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_copysign.o)
- .debug_frame   0x0000000000010140       0xac /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_arm_addsubdf3.o)
- .debug_frame   0x00000000000101ec       0x2c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_aeabi_uldivmod.o)
- .debug_frame   0x0000000000010218       0x34 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_udivmoddi4.o)
+ .debug_frame   0x000000000000ccc0      0x698 leaf/leaf/Src/leaf-math.o
+ .debug_frame   0x000000000000d358      0x238 leaf/leaf/Src/leaf-mempool.o
+ .debug_frame   0x000000000000d590      0x508 leaf/leaf/Src/leaf-midi.o
+ .debug_frame   0x000000000000da98      0x974 leaf/leaf/Src/leaf-oscillators.o
+ .debug_frame   0x000000000000e40c      0xb38 leaf/leaf/Src/leaf-physical.o
+ .debug_frame   0x000000000000ef44      0x4f0 leaf/leaf/Src/leaf-reverb.o
+ .debug_frame   0x000000000000f434      0x4b4 leaf/leaf/Src/leaf-sampling.o
+ .debug_frame   0x000000000000f8e8       0x8c leaf/leaf/Src/leaf.o
+ .debug_frame   0x000000000000f974       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-errno.o)
+ .debug_frame   0x000000000000f994       0x2c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-init.o)
+ .debug_frame   0x000000000000f9c0       0x38 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-itoa.o)
+ .debug_frame   0x000000000000f9f8       0x28 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-memcpy-stub.o)
+ .debug_frame   0x000000000000fa20       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-memset.o)
+ .debug_frame   0x000000000000fa40       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-stpcpy.o)
+ .debug_frame   0x000000000000fa60       0x48 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libc_nano.a(lib_a-utoa.o)
+ .debug_frame   0x000000000000faa8       0x2c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_atan.o)
+ .debug_frame   0x000000000000fad4       0x2c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_cos.o)
+ .debug_frame   0x000000000000fb00       0x50 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_exp.o)
+ .debug_frame   0x000000000000fb50       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_fabs.o)
+ .debug_frame   0x000000000000fb70       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_log.o)
+ .debug_frame   0x000000000000fbac       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_log2.o)
+ .debug_frame   0x000000000000fbe8       0x80 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_pow.o)
+ .debug_frame   0x000000000000fc68       0x2c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_tan.o)
+ .debug_frame   0x000000000000fc94       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_tanh.o)
+ .debug_frame   0x000000000000fcd0       0x4c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-w_exp.o)
+ .debug_frame   0x000000000000fd1c       0x40 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-wf_fmod.o)
+ .debug_frame   0x000000000000fd5c       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-wf_log10.o)
+ .debug_frame   0x000000000000fd98       0x44 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-wf_sinh.o)
+ .debug_frame   0x000000000000fddc       0x2c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-e_exp.o)
+ .debug_frame   0x000000000000fe08       0x30 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_fmod.o)
+ .debug_frame   0x000000000000fe38       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_log10.o)
+ .debug_frame   0x000000000000fe74       0x38 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_rem_pio2.o)
+ .debug_frame   0x000000000000feac       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-ef_sinh.o)
+ .debug_frame   0x000000000000fee8       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_cos.o)
+ .debug_frame   0x000000000000ff08       0x5c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_rem_pio2.o)
+ .debug_frame   0x000000000000ff64       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_sin.o)
+ .debug_frame   0x000000000000ff84       0x28 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-kf_tan.o)
+ .debug_frame   0x000000000000ffac       0x98 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-math_errf.o)
+ .debug_frame   0x0000000000010044       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_finite.o)
+ .debug_frame   0x0000000000010064       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_matherr.o)
+ .debug_frame   0x0000000000010084       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-s_nan.o)
+ .debug_frame   0x00000000000100a4       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_expm1.o)
+ .debug_frame   0x00000000000100c4       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_finite.o)
+ .debug_frame   0x00000000000100e4       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_floor.o)
+ .debug_frame   0x0000000000010104       0x3c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_scalbn.o)
+ .debug_frame   0x0000000000010140       0x20 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv5/hard/libm.a(lib_a-sf_copysign.o)
+ .debug_frame   0x0000000000010160       0xac /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_arm_addsubdf3.o)
+ .debug_frame   0x000000000001020c       0x2c /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_aeabi_uldivmod.o)
+ .debug_frame   0x0000000000010238       0x34 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.0.0.201904181610/tools/bin/../lib/gcc/arm-none-eabi/7.3.1/thumb/v7e-m/fpv5/hard/libgcc.a(_udivmoddi4.o)

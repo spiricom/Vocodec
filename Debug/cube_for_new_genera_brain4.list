@@ -35,25 +35,25 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  15 .ARM.attributes 0000002e  00000000  00000000  000604a8  2**0
                   CONTENTS, READONLY
- 16 .debug_info   000c8c42  00000000  00000000  000604d6  2**0
+ 16 .debug_info   000c8c95  00000000  00000000  000604d6  2**0
                   CONTENTS, READONLY, DEBUGGING
- 17 .debug_abbrev 00011080  00000000  00000000  00129118  2**0
+ 17 .debug_abbrev 00011080  00000000  00000000  0012916b  2**0
                   CONTENTS, READONLY, DEBUGGING
- 18 .debug_loc    00067b56  00000000  00000000  0013a198  2**0
+ 18 .debug_loc    00067b9e  00000000  00000000  0013a1eb  2**0
                   CONTENTS, READONLY, DEBUGGING
- 19 .debug_aranges 00004480  00000000  00000000  001a1cf0  2**3
+ 19 .debug_aranges 00004490  00000000  00000000  001a1d90  2**3
                   CONTENTS, READONLY, DEBUGGING
- 20 .debug_ranges 00010888  00000000  00000000  001a6170  2**3
+ 20 .debug_ranges 00010898  00000000  00000000  001a6220  2**3
                   CONTENTS, READONLY, DEBUGGING
- 21 .debug_macro  0004a3e2  00000000  00000000  001b69f8  2**0
+ 21 .debug_macro  0004a3e2  00000000  00000000  001b6ab8  2**0
                   CONTENTS, READONLY, DEBUGGING
- 22 .debug_line   000537ba  00000000  00000000  00200dda  2**0
+ 22 .debug_line   000537de  00000000  00000000  00200e9a  2**0
                   CONTENTS, READONLY, DEBUGGING
- 23 .debug_str    0018c8f0  00000000  00000000  00254594  2**0
+ 23 .debug_str    0018c915  00000000  00000000  00254678  2**0
                   CONTENTS, READONLY, DEBUGGING
- 24 .comment      0000007b  00000000  00000000  003e0e84  2**0
+ 24 .comment      0000007b  00000000  00000000  003e0f8d  2**0
                   CONTENTS, READONLY
- 25 .debug_frame  0001024c  00000000  00000000  003e0f00  2**2
+ 25 .debug_frame  0001026c  00000000  00000000  003e1008  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -50221,7 +50221,7 @@ void HAL_SD_MspInit(SD_HandleTypeDef* sdHandle)
  8015e5a:	edd4 7a00 	vldr	s15, [r4]
  8015e5e:	eea7 0a08 	vfma.f32	s0, s14, s16
  8015e62:	4862      	ldr	r0, [pc, #392]	; (8015fec <SFXVocoderChTick+0x2a8>)
-            input[0] = 0.98f * tanhf(finalSample1);
+            input[0] = 0.98f * LEAF_tanh(finalSample1);
  8015e64:	eddf 8a62 	vldr	s17, [pc, #392]	; 8015ff0 <SFXVocoderChTick+0x2ac>
             float finalSample1 = tHighpass_tick(&chVocFinalHP1, (output[0] + (output[1] * oneMinusStereo)) * chVocOutputGain);
  8015e68:	ee20 0a27 	vmul.f32	s0, s0, s15
@@ -50237,16 +50237,16 @@ void HAL_SD_MspInit(SD_HandleTypeDef* sdHandle)
  8015e82:	ee28 0a00 	vmul.f32	s0, s16, s0
  8015e86:	f00c fec1 	bl	8022c0c <tHighpass_tick>
  8015e8a:	eeb0 8a40 	vmov.f32	s16, s0
-            input[0] = 0.98f * tanhf(finalSample1);
+            input[0] = 0.98f * LEAF_tanh(finalSample1);
  8015e8e:	eeb0 0a69 	vmov.f32	s0, s19
- 8015e92:	f011 fcdb 	bl	802784c <tanhf>
+ 8015e92:	f00e f861 	bl	8023f58 <LEAF_tanh>
  8015e96:	ee60 7a28 	vmul.f32	s15, s0, s17
-            input[1] = 0.98f * tanhf(finalSample2);
+            input[1] = 0.98f * LEAF_tanh(finalSample2);
  8015e9a:	eeb0 0a48 	vmov.f32	s0, s16
-            input[0] = 0.98f * tanhf(finalSample1);
+            input[0] = 0.98f * LEAF_tanh(finalSample1);
  8015e9e:	edc5 7a00 	vstr	s15, [r5]
-            input[1] = 0.98f * tanhf(finalSample2);
- 8015ea2:	f011 fcd3 	bl	802784c <tanhf>
+            input[1] = 0.98f * LEAF_tanh(finalSample2);
+ 8015ea2:	f00e f859 	bl	8023f58 <LEAF_tanh>
  8015ea6:	ee20 0a28 	vmul.f32	s0, s0, s17
  8015eaa:	ed85 0a01 	vstr	s0, [r5, #4]
         }
