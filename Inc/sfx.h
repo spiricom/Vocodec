@@ -60,7 +60,7 @@ namespace vocodec
 #define LOWEST_SAMPLER_KEY 36
 
         extern float presetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
-        extern uint8_t knobActive[NUM_ADC_CHANNELS];
+        extern int knobActive[NUM_ADC_CHANNELS];
 
         extern tSimplePoly poly;
         extern tExpSmooth polyRamp[NUM_VOC_VOICES];
@@ -69,13 +69,13 @@ namespace vocodec
         extern PlayMode samplerMode;
         extern float sampleLength;
 
-        extern uint32_t freeze;
+        extern int freeze;
 
         void initGlobalSFXObjects();
 
         // vocoder
-        extern uint8_t numVoices;
-        extern uint8_t internalExternal;
+        extern int numVoices;
+        extern int internalExternal;
 
         extern int vocFreezeLPC;
         //LPC Vocoder
@@ -101,8 +101,8 @@ namespace vocodec
         void SFXPitchShiftFree(void);
 
         // neartune
-        extern uint8_t autotuneChromatic;
-        extern uint32_t autotuneLock;
+        extern int autotuneChromatic;
+        extern int autotuneLock;
         void SFXNeartuneAlloc();
         void SFXNeartuneFrame();
         void SFXNeartuneTick(float* input);
@@ -115,7 +115,7 @@ namespace vocodec
         void SFXAutotuneFree(void);
 
         // sampler - button press
-        extern uint8_t samplePlaying;
+        extern int samplePlaying;
         extern int bpMode;
         void SFXSamplerBPAlloc();
         void SFXSamplerBPFrame();
@@ -135,7 +135,7 @@ namespace vocodec
         void SFXSamplerKFree(void);
 
         // sampler - auto ch1
-        extern uint8_t triggerChannel;
+        extern int triggerChannel;
         extern int pitchQuantization;
 
         void SFXSamplerAutoAlloc();
@@ -144,7 +144,7 @@ namespace vocodec
         void SFXSamplerAutoFree(void);
 
         // distortion tanh
-        extern uint8_t distortionMode;
+        extern int distortionMode;
 
         void SFXDistortionAlloc();
         void SFXDistortionFrame();
@@ -158,7 +158,7 @@ namespace vocodec
         void SFXWaveFolderTick(float* input);
         void SFXWaveFolderFree(void);
 
-        extern uint32_t crusherStereo;
+        extern int crusherStereo;
         // bitcrusher
         void SFXBitcrusherAlloc();
         void SFXBitcrusherFrame();
@@ -168,7 +168,7 @@ namespace vocodec
 
         // delay
         extern int delayShaper;
-        extern uint8_t capFeedback;
+        extern int capFeedback;
 
         void SFXDelayAlloc();
         void SFXDelayFrame();
@@ -207,7 +207,7 @@ namespace vocodec
 
 
         // classic synth
-        extern uint8_t csKnobPage;
+        extern int csKnobPage;
         void SFXClassicSynthAlloc();
         void SFXClassicSynthFrame();
         void SFXClassicSynthTick(float* input);
@@ -216,7 +216,7 @@ namespace vocodec
         // rhodes
         extern const char* soundNames[5];
         extern int Rsound;
-        extern uint8_t tremoloStereo;
+        extern int tremoloStereo;
         void SFXRhodesAlloc();
         void SFXRhodesFrame();
         void SFXRhodesTick(float* input);

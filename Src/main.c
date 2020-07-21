@@ -644,7 +644,7 @@ static void CycleCounterInit( void )
 
 
 //this keeps min and max, but doesn't do the array for averaging - a bit less expensive
-void CycleCounterTrackMinAndMax( uint8_t whichCount)
+void CycleCounterTrackMinAndMax( int whichCount)
 {
 	if ((cycleCountVals[whichCount][2] == 0) && (cycleCountVals[whichCount][1] > 0)) //the [2] spot in the array will be set to 1 if an interrupt happened during the cycle count -- need to set that in any higher-priority interrupts to make that true
 	{
@@ -661,7 +661,7 @@ void CycleCounterTrackMinAndMax( uint8_t whichCount)
 }
 
 //these are expensive but give an average of several counts
-void CycleCounterAddToAverage( uint8_t whichCount)
+void CycleCounterAddToAverage( int whichCount)
 {
 	if ((cycleCountVals[whichCount][2] == 0) && (cycleCountVals[whichCount][1] > 0)) //the [2] spot in the array will be set to 1 if an interrupt happened during the cycle count -- need to set that in any higher-priority interrupts to make that true
 	{
@@ -679,7 +679,7 @@ void CycleCounterAddToAverage( uint8_t whichCount)
 }
 
 //these are expensive but give an average of several counts
-void CycleCounterAverage( uint8_t whichCount)
+void CycleCounterAverage( int whichCount)
 {
 	float totalCycles = 0.0f;
 	float numberOfCountedSamples = 0.0f;

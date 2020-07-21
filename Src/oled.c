@@ -351,8 +351,8 @@ void OLEDclearLine(OLEDLine line)
 
 void OLEDwriteString(const char* myCharArray, int arrayLength, int startCursor, OLEDLine line)
 {
-	uint8_t cursorX = startCursor;
-	uint8_t cursorY = 12 + (16 * (line%2));
+	int cursorX = startCursor;
+	int cursorY = 12 + (16 * (line%2));
 	GFXsetCursor(&theGFX, cursorX, cursorY);
 
 	GFXfillRect(&theGFX, startCursor, line*16, arrayLength*12, (line*16)+16, 0);

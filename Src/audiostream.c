@@ -38,16 +38,16 @@ void buttonCheck(void);
 HAL_StatusTypeDef transmit_status;
 HAL_StatusTypeDef receive_status;
 
-uint8_t codecReady = 0;
+uint32_t codecReady = 0;
 
-uint16_t frameCounter = 0;
+uint32_t frameCounter = 0;
 
 tNoise myNoise;
 tCycle mySine[2];
 tEnvelopeFollower LED_envelope[4];
 
 uint32_t clipCounter[4] = {0,0,0,0};
-uint8_t clipped[4] = {0,0,0,0};
+uint32_t clipped[4] = {0,0,0,0};
 uint32_t clipHappened[4] = {0,0,0,0};
 
 

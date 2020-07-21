@@ -15,11 +15,11 @@
 #include "usb_host.h"
 #include "oled.h"
 uint8_t MIDI_RX_Buffer[2][RX_BUFF_SIZE] __ATTR_RAM_D2; // MIDI reception buffer
-uint8_t MIDI_read_buffer = 0;
-uint8_t MIDI_write_buffer = 1;
-uint8_t key, velocity, ctrl, data, sustainInverted;
-uint8_t USB_message[4];
-uint8_t CCs[128];
+int MIDI_read_buffer = 0;
+int MIDI_write_buffer = 1;
+int key, velocity, ctrl, data, sustainInverted;
+int USB_message[4];
+//int CCs[128];
 /* Private define ------------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
@@ -89,7 +89,7 @@ void parse_MIDI_Message(void)
 		case (0xB0):
 			ctrl = USB_message[2];
 			data = USB_message[3];
-			CCs[ctrl] = data;
+			//CCs[ctrl] = data;
 			switch(ctrl)
 			{
 				case (64): // sustain
@@ -104,10 +104,10 @@ void parse_MIDI_Message(void)
 						else					sustainOff();
 					}
 					break;
+				default:
+					break;
 			}
-
-
-  break;
+			break;
 		case (0xC0): // Program Change
 			break;
 		case (0xD0): // Mono Aftertouch
@@ -115,15 +115,17 @@ void parse_MIDI_Message(void)
 		case (0xE0): // Pitch Bend
 			pitchBend((USB_message[2]) + (USB_message[3] << 7));
 			break;
+		default:
+			break;
 	}
 
 }
-volatile testInt = 0;
+
 /*-----------------------------------------------------------------------------*/
 void ProcessReceivedMidiDatas(void)
 {
-	uint8_t miniBufferPosition = 0;
-	uint8_t processed = 0;
+	int miniBufferPosition = 0;
+	int processed = 0;
 	while (((myUSB_FIFO_writePointer > myUSB_FIFO_readPointer) || (myUSB_FIFO_overflowBit)) &&
 			(processed < 32)) // maximum notes to process in a frame * 4
 	{
@@ -141,10 +143,6 @@ void ProcessReceivedMidiDatas(void)
 			myUSB_FIFO_readPointer = 0;
 		}
 		processed++;
-	}
-	if (processed >= 32)
-	{
-		testInt = 1;
 	}
 }
 

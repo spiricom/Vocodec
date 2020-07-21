@@ -83,12 +83,11 @@ static void HardFault_Handler( void ) __attribute__( ( naked ) );
 void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress );
 void writeIntToFlash(uint32_t data, uint32_t location);
 uint32_t readIntFromFlash (uint32_t location);
-uint8_t LEAF_error(uint8_t errorCode);
-void CycleCounterStart( uint8_t );
-void CycleCounterEnd( uint8_t );
-void CycleCounterTrackMinAndMax( uint8_t whichCount);
-void CycleCounterAddToAverage( uint8_t);
-void CycleCounterAverage( uint8_t );
+//uint8_t LEAF_error(uint8_t errorCode);
+
+void CycleCounterTrackMinAndMax( int whichCount);
+void CycleCounterAddToAverage( int);
+void CycleCounterAverage( int );
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
