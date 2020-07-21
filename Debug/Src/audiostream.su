@@ -1,9 +1,0 @@
-audiostream.c:132:6:audioFrame	80	static
-audiostream.c:311:10:audioTick	32	static
-audiostream.c:442:6:initFunctionPointers	8	static
-audiostream.c:72:6:audioInit	56	static
-audiostream.c:537:6:HAL_SAI_ErrorCallback	0	static
-audiostream.c:542:6:HAL_SAI_TxCpltCallback	0	static
-audiostream.c:547:6:HAL_SAI_TxHalfCpltCallback	0	static
-audiostream.c:553:6:HAL_SAI_RxCpltCallback	0	static
-audiostream.c:558:6:HAL_SAI_RxHalfCpltCallback	0	static
