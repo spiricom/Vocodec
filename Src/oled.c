@@ -84,7 +84,7 @@ void initUIFunctionPointers(void)
 	buttonActionFunctions[Rhodes] = UIRhodesButtons;
 }
 
-void setLED_Edit(uint8_t onOff)
+void setLED_Edit(int onOff)
 {
 	if (onOff)
 	{
@@ -97,7 +97,7 @@ void setLED_Edit(uint8_t onOff)
 }
 
 
-void setLED_USB(uint8_t onOff)
+void setLED_USB(int onOff)
 {
 	if (onOff)
 	{
@@ -110,7 +110,7 @@ void setLED_USB(uint8_t onOff)
 }
 
 
-void setLED_1(uint8_t onOff)
+void setLED_1(int onOff)
 {
 	if (onOff)
 	{
@@ -122,7 +122,7 @@ void setLED_1(uint8_t onOff)
 	}
 }
 
-void setLED_2(uint8_t onOff)
+void setLED_2(int onOff)
 {
 	if (onOff)
 	{
@@ -135,7 +135,7 @@ void setLED_2(uint8_t onOff)
 }
 
 
-void setLED_A(uint8_t onOff)
+void setLED_A(int onOff)
 {
 	if (onOff)
 	{
@@ -147,7 +147,7 @@ void setLED_A(uint8_t onOff)
 	}
 }
 
-void setLED_B(uint8_t onOff)
+void setLED_B(int onOff)
 {
 	if (onOff)
 	{
@@ -159,7 +159,7 @@ void setLED_B(uint8_t onOff)
 	}
 }
 
-void setLED_C(uint8_t onOff)
+void setLED_C(int onOff)
 {
 	if (onOff)
 	{
@@ -171,7 +171,7 @@ void setLED_C(uint8_t onOff)
 	}
 }
 
-void setLED_leftout_clip(uint8_t onOff)
+void setLED_leftout_clip(int onOff)
 {
 	if (onOff)
 	{
@@ -183,7 +183,7 @@ void setLED_leftout_clip(uint8_t onOff)
 	}
 }
 
-void setLED_rightout_clip(uint8_t onOff)
+void setLED_rightout_clip(int onOff)
 {
 	if (onOff)
 	{
@@ -195,7 +195,7 @@ void setLED_rightout_clip(uint8_t onOff)
 	}
 }
 
-void setLED_leftin_clip(uint8_t onOff)
+void setLED_leftin_clip(int onOff)
 {
 	if (onOff)
 	{
@@ -207,7 +207,7 @@ void setLED_leftin_clip(uint8_t onOff)
 	}
 }
 
-void setLED_rightin_clip(uint8_t onOff)
+void setLED_rightin_clip(int onOff)
 {
 	if (onOff)
 	{
@@ -268,7 +268,7 @@ void OLED_writeEditScreen()
 	OLEDwriteString("C:SET KEY CENTER", 16, 0, SecondLine);
 }
 
-void OLED_writeKnobParameter(uint8_t whichKnob)
+void OLED_writeKnobParameter(int whichKnob)
 {
 	// Knob params
 	if (whichKnob < KNOB_PAGE_SIZE)
@@ -288,7 +288,7 @@ void OLED_writeKnobParameter(uint8_t whichKnob)
 	}
 }
 
-void OLED_writeButtonAction(uint8_t whichButton, uint8_t whichAction)
+void OLED_writeButtonAction(int whichButton, int whichAction)
 {
 	// Could change this so that buttonActionFunctions does the actual OLEDwrite
 	// if we want more flexibility on what buttons display
@@ -349,7 +349,7 @@ void OLEDclearLine(OLEDLine line)
 	//ssd1306_display_full_buffer();
 }
 
-void OLEDwriteString(const char* myCharArray, uint8_t arrayLength, uint8_t startCursor, OLEDLine line)
+void OLEDwriteString(const char* myCharArray, int arrayLength, int startCursor, OLEDLine line)
 {
 	uint8_t cursorX = startCursor;
 	uint8_t cursorY = 12 + (16 * (line%2));
@@ -363,7 +363,7 @@ void OLEDwriteString(const char* myCharArray, uint8_t arrayLength, uint8_t start
 	//ssd1306_display_full_buffer();
 }
 
-void OLEDwriteLine(const char* myCharArray, uint8_t arrayLength, OLEDLine line)
+void OLEDwriteLine(const char* myCharArray, int arrayLength, OLEDLine line)
 {
 	if (line == FirstLine)
 	{
@@ -386,49 +386,49 @@ void OLEDwriteLine(const char* myCharArray, uint8_t arrayLength, OLEDLine line)
 	}
 }
 
-void OLEDwriteInt(uint32_t myNumber, uint8_t numDigits, uint8_t startCursor, OLEDLine line)
+void OLEDwriteInt(uint32_t myNumber, int numDigits, int startCursor, OLEDLine line)
 {
 	int len = OLEDparseInt(oled_buffer, myNumber, numDigits);
 
 	OLEDwriteString(oled_buffer, len, startCursor, line);
 }
 
-void OLEDwriteIntLine(uint32_t myNumber, uint8_t numDigits, OLEDLine line)
+void OLEDwriteIntLine(uint32_t myNumber, int numDigits, OLEDLine line)
 {
 	int len = OLEDparseInt(oled_buffer, myNumber, numDigits);
 
 	OLEDwriteLine(oled_buffer, len, line);
 }
 
-void OLEDwritePitch(float midi, uint8_t startCursor, OLEDLine line, uint8_t showCents)
+void OLEDwritePitch(float midi, int startCursor, OLEDLine line, int showCents)
 {
 	int len = OLEDparsePitch(oled_buffer, midi, showCents);
 
 	OLEDwriteString(oled_buffer, len, startCursor, line);
 }
 
-void OLEDwritePitchClass(float midi, uint8_t startCursor, OLEDLine line)
+void OLEDwritePitchClass(float midi, int startCursor, OLEDLine line)
 {
 	int len = OLEDparsePitchClass(oled_buffer, midi);
 
 	OLEDwriteString(oled_buffer, len, startCursor, line);
 }
 
-void OLEDwritePitchLine(float midi, OLEDLine line, uint8_t showCents)
+void OLEDwritePitchLine(float midi, OLEDLine line, int showCents)
 {
 	int len = OLEDparsePitch(oled_buffer, midi, showCents);
 
 	OLEDwriteLine(oled_buffer, len, line);
 }
 
-void OLEDwriteFixedFloat(float input, uint8_t numDigits, uint8_t numDecimal, uint8_t startCursor, OLEDLine line)
+void OLEDwriteFixedFloat(float input, int numDigits, int numDecimal, int startCursor, OLEDLine line)
 {
 	int len = OLEDparseFixedFloat(oled_buffer, input, numDigits, numDecimal);
 
 	OLEDwriteString(oled_buffer, len, startCursor, line);
 }
 
-void OLEDwriteFixedFloatLine(float input, uint8_t numDigits, uint8_t numDecimal, OLEDLine line)
+void OLEDwriteFixedFloatLine(float input, int numDigits, int numDecimal, OLEDLine line)
 {
 	int len = OLEDparseFixedFloat(oled_buffer, input, numDigits, numDecimal);
 
@@ -436,7 +436,7 @@ void OLEDwriteFixedFloatLine(float input, uint8_t numDigits, uint8_t numDecimal,
 }
 
 
-void OLEDwriteFloat(float input, uint8_t startCursor, OLEDLine line)
+void OLEDwriteFloat(float input, int startCursor, OLEDLine line)
 {
 	int numDigits = 5;
 	int numDecimal = 1;
@@ -490,11 +490,11 @@ void OLEDwriteFloat(float input, uint8_t startCursor, OLEDLine line)
 	OLEDwriteString(oled_buffer, len, startCursor, line);
 }
 
-void OLEDdrawFloatArray(float* input, float min, float max, uint8_t size, uint8_t offset, uint8_t startCursor, OLEDLine line)
+void OLEDdrawFloatArray(float* input, float min, float max, int size, int offset, int startCursor, OLEDLine line)
 {
-	uint8_t baseline = 0;
+	int baseline = 0;
 	if (line == SecondLine) baseline = 16;
-	uint8_t height = 16;
+	int height = 16;
 	if (line == BothLines) height = 32;
 
 	GFXfillRect(&theGFX, startCursor, (line%2)*16, size, 16*((line/2)+1), 0);
@@ -507,7 +507,7 @@ void OLEDdrawFloatArray(float* input, float min, float max, uint8_t size, uint8_
 	}
 }
 
-int16_t OLEDgetCursor()
+int OLEDgetCursor()
 {
-	return GFXgetCursorX(&theGFX);
+	return (int)GFXgetCursorX(&theGFX);
 }

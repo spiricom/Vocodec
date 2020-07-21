@@ -429,7 +429,7 @@ namespace vocodec
 
             if (tSimplePoly_getNumActiveVoices(&poly) != 0)
             {
-                tExpSmooth_setDest(&comp, sqrtf(1.0f / tSimplePoly_getNumActiveVoices(&poly)));
+                tExpSmooth_setDest(&comp, sqrtf(1.0f / (float)tSimplePoly_getNumActiveVoices(&poly)));
             }
             else
             {
@@ -599,7 +599,7 @@ namespace vocodec
             for (int i = 0; i < MAX_NUM_VOCODER_BANDS; i++)
             {
 
-                float bandFreq = faster_mtof((i * bandWidthInSemitones) + 30.0f); //midinote 28 (41Hz) to midinote 134 (18814Hz) is 106 midinotes, divide that by how many bands to find out how far apart to put the bands
+                float bandFreq = faster_mtof(((float)i * bandWidthInSemitones) + 30.0f); //midinote 28 (41Hz) to midinote 134 (18814Hz) is 106 midinotes, divide that by how many bands to find out how far apart to put the bands
 
                 bandGains[i] = 1.0f;
 
@@ -752,7 +752,7 @@ namespace vocodec
             {
 
                 float tempWarpFactor = warpFactor;
-                float bandFreq = faster_mtof((currentBandToAlter * bandWidthInSemitones) + bandOffset); //midinote 28 (41Hz) to midinote 134 (18814Hz) is 106 midinotes, divide that by how many bands to find out how far apart to put the bands
+                float bandFreq = faster_mtof(((float)currentBandToAlter * bandWidthInSemitones) + bandOffset); //midinote 28 (41Hz) to midinote 134 (18814Hz) is 106 midinotes, divide that by how many bands to find out how far apart to put the bands
 
                 //warp to bark scale if knob 16 is up
                 bandFreq = (bandFreq * oneMinusBarkPull) + (barkBandFreqs[currentBandToAlter] * barkPull);
@@ -768,7 +768,7 @@ namespace vocodec
                 }
 
                 float bandBandwidth = (thisBandwidth * oneMinusBarkPull) + (barkBandWidths[currentBandToAlter] *  barkPull * myQ);
-                float myHeight = currentBandToAlter * invNumberOfVocoderBands; //x value
+                float myHeight = (float)currentBandToAlter * invNumberOfVocoderBands; //x value
                 float tiltOffset = (1.0f - ((myTilt * 0.5f) + 0.5f)) + 0.5f;
                 float tiltY = displayValues[12] * myHeight + tiltOffset;
                 bandGains[currentBandToAlter] = invMyQ * tiltY;
@@ -826,7 +826,7 @@ namespace vocodec
 
             if (tSimplePoly_getNumActiveVoices(&poly) != 0)
             {
-                tExpSmooth_setDest(&comp, sqrtf(1.0f / tSimplePoly_getNumActiveVoices(&poly)));
+                tExpSmooth_setDest(&comp, sqrtf(1.0f / (float)tSimplePoly_getNumActiveVoices(&poly)));
             }
             else
             {
@@ -979,7 +979,7 @@ namespace vocodec
             displayValues[0] = myPitchFactorCombined;
             displayValues[1] = myPitchFactorCombined;
 
-            float keyPitch = tSimplePoly_getPitchAndCheckActive(&poly, 0);
+            float keyPitch = (float)tSimplePoly_getPitchAndCheckActive(&poly, 0);
             if (keyPitch >= 0)
             {
                 keyPitch = LEAF_midiToFrequency(keyPitch) * 0.003822629969419f ;
@@ -1336,7 +1336,7 @@ namespace vocodec
 
 
 
-            sampleLength = recordPosition * leaf.invSampleRate;
+            sampleLength = (float)recordPosition * leaf.invSampleRate;
             displayValues[0] = knobs[0] * sampleLength;
             displayValues[1] = LEAF_clip(0.0f, knobs[1] * sampleLength, sampleLength * (1.0f - knobs[0]));
             displayValues[2] = (knobs[2] - 0.5f) * 4.0f;
@@ -1797,7 +1797,7 @@ namespace vocodec
             }
 
 
-            sample = tanhf(sample) * 0.98;
+            sample = tanhf(sample) * 0.98f;
             input[0] = sample;
             input[1] = sample;
         }
@@ -2297,7 +2297,7 @@ namespace vocodec
             tSVF_init(&delayHP2, SVFTypeHighpass, 20.f, .7f);
 
             tHighpass_init(&delayShaperHp, 20.0f);
-            tFeedbackLeveler_init(&feedbackControl, .99f, 0.01, 0.125f, 0);
+            tFeedbackLeveler_init(&feedbackControl, .99f, 0.01f, 0.125f, 0);
             delayShaper = 0;
             capFeedback = 1;
             freeze = 0;
@@ -2617,8 +2617,8 @@ namespace vocodec
             displayValues[1] = presetKnobValues[LivingString][1]; //detune
             displayValues[2] = presetKnobValues[LivingString][2]; //decay
             displayValues[3] = mtof((presetKnobValues[LivingString][3] * 130.0f)+12.0f); //lowpass
-            displayValues[4] = (presetKnobValues[LivingString][4] * 0.48) + 0.5f;//pickPos
-            displayValues[5] = (presetKnobValues[LivingString][5] * 0.48) + 0.02f;//prepPos
+            displayValues[4] = (presetKnobValues[LivingString][4] * 0.48f) + 0.5f;//pickPos
+            displayValues[5] = (presetKnobValues[LivingString][5] * 0.48f) + 0.02f;//prepPos
             displayValues[6] = ((tanhf((presetKnobValues[LivingString][6] * 8.0f) - 4.0f)) * 0.5f) + 0.5f;//prep Index
             displayValues[7] = presetKnobValues[LivingString][7];// let ring
 
@@ -2780,8 +2780,8 @@ namespace vocodec
             displayValues[1] = presetKnobValues[LivingStringSynth][1]; //lowpass
             displayValues[2] = presetKnobValues[LivingStringSynth][2]; //decay
             displayValues[3] = faster_mtof((presetKnobValues[LivingStringSynth][3] * 119.0f)+20.0f); //lowpass
-            displayValues[4] = (presetKnobValues[LivingStringSynth][4] * 0.44) + 0.52f;//pick Pos
-            displayValues[5] = (presetKnobValues[LivingStringSynth][5] * 0.44) + 0.04f;//prep Pos
+            displayValues[4] = (presetKnobValues[LivingStringSynth][4] * 0.44f) + 0.52f;//pick Pos
+            displayValues[5] = (presetKnobValues[LivingStringSynth][5] * 0.44f) + 0.04f;//prep Pos
             displayValues[6] = ((LEAF_tanh((presetKnobValues[LivingStringSynth][6] * 8.5f) - 4.25f)) * 0.5f) + 0.5f;//prep Index
             displayValues[7] = presetKnobValues[LivingStringSynth][7];//let Ring
             displayValues[8] = presetKnobValues[LivingStringSynth][8];//feedback level
@@ -3702,7 +3702,7 @@ namespace vocodec
                         {
                             tADSR4_on(&FM_envs[whichVoice][j], velocity * 0.0078125f);
                         }
-                        panValues[whichVoice] = key * 0.0078125; // divide by 128.0f
+                        panValues[whichVoice] = key * 0.0078125f; // divide by 128.0f
                     }
                 }
                 else if (currentPreset == ClassicSynth)
