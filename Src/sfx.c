@@ -34,7 +34,7 @@ namespace vocodec
         char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
 #endif
 
-        tMempool smallPool;
+        tMempool mediumPool;
         tMempool largePool;
 
         float defaultPresetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
@@ -122,10 +122,10 @@ namespace vocodec
         {
             calculateNoteArray();
 
-            tSimplePoly_initToPool(&poly, NUM_VOC_VOICES, &smallPool);
+            tSimplePoly_init(&poly, NUM_VOC_VOICES);
             for (int i = 0; i < NUM_VOC_VOICES; i++)
             {
-                tExpSmooth_initToPool(&polyRamp[i], 0.0f, 0.02f, &smallPool);
+                tExpSmooth_init(&polyRamp[i], 0.0f, 0.02f);
             }
 
             tExpSmooth_init(&comp, 1.0f, 0.01f);
@@ -353,26 +353,26 @@ namespace vocodec
 
         void SFXVocoderAlloc()
         {
-            tTalkboxFloat_initToPool(&vocoder, 1024,  &smallPool);
+            tTalkboxFloat_init(&vocoder, 1024);
             tTalkboxFloat_setWarpOn(&vocoder, 1);
-            tNoise_initToPool(&vocoderNoise, WhiteNoise, &smallPool);
-            tZeroCrossing_initToPool(&zerox, 16, &smallPool);
+            tNoise_init(&vocoderNoise, WhiteNoise);
+            tZeroCrossing_init(&zerox, 16);
             tSimplePoly_setNumVoices(&poly, numVoices);
-            tExpSmooth_initToPool(&noiseRamp, 0.0f, 0.005f, &smallPool);
+            tExpSmooth_init(&noiseRamp, 0.0f, 0.005f);
 
             //tilt filter
-            tVZFilter_initToPool(&shelf1, Lowshelf, 80.0f, 6.0f, &smallPool);
-            tVZFilter_initToPool(&shelf2, Highshelf, 12000.0f, 6.0f, &smallPool);
+            tVZFilter_init(&shelf1, Lowshelf, 80.0f, 6.0f);
+            tVZFilter_init(&shelf2, Highshelf, 12000.0f, 6.0f);
 
-            tNoise_initToPool(&breathNoise, WhiteNoise, &smallPool);
-            tHighpass_initToPool(&noiseHP, 4500.0f, &smallPool);
+            tNoise_init(&breathNoise, WhiteNoise);
+            tHighpass_init(&noiseHP, 4500.0f);
 
             for (int i = 0; i < NUM_VOC_VOICES; i++)
             {
 
-                tSawtooth_initToPool(&osc[i], &smallPool);
+                tSawtooth_init(&osc[i]);
 
-                tRosenbergGlottalPulse_initToPool(&glottal[i], &smallPool);
+                tRosenbergGlottalPulse_init(&glottal[i]);
                 tRosenbergGlottalPulse_setOpenLengthAndPulseLength(&glottal[i], 0.3f, 0.4f);
             }
             setLED_A(numVoices == 1);
@@ -593,7 +593,7 @@ namespace vocodec
             bandWidthInOctaves = bandWidthInSemitones * 0.083333333333333f;  // divide by 12
             thisBandwidth = bandWidthInOctaves * myQ;
 
-            tVZFilter_initToPool(&vocodec_highshelf, Highshelf, 6000.0f, 3.0f, &smallPool);
+            tVZFilter_init(&vocodec_highshelf, Highshelf, 6000.0f, 3.0f);
             tVZFilter_setGain(&vocodec_highshelf, 4.0f);
 
             for (int i = 0; i < MAX_NUM_VOCODER_BANDS; i++)
@@ -605,47 +605,47 @@ namespace vocodec
 
                 if (i == 0)
                 {
-                    tVZFilter_initToPool(&analysisBands[i][0], Lowpass, bandFreq, thisBandwidth, &smallPool);
-                    tVZFilter_initToPool(&analysisBands[i][1], Lowpass, bandFreq, thisBandwidth, &smallPool);
+                    tVZFilter_init(&analysisBands[i][0], Lowpass, bandFreq, thisBandwidth);
+                    tVZFilter_init(&analysisBands[i][1], Lowpass, bandFreq, thisBandwidth);
 
-                    tVZFilter_initToPool(&synthesisBands[i][0], Lowpass, bandFreq,thisBandwidth, &smallPool);
-                    tVZFilter_initToPool(&synthesisBands[i][1], Lowpass, bandFreq,thisBandwidth, &smallPool);
+                    tVZFilter_init(&synthesisBands[i][0], Lowpass, bandFreq,thisBandwidth);
+                    tVZFilter_init(&synthesisBands[i][1], Lowpass, bandFreq,thisBandwidth);
 
                 }
                 else if (i == (MAX_NUM_VOCODER_BANDS-1))
                 {
-                    tVZFilter_initToPool(&analysisBands[i][0], Highpass, bandFreq, thisBandwidth, &smallPool);
-                    tVZFilter_initToPool(&analysisBands[i][1], Highpass, bandFreq, thisBandwidth, &smallPool);
+                    tVZFilter_init(&analysisBands[i][0], Highpass, bandFreq, thisBandwidth);
+                    tVZFilter_init(&analysisBands[i][1], Highpass, bandFreq, thisBandwidth);
 
-                    tVZFilter_initToPool(&synthesisBands[i][0], Highpass, bandFreq, thisBandwidth, &smallPool);
-                    tVZFilter_initToPool(&synthesisBands[i][1], Highpass, bandFreq, thisBandwidth, &smallPool);
+                    tVZFilter_init(&synthesisBands[i][0], Highpass, bandFreq, thisBandwidth);
+                    tVZFilter_init(&synthesisBands[i][1], Highpass, bandFreq, thisBandwidth);
 
                 }
                 else
                 {
-                    tVZFilter_initToPool(&analysisBands[i][0], BandpassPeak, bandFreq, thisBandwidth, &smallPool);
-                    tVZFilter_initToPool(&analysisBands[i][1], BandpassPeak, bandFreq, thisBandwidth, &smallPool);
+                    tVZFilter_init(&analysisBands[i][0], BandpassPeak, bandFreq, thisBandwidth);
+                    tVZFilter_init(&analysisBands[i][1], BandpassPeak, bandFreq, thisBandwidth);
 
-                    tVZFilter_initToPool(&synthesisBands[i][0], BandpassPeak, bandFreq, thisBandwidth, &smallPool);
-                    tVZFilter_initToPool(&synthesisBands[i][1], BandpassPeak, bandFreq, thisBandwidth, &smallPool);
+                    tVZFilter_init(&synthesisBands[i][0], BandpassPeak, bandFreq, thisBandwidth);
+                    tVZFilter_init(&synthesisBands[i][1], BandpassPeak, bandFreq, thisBandwidth);
 
                 }
-                tExpSmooth_initToPool(&envFollowers[i], 0.0f, 0.001f, &smallPool); // factor of .001 is 10 ms?
+                tExpSmooth_init(&envFollowers[i], 0.0f, 0.001f); // factor of .001 is 10 ms?
             }
-            tNoise_initToPool(&breathNoise, WhiteNoise, &smallPool);
-            tNoise_initToPool(&vocoderNoise, WhiteNoise, &smallPool);
-            tZeroCrossing_initToPool(&zerox, 256, &smallPool);
+            tNoise_init(&breathNoise, WhiteNoise);
+            tNoise_init(&vocoderNoise, WhiteNoise);
+            tZeroCrossing_init(&zerox, 256);
             tSimplePoly_setNumVoices(&poly, numVoices);
-            tExpSmooth_initToPool(&noiseRamp, 0.0f, 0.05f, &smallPool);
-            tHighpass_initToPool(&noiseHP, 5000.0f, &smallPool);
-            tHighpass_initToPool(&chVocFinalHP1, 20.0f, &smallPool);
-            tHighpass_initToPool(&chVocFinalHP2, 20.0f, &smallPool);
+            tExpSmooth_init(&noiseRamp, 0.0f, 0.05f);
+            tHighpass_init(&noiseHP, 5000.0f);
+            tHighpass_init(&chVocFinalHP1, 20.0f);
+            tHighpass_init(&chVocFinalHP2, 20.0f);
             for (int i = 0; i < NUM_VOC_VOICES; i++)
             {
 
-                tSawtooth_initToPool(&osc[i], &smallPool);
+                tSawtooth_init(&osc[i]);
 
-                tRosenbergGlottalPulse_initToPool(&glottal[i], &smallPool);
+                tRosenbergGlottalPulse_init(&glottal[i]);
                 tRosenbergGlottalPulse_setOpenLength(&glottal[i], 0.3f);
                 tRosenbergGlottalPulse_setPulseLength(&glottal[i], 0.4f);
             }
@@ -950,9 +950,9 @@ namespace vocodec
         void SFXPitchShiftAlloc()
         {
 
-            tFormantShifter_initToPool(&fs, 7, &smallPool);
-            tRetune_init(&retune, NUM_RETUNE, 1024, 512);
-            tRetune_init(&retune2, NUM_RETUNE, 1024, 512);
+            tFormantShifter_init(&fs, 7);
+            tRetune_initToPool(&retune, NUM_RETUNE, 1024, 512, &mediumPool);
+            tRetune_initToPool(&retune2, NUM_RETUNE, 1024, 512, &mediumPool);
             tRamp_init(&pitchshiftRamp, 100.0f, 1);
             tRamp_setVal(&pitchshiftRamp, 1.0f);
 
@@ -1208,7 +1208,7 @@ namespace vocodec
         //6 autotune
         void SFXAutotuneAlloc()
         {
-            tAutotune_init(&autotunePoly, NUM_AUTOTUNE, 1024, 512);
+            tAutotune_initToPool(&autotunePoly, NUM_AUTOTUNE, 1024, 512, &mediumPool);
             tSimplePoly_setNumVoices(&poly, NUM_AUTOTUNE);
 
             //tAutotune_init(&autotunePoly, NUM_AUTOTUNE, 2048, 1024); //old settings
@@ -1278,8 +1278,8 @@ namespace vocodec
             tBuffer_setRecordMode(&buff, RecordOneShot);
             tSampler_init(&sampler, &buff);
             tSampler_setMode(&sampler, (PlayMode)(bpMode + 1));
-            tExpSmooth_initToPool(&startSmooth, 0.0f, 0.01f, &smallPool);
-            tExpSmooth_initToPool(&lengthSmooth, 0.0f, 0.01f, &smallPool);
+            tExpSmooth_init(&startSmooth, 0.0f, 0.01f);
+            tExpSmooth_init(&lengthSmooth, 0.0f, 0.01f);
         }
 
         void SFXSamplerBPFrame()
@@ -1410,7 +1410,7 @@ namespace vocodec
 
                 tBuffer_initToPool(&keyBuff[i], leaf.sampleRate * 3.5f, &largePool);
                 tBuffer_setRecordMode(&keyBuff[i], RecordOneShot);
-                tSampler_initToPool(&keySampler[i], &keyBuff[i], &smallPool);
+                tSampler_init(&keySampler[i], &keyBuff[i]);
                 tSampler_setMode(&keySampler[i], PlayLoop);
 
                 samplePlayStarts[i] = 0;
@@ -1418,7 +1418,7 @@ namespace vocodec
                 detectedAttackPos[i] = 0;
                 crossfadeLengths[i] = 1000;
                 samplerKeyHeld[i] = 0;
-                tExpSmooth_initToPool(&kSamplerGains[i], 0.0f, 0.04f, &smallPool);
+                tExpSmooth_init(&kSamplerGains[i], 0.0f, 0.04f);
                 sampleRates[i] = 1.0f;
                 sampleRatesMult[i] = 1.0f;
                 loopOns[i] = 1;
@@ -1839,13 +1839,13 @@ namespace vocodec
             tBuffer_setRecordMode(&asBuff[0], RecordOneShot);
             tBuffer_initToPool(&asBuff[1], MAX_AUTOSAMP_LENGTH, &largePool);
             tBuffer_setRecordMode(&asBuff[1], RecordOneShot);
-            tSampler_initToPool(&asSampler[0], &asBuff[0], &smallPool);
+            tSampler_init(&asSampler[0], &asBuff[0]);
             tSampler_setMode(&asSampler[0], PlayLoop);
-            tSampler_initToPool(&asSampler[1], &asBuff[1], &smallPool);
+            tSampler_init(&asSampler[1], &asBuff[1]);
             tSampler_setMode(&asSampler[1], PlayLoop);
 
-            tEnvelopeFollower_initToPool(&envfollow, 0.00001f, 0.9999f, &smallPool);
-            tExpSmooth_initToPool(&cfxSmooth, 0.0f, 0.01f, &smallPool);
+            tEnvelopeFollower_init(&envfollow, 0.00001f, 0.9999f);
+            tExpSmooth_init(&cfxSmooth, 0.0f, 0.01f);
 
             setLED_A(samplerMode == PlayBackAndForth);
             setLED_B(triggerChannel);
@@ -2041,10 +2041,10 @@ namespace vocodec
         void SFXDistortionAlloc()
         {
             leaf.clearOnAllocation = 1;
-            tOversampler_initToPool(&oversampler, distOS_ratio, FALSE, &smallPool);
-            tVZFilter_initToPool(&shelf1, Lowshelf, 80.0f, 6.0f, &smallPool);
-            tVZFilter_initToPool(&shelf2, Highshelf, 12000.0f, 6.0f, &smallPool);
-            tVZFilter_initToPool(&bell1, Bell, 1000.0f, 1.9f, &smallPool);
+            tOversampler_init(&oversampler, distOS_ratio, FALSE);
+            tVZFilter_init(&shelf1, Lowshelf, 80.0f, 6.0f);
+            tVZFilter_init(&shelf2, Highshelf, 12000.0f, 6.0f);
+            tVZFilter_init(&bell1, Bell, 1000.0f, 1.9f);
             tVZFilter_setSampleRate(&shelf1, leaf.sampleRate * distOS_ratio);
             tVZFilter_setSampleRate(&shelf2, leaf.sampleRate * distOS_ratio);
             tVZFilter_setSampleRate(&bell1, leaf.sampleRate * distOS_ratio);
@@ -2116,10 +2116,10 @@ namespace vocodec
         void SFXWaveFolderAlloc()
         {
             leaf.clearOnAllocation = 1;
-            tLockhartWavefolder_initToPool(&wavefolder1, &smallPool);
-            tLockhartWavefolder_initToPool(&wavefolder2, &smallPool);
-            tHighpass_initToPool(&wfHP, 10.0f, &smallPool);
-            tOversampler_initToPool(&oversampler, 2, FALSE, &smallPool);
+            tLockhartWavefolder_init(&wavefolder1);
+            tLockhartWavefolder_init(&wavefolder2);
+            tHighpass_init(&wfHP, 10.0f);
+            tOversampler_init(&oversampler, 2, FALSE);
             setLED_A(foldMode);
             leaf.clearOnAllocation = 0;
         }
@@ -2220,8 +2220,8 @@ namespace vocodec
         //13 bitcrusher
         void SFXBitcrusherAlloc()
         {
-            tCrusher_initToPool(&crush, &smallPool);
-            tCrusher_initToPool(&crush2, &smallPool);
+            tCrusher_init(&crush);
+            tCrusher_init(&crush2);
             setLED_A(crusherStereo);
         }
 
@@ -2288,8 +2288,8 @@ namespace vocodec
         void SFXDelayAlloc()
         {
             leaf.clearOnAllocation = 1;
-            tTapeDelay_init(&delay, 2000, 30000);
-            tTapeDelay_init(&delay2, 2000, 30000);
+            tTapeDelay_initToPool(&delay, 2000, 30000, &mediumPool);
+            tTapeDelay_initToPool(&delay2, 2000, 30000, &mediumPool);
             tSVF_init(&delayLP, SVFTypeLowpass, 16000.f, .7f);
             tSVF_init(&delayHP, SVFTypeHighpass, 20.f, .7f);
 
@@ -2410,7 +2410,7 @@ namespace vocodec
         void SFXReverbAlloc()
         {
             leaf.clearOnAllocation = 1;
-            tDattorroReverb_init(&reverb);
+            tDattorroReverb_initToPool(&reverb, &mediumPool);
             tExpSmooth_init(&sizeSmoother, 0.5f, 0.001f);
             tDattorroReverb_setMix(&reverb, 1.0f);
             freeze = 0;
@@ -2479,7 +2479,7 @@ namespace vocodec
         void SFXReverb2Alloc()
         {
             leaf.clearOnAllocation = 1;
-            tNReverb_init(&reverb2, 1.0f);
+            tNReverb_initToPool(&reverb2, 1.0f, &mediumPool);
             tNReverb_setMix(&reverb2, 1.0f);
             tSVF_init(&lowpass, SVFTypeLowpass, 18000.0f, 0.75f);
             tSVF_init(&highpass, SVFTypeHighpass, 40.0f, 0.75f);
@@ -2579,8 +2579,8 @@ namespace vocodec
             {
                 myDetune[i] = (leaf.random() * 0.3f) - 0.15f;
                 //tComplexLivingString_init(&theString[i],  myFreq, 0.4f, 0.0f, 16000.0f, .999f, .5f, .5f, 0.1f, 0);
-                tComplexLivingString_init(&theString[i], 440.f, 0.8f, 0.3f, 0.f, 9000.f, 1.0f, 0.3f, 0.01f, 0.125f, levMode);
-                tExpSmooth_initToPool(&stringGains[i], 0.0f, 0.002f, &smallPool);
+                tComplexLivingString_initToPool(&theString[i], 440.f, 0.8f, 0.3f, 0.f, 9000.f, 1.0f, 0.3f, 0.01f, 0.125f, levMode, &mediumPool);
+                tExpSmooth_init(&stringGains[i], 0.0f, 0.002f);
             }
             ignoreFreqKnobs = 0;
             setLED_A(ignoreFreqKnobs);
@@ -2731,14 +2731,14 @@ namespace vocodec
             tSimplePoly_setNumVoices(&poly, NUM_STRINGS);
             for (int i = 0; i < NUM_STRINGS; i++)
             {
-                tComplexLivingString_init(&theString[i], 440.f, 0.2f, 0.3f, 0.f, 9000.f, 1.0f, 0.0f, 0.01f, 0.125f, levModeStr);
-                tSlide_initToPool(&stringOutEnvs[i], 10.0f, 1000.0f, &smallPool);
-                tSlide_initToPool(&stringInEnvs[i], 12.0f, 1000.0f, &smallPool);
-                tADSR4_initToPool(&pluckEnvs[i], 4.0f, 70.0f, 0.0f, 5.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
+                tComplexLivingString_initToPool(&theString[i], 440.f, 0.2f, 0.3f, 0.f, 9000.f, 1.0f, 0.0f, 0.01f, 0.125f, levModeStr, &mediumPool);
+                tSlide_init(&stringOutEnvs[i], 10.0f, 1000.0f);
+                tSlide_init(&stringInEnvs[i], 12.0f, 1000.0f);
+                tADSR4_init(&pluckEnvs[i], 4.0f, 70.0f, 0.0f, 5.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE);
 
             }
-            tVZFilter_initToPool(&pluckFilt, BandpassPeak, 2000.0f, 4.0f, &smallPool);
-            tNoise_initToPool(&stringPluckNoise, WhiteNoise, &smallPool);
+            tVZFilter_init(&pluckFilt, BandpassPeak, 2000.0f, 4.0f);
+            tNoise_init(&stringPluckNoise, WhiteNoise);
             setLED_A(numVoices == 1);
             setLED_B(voicePluck);
             setLED_C(levModeStr);
@@ -2922,22 +2922,22 @@ namespace vocodec
             {
                 for (int j = 0; j < NUM_OSC_PER_VOICE; j++)
                 {
-                    tSawtooth_initToPool(&osc[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
+                    tSawtooth_init(&osc[(i * NUM_OSC_PER_VOICE) + j]);
                     synthDetune[i][j] = ((leaf.random() * 0.0264f) - 0.0132f);
-                    tRosenbergGlottalPulse_initToPool(&glottal[(i * NUM_OSC_PER_VOICE) + j], &smallPool);
+                    tRosenbergGlottalPulse_init(&glottal[(i * NUM_OSC_PER_VOICE) + j]);
                     tRosenbergGlottalPulse_setOpenLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], 0.3f);
                     tRosenbergGlottalPulse_setPulseLength(&glottal[(i * NUM_OSC_PER_VOICE) + j], 0.4f);
                 }
 
-                tEfficientSVF_initToPool(&synthLP[i], SVFTypeLowpass, 6000.0f, displayValues[4], &smallPool);
-                tADSR4_initToPool(&polyEnvs[i], displayValues[5], displayValues[6], displayValues[7], displayValues[8], decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
+                tEfficientSVF_init(&synthLP[i], SVFTypeLowpass, 6000.0f, displayValues[4]);
+                tADSR4_init(&polyEnvs[i], displayValues[5], displayValues[6], displayValues[7], displayValues[8], decayExpBuffer, DECAY_EXP_BUFFER_SIZE);
                 tADSR4_setLeakFactor(&polyEnvs[i],((1.0f - displayValues[9]) * 0.00005f) + 0.99995f);
-                tADSR4_initToPool(&polyFiltEnvs[i], displayValues[10], displayValues[11], displayValues[12], displayValues[13], decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
+                tADSR4_init(&polyFiltEnvs[i], displayValues[10], displayValues[11], displayValues[12], displayValues[13], decayExpBuffer, DECAY_EXP_BUFFER_SIZE);
                 tADSR4_setLeakFactor(&polyFiltEnvs[i], ((1.0f - displayValues[14]) * 0.00005f) + 0.99995f);
 
             }
-            tCycle_initToPool(&pwmLFO1, &smallPool);
-            tCycle_initToPool(&pwmLFO2, &smallPool);
+            tCycle_init(&pwmLFO1);
+            tCycle_init(&pwmLFO2);
             tCycle_setFreq(&pwmLFO1, 63.0f);
             tCycle_setFreq(&pwmLFO2, 72.11f);
 
@@ -3190,16 +3190,16 @@ namespace vocodec
             {
                 for (int j = 0; j < 6; j++)
                 {
-                    tCycle_initToPool(&FM_sines[i][j], &smallPool);
-                    tADSR4_initToPool(&FM_envs[i][j], 10, 1000, 0.5f, 100.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &smallPool);
+                    tCycle_init(&FM_sines[i][j]);
+                    tADSR4_init(&FM_envs[i][j], 10, 1000, 0.5f, 100.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE);
                     tADSR4_setLeakFactor(&FM_envs[i][j], 0.99998f);
                 }
             }
             for (int i = 0; i < 6; i++)
             {
-                tExpSmooth_initToPool(&susSmoothers[i], 1.0f, 0.01f, &smallPool);
+                tExpSmooth_init(&susSmoothers[i], 1.0f, 0.01f);
             }
-            tCycle_initToPool(&tremolo, &smallPool);
+            tCycle_init(&tremolo);
             tCycle_setFreq(&tremolo, 3.0f);
             tSimplePoly_setNumVoices(&poly, NUM_VOC_VOICES);
 

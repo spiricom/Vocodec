@@ -38,7 +38,7 @@ namespace vocodec
         extern char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
 #endif
 
-        extern tMempool smallPool;
+        extern tMempool mediumPool;
         extern tMempool largePool;
 
 #define NUM_VOC_VOICES 8

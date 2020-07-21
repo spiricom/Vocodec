@@ -601,7 +601,7 @@ void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress )
 }
 
 
-/*
+
 
 uint8_t LEAF_error(uint8_t errorCode)
 {
@@ -613,7 +613,7 @@ uint8_t LEAF_error(uint8_t errorCode)
 
 	return 0;
 }
-*/
+
 
 // helper function to initialize measuring unit (cycle counter) */
 static void CycleCounterInit( void )

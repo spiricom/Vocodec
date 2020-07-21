@@ -73,9 +73,9 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 {
 	// Initialize LEAF.
 
-	LEAF_init(SAMPLE_RATE, AUDIO_FRAME_SIZE, medium_memory, MED_MEM_SIZE, &randomNumber);
+	LEAF_init(SAMPLE_RATE, AUDIO_FRAME_SIZE, small_memory, SMALL_MEM_SIZE, &randomNumber);
 
-	tMempool_init (&smallPool, small_memory, SMALL_MEM_SIZE);
+	tMempool_init (&mediumPool, medium_memory, MED_MEM_SIZE);
 	tMempool_init (&largePool, large_memory, LARGE_MEM_SIZE);
 
 	initFunctionPointers();
