@@ -101,7 +101,7 @@ namespace vocodec
         extern uint8_t knobPage;
         extern uint8_t buttonActionsUI[NUM_BUTTONS+1][ActionNil];
         extern uint8_t buttonActionsSFX[NUM_BUTTONS+1][ActionNil];
-        extern char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
+        extern const char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
 
         void initModeNames(void);
 

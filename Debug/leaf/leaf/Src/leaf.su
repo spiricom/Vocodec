@@ -1,4 +1,0 @@
-leaf.c:23:6:LEAF_init	24	static
-leaf.c:44:6:LEAF_setSampleRate	0	static
-leaf.c:50:7:LEAF_getSampleRate	0	static
-leaf.c:58:9:LEAF_error	0	static

@@ -67,7 +67,7 @@ namespace vocodec
         uint8_t buttonActionsUI[NUM_BUTTONS+1][ActionNil];
         float displayValues[NUM_PRESET_KNOB_VALUES];
         int8_t cvAddParam[PresetNil];
-        char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
+        const char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
 
         VocodecPresetType currentPreset = (VocodecPresetType)0;
         VocodecPresetType previousPreset = PresetNil;

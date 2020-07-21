@@ -248,13 +248,13 @@ void OLED_writePreset()
 	itoa((currentPreset+1), tempString, 10);
 	strcat(tempString, ":");
 	strcat(tempString, modeNames[currentPreset]);
-	int myLength = strlen(tempString);
+	int myLength = (int)strlen(tempString);
 	//OLEDwriteInt(currentPreset+1, 2, 0, FirstLine);
 	//OLEDwriteString(":", 1, 20, FirstLine);
 	//OLEDwriteString(modeNames[currentPreset], 12, 24, FirstLine);
 	OLEDwriteString(tempString, myLength, 0, FirstLine);
 	GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
-	OLEDwriteString(modeNamesDetails[currentPreset], strlen(modeNamesDetails[currentPreset]), 0, SecondLine);
+	OLEDwriteString(modeNamesDetails[currentPreset], (int)strlen(modeNamesDetails[currentPreset]), 0, SecondLine);
 	//save new preset to flash memory
 }
 
@@ -263,8 +263,8 @@ void OLED_writeEditScreen()
 	GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
 	OLEDclear();
 	char* first = "KNOB:SET CV PED";
-	if (cvAddParam >= 0) first = "DOWN:CLR CV PED";
-	OLEDwriteString(first, strlen(first), 0, FirstLine);
+	if (cvAddParam[currentPreset] >= 0) first = "DOWN:CLR CV PED";
+	OLEDwriteString(first, (int)strlen(first), 0, FirstLine);
 	OLEDwriteString("C:SET KEY CENTER", 16, 0, SecondLine);
 }
 
@@ -275,7 +275,7 @@ void OLED_writeKnobParameter(int whichKnob)
 	{
 		int whichParam = whichKnob + (knobPage * KNOB_PAGE_SIZE);
 		floatADCUI[whichKnob] = smoothedADC[whichKnob];
-		int len = strlen(knobParamNames[currentPreset][whichParam]);
+		int len = (int)strlen(knobParamNames[currentPreset][whichParam]);
 		if (len > 0)
 		{
 			GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
@@ -292,8 +292,8 @@ void OLED_writeButtonAction(int whichButton, int whichAction)
 {
 	// Could change this so that buttonActionFunctions does the actual OLEDwrite
 	// if we want more flexibility on what buttons display
-	char* str = buttonActionFunctions[currentPreset](whichButton, whichAction);
-	int len = strlen(str);
+	const char* str = buttonActionFunctions[currentPreset](whichButton, whichAction);
+	int len = (int)strlen(str);
 	if (len > 0)
 	{
 		GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
