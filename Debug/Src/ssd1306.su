@@ -1,0 +1,11 @@
+ssd1306.c:74:6:ssd1306_begin	40	static
+ssd1306.c:155:6:sdd1306_invertDisplay	32	static
+ssd1306.c:163:6:ssd1306_command	32	static
+ssd1306.c:176:6:ssd1306_dim	40	static
+ssd1306.c:196:6:ssd1306_display_full_buffer	48	static
+ssd1306.c:223:6:ssd1306_home	40	static
+ssd1306.c:228:6:ssd1306_move_raw	48	static
+ssd1306.c:241:6:ssd1306_move	48	static
+ssd1306.c:249:6:ssd1306_write_internal	28	static
+ssd1306.c:259:6:ssd1306_write	24	dynamic
+ssd1306.c:274:6:ssd1306_write_2X	64	dynamic
