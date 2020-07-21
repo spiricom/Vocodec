@@ -1,0 +1,13 @@
+.DS_Store
+/Drivers/
+/Middlewares/
+/Src/
+/startup/
+/leaf/
+/makefile
+/objects.list
+/objects.mk
+/sources.mk
+output.map
+*.hex
+*.elf
