@@ -126,12 +126,14 @@ namespace vocodec
             for (int i = 0; i < NUM_VOC_VOICES; i++)
             {
                 tExpSmooth_init(&polyRamp[i], 0.0f, 0.02f);
+                freq[i] = 220.0f;
             }
 
             tExpSmooth_init(&comp, 1.0f, 0.01f);
 
             LEAF_generate_exp(expBuffer, 1000.0f, -1.0f, 0.0f, -0.0008f, EXP_BUFFER_SIZE); //exponential buffer rising from 0 to 1
             LEAF_generate_exp(decayExpBuffer, 0.001f, 0.0f, 1.0f, -0.0008f, DECAY_EXP_BUFFER_SIZE); // exponential decay buffer falling from 1 to 0
+
 
 
             // Note that these are the actual knob values
@@ -353,7 +355,8 @@ namespace vocodec
 
         void SFXVocoderAlloc()
         {
-            tTalkboxFloat_init(&vocoder, 1024);
+        	leaf.clearOnAllocation = 1;
+        	tTalkboxFloat_init(&vocoder, 1024);
             tTalkboxFloat_setWarpOn(&vocoder, 1);
             tNoise_init(&vocoderNoise, WhiteNoise);
             tZeroCrossing_init(&zerox, 16);
@@ -555,7 +558,7 @@ namespace vocodec
 
         void SFXVocoderChAlloc()
         {
-
+        	leaf.clearOnAllocation = 1;
             displayValues[0] = presetKnobValues[VocoderCh][0]; //vocoder volume
 
             displayValues[1] = (presetKnobValues[VocoderCh][1] * 0.8f) - 0.4f; //warp factor
