@@ -64,11 +64,6 @@ float atodbTable[ATODB_TABLE_SIZE];
 
 /**********************************************/
 
-void (*allocFunctions[PresetNil])(void);
-void (*frameFunctions[PresetNil])(void);
-void (*tickFunctions[PresetNil])(float*);
-void (*freeFunctions[PresetNil])(void);
-
 void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn)
 {
 	// Initialize LEAF.
@@ -438,101 +433,6 @@ float audioTickR(float audioIn)
 }
 
 */
-
-void initFunctionPointers(void)
-{
-	allocFunctions[Vocoder] = SFXVocoderAlloc;
-	frameFunctions[Vocoder] = SFXVocoderFrame;
-	tickFunctions[Vocoder] = SFXVocoderTick;
-	freeFunctions[Vocoder] = SFXVocoderFree;
-
-	allocFunctions[VocoderCh] = SFXVocoderChAlloc;
-	frameFunctions[VocoderCh] = SFXVocoderChFrame;
-	tickFunctions[VocoderCh] = SFXVocoderChTick;
-	freeFunctions[VocoderCh] = SFXVocoderChFree;
-
-	allocFunctions[Pitchshift] = SFXPitchShiftAlloc;
-	frameFunctions[Pitchshift] = SFXPitchShiftFrame;
-	tickFunctions[Pitchshift] = SFXPitchShiftTick;
-	freeFunctions[Pitchshift] = SFXPitchShiftFree;
-
-	allocFunctions[AutotuneMono] = SFXNeartuneAlloc;
-	frameFunctions[AutotuneMono] = SFXNeartuneFrame;
-	tickFunctions[AutotuneMono] = SFXNeartuneTick;
-	freeFunctions[AutotuneMono] = SFXNeartuneFree;
-
-	allocFunctions[AutotunePoly] = SFXAutotuneAlloc;
-	frameFunctions[AutotunePoly] = SFXAutotuneFrame;
-	tickFunctions[AutotunePoly] = SFXAutotuneTick;
-	freeFunctions[AutotunePoly] = SFXAutotuneFree;
-
-	allocFunctions[SamplerButtonPress] = SFXSamplerBPAlloc;
-	frameFunctions[SamplerButtonPress] = SFXSamplerBPFrame;
-	tickFunctions[SamplerButtonPress] = SFXSamplerBPTick;
-	freeFunctions[SamplerButtonPress] = SFXSamplerBPFree;
-
-	allocFunctions[SamplerKeyboard] = SFXSamplerKAlloc;
-	frameFunctions[SamplerKeyboard] = SFXSamplerKFrame;
-	tickFunctions[SamplerKeyboard] = SFXSamplerKTick;
-	freeFunctions[SamplerKeyboard] = SFXSamplerKFree;
-
-	allocFunctions[SamplerAutoGrab] = SFXSamplerAutoAlloc;
-	frameFunctions[SamplerAutoGrab] = SFXSamplerAutoFrame;
-	tickFunctions[SamplerAutoGrab] = SFXSamplerAutoTick;
-	freeFunctions[SamplerAutoGrab] = SFXSamplerAutoFree;
-
-	allocFunctions[Distortion] = SFXDistortionAlloc;
-	frameFunctions[Distortion] = SFXDistortionFrame;
-	tickFunctions[Distortion] = SFXDistortionTick;
-	freeFunctions[Distortion] = SFXDistortionFree;
-
-	allocFunctions[Wavefolder] = SFXWaveFolderAlloc;
-	frameFunctions[Wavefolder] = SFXWaveFolderFrame;
-	tickFunctions[Wavefolder] = SFXWaveFolderTick;
-	freeFunctions[Wavefolder] = SFXWaveFolderFree;
-
-	allocFunctions[BitCrusher] = SFXBitcrusherAlloc;
-	frameFunctions[BitCrusher] = SFXBitcrusherFrame;
-	tickFunctions[BitCrusher] = SFXBitcrusherTick;
-	freeFunctions[BitCrusher] = SFXBitcrusherFree;
-
-	allocFunctions[Delay] = SFXDelayAlloc;
-	frameFunctions[Delay] = SFXDelayFrame;
-	tickFunctions[Delay] = SFXDelayTick;
-	freeFunctions[Delay] = SFXDelayFree;
-
-	allocFunctions[Reverb] = SFXReverbAlloc;
-	frameFunctions[Reverb] = SFXReverbFrame;
-	tickFunctions[Reverb] = SFXReverbTick;
-	freeFunctions[Reverb] = SFXReverbFree;
-
-	allocFunctions[Reverb2] = SFXReverb2Alloc;
-	frameFunctions[Reverb2] = SFXReverb2Frame;
-	tickFunctions[Reverb2] = SFXReverb2Tick;
-	freeFunctions[Reverb2] = SFXReverb2Free;
-
-	allocFunctions[LivingString] = SFXLivingStringAlloc;
-	frameFunctions[LivingString] = SFXLivingStringFrame;
-	tickFunctions[LivingString] = SFXLivingStringTick;
-	freeFunctions[LivingString] = SFXLivingStringFree;
-
-	allocFunctions[LivingStringSynth] = SFXLivingStringSynthAlloc;
-	frameFunctions[LivingStringSynth] = SFXLivingStringSynthFrame;
-	tickFunctions[LivingStringSynth] = SFXLivingStringSynthTick;
-	freeFunctions[LivingStringSynth] = SFXLivingStringSynthFree;
-
-	allocFunctions[ClassicSynth] = SFXClassicSynthAlloc;
-	frameFunctions[ClassicSynth] = SFXClassicSynthFrame;
-	tickFunctions[ClassicSynth] = SFXClassicSynthTick;
-	freeFunctions[ClassicSynth] = SFXClassicSynthFree;
-
-	allocFunctions[Rhodes] = SFXRhodesAlloc;
-	frameFunctions[Rhodes] = SFXRhodesFrame;
-	tickFunctions[Rhodes] = SFXRhodesTick;
-	freeFunctions[Rhodes] = SFXRhodesFree;
-}
-
-
 
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai)
 {

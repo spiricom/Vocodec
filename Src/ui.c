@@ -10,6 +10,8 @@
 #include "audiostream.h"
 #include "oled.h"
 #include "eeprom.h"
+#else
+#include "PluginEditor.h"
 #endif
 
 #include "sfx.h"
@@ -249,9 +251,9 @@ namespace vocodec
             knobParamNames[Delay][3] = "LOWPASS";
             knobParamNames[Delay][4] = "FEEDBACK";
             knobParamNames[Delay][5] = "POST GAIN";
-            knobParamNames[Delay][6] = "POST GAIN";
-            knobParamNames[Delay][7] = "POST GAIN";
-            knobParamNames[Delay][8] = "POST GAIN";
+            knobParamNames[Delay][6] = "";
+            knobParamNames[Delay][7] = "";
+            knobParamNames[Delay][8] = "";
             knobParamNames[Delay][9] = "";
 
             modeNames[Reverb] = "REVERB1";
@@ -406,8 +408,8 @@ namespace vocodec
                         }
                         if (cleanButtonValues[i] == 1)
                         {
-                            buttonActionsSFX[i][ActionHoldContinuous] = TRUE;
-                            buttonActionsUI[i][ActionHoldContinuous] = TRUE;
+                            buttonActionsSFX[i][ActionHoldContinuous] = 1;
+                            buttonActionsUI[i][ActionHoldContinuous] = 1;
                             writeButtonFlag = i;
                             writeActionFlag = ActionHoldContinuous;
                         }
@@ -416,8 +418,8 @@ namespace vocodec
                             if (buttonCounters[i] < buttonHoldMax) buttonCounters[i]++;
                             if ((buttonCounters[i] >= buttonHoldThreshold) && (cleanButtonValues[i] == 1))
                             {
-                                buttonActionsSFX[i][ActionHoldInstant] = TRUE;
-                                buttonActionsUI[i][ActionHoldInstant] = TRUE;
+                                buttonActionsSFX[i][ActionHoldInstant] = 1;
+                                buttonActionsUI[i][ActionHoldInstant] = 1;
                                 writeButtonFlag = i;
                                 writeActionFlag = ActionHoldInstant;
                             }
@@ -430,15 +432,15 @@ namespace vocodec
 
                             if (cleanButtonValues[i] == 1)
                             {
-                                buttonActionsSFX[i][ActionPress] = TRUE;
-                                buttonActionsUI[i][ActionPress] = TRUE;
+                                buttonActionsSFX[i][ActionPress] = 1;
+                                buttonActionsUI[i][ActionPress] = 1;
                                 writeButtonFlag = i;
                                 writeActionFlag = ActionPress;
                             }
                             else if (cleanButtonValues[i] == 0)
                             {
-                                buttonActionsSFX[i][ActionRelease] = TRUE;
-                                buttonActionsUI[i][ActionRelease] = TRUE;
+                                buttonActionsSFX[i][ActionRelease] = 1;
+                                buttonActionsUI[i][ActionRelease] = 1;
                                 writeButtonFlag = i;
                                 writeActionFlag = ActionRelease;
                             }
@@ -686,6 +688,7 @@ namespace vocodec
 
             void setKnobValues(float* values)
             {
+#ifndef __cplusplus
                 for (int i = 0; i < KNOB_PAGE_SIZE; i++)
                 {
                     int knob = i;
@@ -700,10 +703,12 @@ namespace vocodec
 
                     smoothedADC[knob] = values[knob];
                 }
+#endif
             }
 
             void setKnobValue(int knob, float value)
             {
+#ifndef __cplusplus
                 // if the knob is being replaced by cv pedal, set cv pedal instead
                 if (knob + (knobPage * KNOB_PAGE_SIZE) == cvAddParam[currentPreset])
                 {
@@ -713,6 +718,7 @@ namespace vocodec
                 floatADCUI[knob] = -1.0f;
                 tExpSmooth_setValAndDest(&adc[knob], value);
                 smoothedADC[knob] = value;
+#endif
             }
 
             void deactivateKnob(int knob)

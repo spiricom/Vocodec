@@ -11,7 +11,6 @@
 #include "audiostream.h"
 #else
 #include <JuceHeader.h>
-#include "PluginEditor.h"
 #endif
 
 #include "ui.h"
@@ -38,6 +37,11 @@ namespace vocodec
         extern char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
 #endif
 
+        extern void (*allocFunctions[PresetNil])(void);
+        extern void (*frameFunctions[PresetNil])(void);
+        extern void (*tickFunctions[PresetNil])(float*);
+        extern void (*freeFunctions[PresetNil])(void);
+
         extern tMempool mediumPool;
         extern tMempool largePool;
 
@@ -59,6 +63,7 @@ namespace vocodec
 #define NUM_SAMPLER_KEYS 49
 #define LOWEST_SAMPLER_KEY 36
 
+        extern float defaultPresetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
         extern float presetKnobValues[PresetNil][NUM_PRESET_KNOB_VALUES];
         extern int knobActive[NUM_ADC_CHANNELS];
 
@@ -72,6 +77,8 @@ namespace vocodec
         extern int freeze;
 
         void initGlobalSFXObjects();
+
+        void initFunctionPointers(void);
 
         // vocoder
         extern int numVoices;

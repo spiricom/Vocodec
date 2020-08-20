@@ -99,6 +99,7 @@ namespace vocodec
         extern float displayValues[NUM_PRESET_KNOB_VALUES];
         extern int8_t cvAddParam[PresetNil];
         extern uint8_t knobPage;
+        extern uint8_t numPages[PresetNil];
         extern uint8_t buttonActionsUI[NUM_BUTTONS+1][ActionNil];
         extern uint8_t buttonActionsSFX[NUM_BUTTONS+1][ActionNil];
         extern const char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);

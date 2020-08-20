@@ -9,6 +9,8 @@
 #include "main.h"
 #include "oled.h"
 #include "MIDI_application.h"
+#else
+#include "PluginEditor.h"
 #endif
 
 #include "sfx.h"
@@ -33,6 +35,11 @@ namespace vocodec
         char medium_memory[MED_MEM_SIZE] __ATTR_RAM_D1;
         char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
 #endif
+
+        void (*allocFunctions[PresetNil])(void);
+        void (*frameFunctions[PresetNil])(void);
+        void (*tickFunctions[PresetNil])(float*);
+        void (*freeFunctions[PresetNil])(void);
 
         tMempool mediumPool;
         tMempool largePool;
@@ -337,11 +344,104 @@ namespace vocodec
             }
         }
 
+        void initFunctionPointers(void)
+        {
+        	allocFunctions[Vocoder] = SFXVocoderAlloc;
+        	frameFunctions[Vocoder] = SFXVocoderFrame;
+        	tickFunctions[Vocoder] = SFXVocoderTick;
+        	freeFunctions[Vocoder] = SFXVocoderFree;
+
+        	allocFunctions[VocoderCh] = SFXVocoderChAlloc;
+        	frameFunctions[VocoderCh] = SFXVocoderChFrame;
+        	tickFunctions[VocoderCh] = SFXVocoderChTick;
+        	freeFunctions[VocoderCh] = SFXVocoderChFree;
+
+        	allocFunctions[Pitchshift] = SFXPitchShiftAlloc;
+        	frameFunctions[Pitchshift] = SFXPitchShiftFrame;
+        	tickFunctions[Pitchshift] = SFXPitchShiftTick;
+        	freeFunctions[Pitchshift] = SFXPitchShiftFree;
+
+        	allocFunctions[AutotuneMono] = SFXNeartuneAlloc;
+        	frameFunctions[AutotuneMono] = SFXNeartuneFrame;
+        	tickFunctions[AutotuneMono] = SFXNeartuneTick;
+        	freeFunctions[AutotuneMono] = SFXNeartuneFree;
+
+        	allocFunctions[AutotunePoly] = SFXAutotuneAlloc;
+        	frameFunctions[AutotunePoly] = SFXAutotuneFrame;
+        	tickFunctions[AutotunePoly] = SFXAutotuneTick;
+        	freeFunctions[AutotunePoly] = SFXAutotuneFree;
+
+        	allocFunctions[SamplerButtonPress] = SFXSamplerBPAlloc;
+        	frameFunctions[SamplerButtonPress] = SFXSamplerBPFrame;
+        	tickFunctions[SamplerButtonPress] = SFXSamplerBPTick;
+        	freeFunctions[SamplerButtonPress] = SFXSamplerBPFree;
+
+        	allocFunctions[SamplerKeyboard] = SFXSamplerKAlloc;
+        	frameFunctions[SamplerKeyboard] = SFXSamplerKFrame;
+        	tickFunctions[SamplerKeyboard] = SFXSamplerKTick;
+        	freeFunctions[SamplerKeyboard] = SFXSamplerKFree;
+
+        	allocFunctions[SamplerAutoGrab] = SFXSamplerAutoAlloc;
+        	frameFunctions[SamplerAutoGrab] = SFXSamplerAutoFrame;
+        	tickFunctions[SamplerAutoGrab] = SFXSamplerAutoTick;
+        	freeFunctions[SamplerAutoGrab] = SFXSamplerAutoFree;
+
+        	allocFunctions[Distortion] = SFXDistortionAlloc;
+        	frameFunctions[Distortion] = SFXDistortionFrame;
+        	tickFunctions[Distortion] = SFXDistortionTick;
+        	freeFunctions[Distortion] = SFXDistortionFree;
+
+        	allocFunctions[Wavefolder] = SFXWaveFolderAlloc;
+        	frameFunctions[Wavefolder] = SFXWaveFolderFrame;
+        	tickFunctions[Wavefolder] = SFXWaveFolderTick;
+        	freeFunctions[Wavefolder] = SFXWaveFolderFree;
+
+        	allocFunctions[BitCrusher] = SFXBitcrusherAlloc;
+        	frameFunctions[BitCrusher] = SFXBitcrusherFrame;
+        	tickFunctions[BitCrusher] = SFXBitcrusherTick;
+        	freeFunctions[BitCrusher] = SFXBitcrusherFree;
+
+        	allocFunctions[Delay] = SFXDelayAlloc;
+        	frameFunctions[Delay] = SFXDelayFrame;
+        	tickFunctions[Delay] = SFXDelayTick;
+        	freeFunctions[Delay] = SFXDelayFree;
+
+        	allocFunctions[Reverb] = SFXReverbAlloc;
+        	frameFunctions[Reverb] = SFXReverbFrame;
+        	tickFunctions[Reverb] = SFXReverbTick;
+        	freeFunctions[Reverb] = SFXReverbFree;
+
+        	allocFunctions[Reverb2] = SFXReverb2Alloc;
+        	frameFunctions[Reverb2] = SFXReverb2Frame;
+        	tickFunctions[Reverb2] = SFXReverb2Tick;
+        	freeFunctions[Reverb2] = SFXReverb2Free;
+
+        	allocFunctions[LivingString] = SFXLivingStringAlloc;
+        	frameFunctions[LivingString] = SFXLivingStringFrame;
+        	tickFunctions[LivingString] = SFXLivingStringTick;
+        	freeFunctions[LivingString] = SFXLivingStringFree;
+
+        	allocFunctions[LivingStringSynth] = SFXLivingStringSynthAlloc;
+        	frameFunctions[LivingStringSynth] = SFXLivingStringSynthFrame;
+        	tickFunctions[LivingStringSynth] = SFXLivingStringSynthTick;
+        	freeFunctions[LivingStringSynth] = SFXLivingStringSynthFree;
+
+        	allocFunctions[ClassicSynth] = SFXClassicSynthAlloc;
+        	frameFunctions[ClassicSynth] = SFXClassicSynthFrame;
+        	tickFunctions[ClassicSynth] = SFXClassicSynthTick;
+        	freeFunctions[ClassicSynth] = SFXClassicSynthFree;
+
+        	allocFunctions[Rhodes] = SFXRhodesAlloc;
+        	frameFunctions[Rhodes] = SFXRhodesFrame;
+        	tickFunctions[Rhodes] = SFXRhodesTick;
+        	freeFunctions[Rhodes] = SFXRhodesFree;
+        }
+
         ///1 vocoder internal poly
 
         tTalkboxFloat vocoder;
         tNoise vocoderNoise;
-        tZeroCrossing zerox;
+        tZeroCrossingCounter zerox;
         tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
         tRosenbergGlottalPulse glottal[NUM_VOC_VOICES];
         int numVoices = NUM_VOC_VOICES;
@@ -355,11 +455,11 @@ namespace vocodec
 
         void SFXVocoderAlloc()
         {
-        	leaf.clearOnAllocation = 1;
-        	tTalkboxFloat_init(&vocoder, 1024);
+            leaf.clearOnAllocation = 1;
+            tTalkboxFloat_init(&vocoder, 1024);
             tTalkboxFloat_setWarpOn(&vocoder, 1);
             tNoise_init(&vocoderNoise, WhiteNoise);
-            tZeroCrossing_init(&zerox, 16);
+            tZeroCrossingCounter_init(&zerox, 16);
             tSimplePoly_setNumVoices(&poly, numVoices);
             tExpSmooth_init(&noiseRamp, 0.0f, 0.005f);
 
@@ -456,7 +556,7 @@ namespace vocodec
             }
             else
             {
-                zerocross = tZeroCrossing_tick(&zerox, input[1]);
+                zerocross = tZeroCrossingCounter_tick(&zerox, input[1]);
 
                 if (!vocChFreeze)
                 {
@@ -498,7 +598,7 @@ namespace vocodec
         {
             tTalkboxFloat_free(&vocoder);
             tNoise_free(&vocoderNoise);
-            tZeroCrossing_free(&zerox);
+            tZeroCrossingCounter_free(&zerox);
             tExpSmooth_free(&noiseRamp);
 
             tNoise_free(&breathNoise);
@@ -558,7 +658,7 @@ namespace vocodec
 
         void SFXVocoderChAlloc()
         {
-        	leaf.clearOnAllocation = 1;
+            leaf.clearOnAllocation = 1;
             displayValues[0] = presetKnobValues[VocoderCh][0]; //vocoder volume
 
             displayValues[1] = (presetKnobValues[VocoderCh][1] * 0.8f) - 0.4f; //warp factor
@@ -637,7 +737,7 @@ namespace vocodec
             }
             tNoise_init(&breathNoise, WhiteNoise);
             tNoise_init(&vocoderNoise, WhiteNoise);
-            tZeroCrossing_init(&zerox, 256);
+            tZeroCrossingCounter_init(&zerox, 256);
             tSimplePoly_setNumVoices(&poly, numVoices);
             tExpSmooth_init(&noiseRamp, 0.0f, 0.05f);
             tHighpass_init(&noiseHP, 5000.0f);
@@ -852,7 +952,7 @@ namespace vocodec
             }
             else
             {
-                float zerocross = tZeroCrossing_tick(&zerox, input[1]);
+                float zerocross = tZeroCrossingCounter_tick(&zerox, input[1]);
 
                 if (!vocChFreeze)
                 {
@@ -931,7 +1031,7 @@ namespace vocodec
             }
             tNoise_free(&breathNoise);
             tNoise_free(&vocoderNoise);
-            tZeroCrossing_free(&zerox);
+            tZeroCrossingCounter_free(&zerox);
             tExpSmooth_free(&noiseRamp);
             tHighpass_free(&noiseHP);
             tVZFilter_free(&vocodec_highshelf);
@@ -2042,7 +2142,7 @@ namespace vocodec
         void SFXDistortionAlloc()
         {
             leaf.clearOnAllocation = 1;
-            tOversampler_init(&oversampler, distOS_ratio, FALSE);
+            tOversampler_init(&oversampler, distOS_ratio, 0);
             tVZFilter_init(&shelf1, Lowshelf, 80.0f, 6.0f);
             tVZFilter_init(&shelf2, Highshelf, 12000.0f, 6.0f);
             tVZFilter_init(&bell1, Bell, 1000.0f, 1.9f);
@@ -2120,7 +2220,7 @@ namespace vocodec
             tLockhartWavefolder_init(&wavefolder1);
             tLockhartWavefolder_init(&wavefolder2);
             tHighpass_init(&wfHP, 10.0f);
-            tOversampler_init(&oversampler, 2, FALSE);
+            tOversampler_init(&oversampler, 2, 0);
             setLED_A(foldMode);
             leaf.clearOnAllocation = 0;
         }
@@ -3376,7 +3476,7 @@ namespace vocodec
                             }
                             break;
                         default:
-                        	break;
+                            break;
                     }
                 }
                 prevDisplayValues[k] = displayValues[k];
