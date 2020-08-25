@@ -4,23 +4,40 @@
  *  Created on: Feb 05, 2020
  *      Author: Matthew Wang
  */
+
+#ifndef __cplusplus
 #include "main.h"
+#include "ssd1306.h"
+#include "audiostream.h"
+#else
+#include "PluginEditor.h"
+#endif
+
 #include "oled.h"
 #include "ui.h"
-#include "ssd1306.h"
 #include "gfx.h"
 #include "custom_fonts.h"
-#include "audiostream.h"
 #include "tunings.h"
+
+#ifdef __cplusplus
+#include <string.h>
+#define itoa(v, s, b) (strcpy(s, std::to_string(v).c_str()))
+namespace vocodec
+{
+    extern "C"
+    {
+#endif
 
 GFX theGFX;
 char oled_buffer[32];
 
 void OLED_init(I2C_HandleTypeDef* hi2c)
 {
+#ifndef __cplusplus
 	  //start up that OLED display
 	  ssd1306_begin(hi2c, SSD1306_SWITCHCAPVCC, SSD1306_I2C_ADDRESS);
-
+#endif
+    
 	  //HAL_Delay(5);
 
 	  //clear the OLED display buffer
@@ -84,6 +101,7 @@ void initUIFunctionPointers(void)
 	buttonActionFunctions[Rhodes] = UIRhodesButtons;
 }
 
+#ifndef __cplusplus
 void setLED_Edit(int onOff)
 {
 	if (onOff)
@@ -218,6 +236,7 @@ void setLED_rightin_clip(int onOff)
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
 	}
 }
+#endif
 
 int getCursorX()
 {
@@ -262,9 +281,10 @@ void OLED_writeEditScreen()
 {
 	GFXsetFont(&theGFX, &EuphemiaCAS7pt7b);
 	OLEDclear();
-	char* first = "KNOB:SET CV PED";
-	if (cvAddParam[currentPreset] >= 0) first = "DOWN:CLR CV PED";
-	OLEDwriteString(first, (int)strlen(first), 0, FirstLine);
+    const char* firstSet = "KNOB:SET CV PED";
+	const char* firstClear = "DOWN:CLR CV PED";
+	if (cvAddParam[currentPreset] >= 0) OLEDwriteString(firstClear, (int)strlen(firstClear), 0, FirstLine);
+	else OLEDwriteString(firstSet, (int)strlen(firstSet), 0, FirstLine);
 	OLEDwriteString("C:SET KEY CENTER", 16, 0, SecondLine);
 }
 
@@ -292,7 +312,7 @@ void OLED_writeButtonAction(int whichButton, int whichAction)
 {
 	// Could change this so that buttonActionFunctions does the actual OLEDwrite
 	// if we want more flexibility on what buttons display
-	const char* str = buttonActionFunctions[currentPreset](whichButton, whichAction);
+	const char* str = buttonActionFunctions[currentPreset]((VocodecButton)whichButton, (ButtonAction)whichAction);
 	int len = (int)strlen(str);
 	if (len > 0)
 	{
@@ -311,10 +331,12 @@ void OLED_writeTuning()
 	OLEDwriteString(tuningNames[currentTuning], 12, 36, SecondLine);
 }
 
+#ifndef __cplusplus
 void OLED_draw()
 {
 	ssd1306_display_full_buffer();
 }
+#endif
 
 /// OLED Stuff
 
@@ -511,3 +533,8 @@ int OLEDgetCursor()
 {
 	return (int)GFXgetCursorX(&theGFX);
 }
+
+#ifdef __cplusplus
+    }
+} // extern "C"
+#endif

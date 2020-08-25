@@ -8,12 +8,10 @@
 #ifndef __cplusplus
 #include "main.h"
 #include "audiostream.h"
-#include "oled.h"
 #include "eeprom.h"
-#else
-#include "PluginEditor.h"
 #endif
 
+#include "oled.h"
 #include "sfx.h"
 #include "ui.h"
 #include "tunings.h"
