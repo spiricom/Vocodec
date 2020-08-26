@@ -463,45 +463,46 @@ void OLEDwriteFloat(float input, int startCursor, OLEDLine line)
 	int numDigits = 5;
 	int numDecimal = 1;
 
-	if (fastabsf(input)<1.0f)
+    float f = fabsf(input);
+	if (f<1.0f)
 	{
 		numDigits = 3;
 		numDecimal = 2;
 	}
 
-	else if (fastabsf(input)<10.0f)
+	else if (f<10.0f)
 	{
 		numDigits = 4;
 		numDecimal = 2;
 	}
 
-	else if (fastabsf(input)<100.0f)
+	else if (f<100.0f)
 	{
 		numDigits = 5;
 		numDecimal = 2;
 	}
 
-	else if (fastabsf(input)<1000.0f)
+	else if (f<1000.0f)
 	{
 		numDigits = 5;
 		numDecimal = 1;
 	}
-	else if (fastabsf(input)<10000.0f)
+	else if (f<10000.0f)
 	{
 		numDigits = 5;
 		numDecimal = 0;
 	}
-	else if (fastabsf(input)<100000.0f)
+	else if (f<100000.0f)
 	{
 		numDigits = 6;
 		numDecimal = 0;
 	}
-	else if (fastabsf(input)<1000000.0f)
+	else if (f<1000000.0f)
 	{
 		numDigits = 7;
 		numDecimal = 0;
 	}
-	else if (fastabsf(input)<10000000.0f)
+	else if (f<10000000.0f)
 	{
 		numDigits = 8;
 		numDecimal = 0;

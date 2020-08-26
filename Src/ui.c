@@ -584,7 +584,7 @@ namespace vocodec
                 for (int i = 0; i < 6; i++)
                 {
 
-                    if (fastabsf(floatADC[i] - lastFloatADC[i]) > adcHysteresisThreshold)
+                    if (fabsf(floatADC[i] - lastFloatADC[i]) > adcHysteresisThreshold)
                     {
                         if (buttonActionsUI[ButtonEdit][ActionHoldContinuous])
                         {
@@ -600,7 +600,7 @@ namespace vocodec
                     // check once and floatADCUI has been set in OLED_writeKnobParameter
                     if (floatADCUI[i] >= 0.0f)
                     {
-                        if (fastabsf(smoothedADC[i] - floatADCUI[i]) > adcHysteresisThreshold)
+                        if (fabsf(smoothedADC[i] - floatADCUI[i]) > adcHysteresisThreshold)
                         {
                             if (i == 5) writeKnobFlag = cvAddParam[currentPreset] - (knobPage * KNOB_PAGE_SIZE);
                             else writeKnobFlag = i;
@@ -686,7 +686,6 @@ namespace vocodec
 
             void setKnobValues(float* values)
             {
-#ifndef __cplusplus
                 for (int i = 0; i < KNOB_PAGE_SIZE; i++)
                 {
                     int knob = i;
@@ -701,12 +700,10 @@ namespace vocodec
 
                     smoothedADC[knob] = values[knob];
                 }
-#endif
             }
 
             void setKnobValue(int knob, float value)
             {
-#ifndef __cplusplus
                 // if the knob is being replaced by cv pedal, set cv pedal instead
                 if (knob + (knobPage * KNOB_PAGE_SIZE) == cvAddParam[currentPreset])
                 {
@@ -716,7 +713,6 @@ namespace vocodec
                 floatADCUI[knob] = -1.0f;
                 tExpSmooth_setValAndDest(&adc[knob], value);
                 smoothedADC[knob] = value;
-#endif
             }
 
             void deactivateKnob(int knob)

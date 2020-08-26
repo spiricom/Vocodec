@@ -437,14 +437,14 @@ namespace vocodec
         
         ///1 vocoder internal poly
         
+        int numVoices = NUM_VOC_VOICES;
+        int internalExternal = 0;
+        int vocFreezeLPC = 0;
         tTalkboxFloat vocoder;
         tNoise vocoderNoise;
         tZeroCrossingCounter zerox;
         tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
         tRosenbergGlottalPulse glottal[NUM_VOC_VOICES];
-        int numVoices = NUM_VOC_VOICES;
-        int internalExternal = 0;
-        int vocFreezeLPC = 0;
         tExpSmooth noiseRamp;
         tNoise breathNoise;
         tHighpass noiseHP;
@@ -480,7 +480,7 @@ namespace vocodec
             setLED_B(internalExternal);
             vocFreezeLPC = 0;
             setLED_C(vocFreezeLPC);
-            
+            leaf.clearOnAllocation = 0;
         }
         
         void SFXVocoderFrame()
@@ -645,8 +645,9 @@ namespace vocodec
         float prevMyTilt = 0.0f;
         float prevBarkPull = 0.0f;
         
-        tVZFilter vocodec_highshelf;
         int vocChFreeze = 0;
+
+        tVZFilter vocodec_highshelf;
         
         float barkBandFreqs[24] = {100.0f, 150.0f, 250.0f, 350.0f, 450.0f, 570.0f, 700.0f, 840.0f, 1000.0f, 1170.0f, 1370.0f, 1600.0f, 1850.0f, 2150.0f, 2500.0f, 2900.0f, 3400.0f, 4000.0f, 4800.0f, 5800.0f, 7000.0f, 8500.0f, 10500.0f, 12000.0f};
         float barkBandWidths[24] = {1.0f, 1.0f, 0.5849f, 0.4150f, 0.3505f, 0.304854f, 0.2895066175f, 0.256775415f, 0.231325545833333f, 0.233797185f, 0.220768679166667f, 0.216811389166667f, 0.217591435f, 0.214124805f, 0.218834601666667f, 0.222392421666667f, 0.2321734425f, 0.249978253333333f, 0.268488835833333f, 0.272079545833333f, 0.266786540833333f, 0.3030690675f, 0.3370349875f, 0.36923381f};
@@ -750,13 +751,10 @@ namespace vocodec
                 tRosenbergGlottalPulse_setOpenLength(&glottal[i], 0.3f);
                 tRosenbergGlottalPulse_setPulseLength(&glottal[i], 0.4f);
             }
+            vocChFreeze = 0;
             setLED_A(numVoices == 1);
             setLED_B(internalExternal);
             setLED_C(vocChFreeze);
-            
-            
-            
-            
         }
         
         float oneMinusStereo = 1.0f;
@@ -784,9 +782,7 @@ namespace vocodec
                 buttonActionsSFX[ButtonC][ActionPress] = 0;
                 setLED_C(vocChFreeze);
             }
-            
-            
-            
+
             displayValues[0] = presetKnobValues[VocoderCh][0]; //vocoder volume
             
             displayValues[1] = (presetKnobValues[VocoderCh][1] * 0.8f) - 0.4f; //warp factor
@@ -3651,7 +3647,7 @@ namespace vocodec
         
         float nearestNoteWithHysteresis(float note, float hysteresis)
         {
-            float leastDifference = fastabsf(note - notes[0]);
+            float leastDifference = fabsf(note - notes[0]);
             float difference;
             int nearIndex = 0;
             int* chord;
@@ -3685,7 +3681,7 @@ namespace vocodec
                 {
                     if (chord[i%12] > 0)
                     {
-                        difference = fastabsf(note - notes[i]);
+                        difference = fabsf(note - notes[i]);
                         if(difference < leastDifference)
                         {
                             leastDifference = difference;
