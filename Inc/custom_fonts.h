@@ -8,7 +8,10 @@
 #ifndef CUSTOM_FONTS_H_
 #define CUSTOM_FONTS_H_
 
+#ifndef __cplusplus
 #include "stm32h7xx_hal.h"
+#endif
+
 #include "gfx_font.h"
 
 

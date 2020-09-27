@@ -8,6 +8,19 @@
 #ifndef OLED_H_
 #define OLED_H_
 
+#ifdef __cplusplus
+
+#include <stdint.h>
+// dummy typedef for non-hardware build
+typedef void I2C_HandleTypeDef;
+    
+namespace vocodec
+{
+    extern "C"
+    {
+        
+#endif
+
 extern char oled_buffer[32];
 
 typedef enum _OLEDLine
@@ -87,4 +100,10 @@ void OLEDwriteFloat(float input, int startCursor, OLEDLine line);
 void OLEDdrawFloatArray(float* input, float min, float max, int size, int offset, int startCursor, OLEDLine line);
 
 int OLEDgetCursor(void);
+        
+#ifdef __cplusplus
+    }
+} // extern "C"
+#endif
+
 #endif /* OLED_H_ */

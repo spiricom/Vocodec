@@ -8,10 +8,10 @@
 #ifndef __cplusplus
 #include "main.h"
 #include "audiostream.h"
-#include "oled.h"
 #include "eeprom.h"
 #endif
 
+#include "oled.h"
 #include "sfx.h"
 #include "ui.h"
 #include "tunings.h"
@@ -249,9 +249,9 @@ namespace vocodec
             knobParamNames[Delay][3] = "LOWPASS";
             knobParamNames[Delay][4] = "FEEDBACK";
             knobParamNames[Delay][5] = "POST GAIN";
-            knobParamNames[Delay][6] = "POST GAIN";
-            knobParamNames[Delay][7] = "POST GAIN";
-            knobParamNames[Delay][8] = "POST GAIN";
+            knobParamNames[Delay][6] = "";
+            knobParamNames[Delay][7] = "";
+            knobParamNames[Delay][8] = "";
             knobParamNames[Delay][9] = "";
 
             modeNames[Reverb] = "REVERB1";
@@ -406,8 +406,8 @@ namespace vocodec
                         }
                         if (cleanButtonValues[i] == 1)
                         {
-                            buttonActionsSFX[i][ActionHoldContinuous] = TRUE;
-                            buttonActionsUI[i][ActionHoldContinuous] = TRUE;
+                            buttonActionsSFX[i][ActionHoldContinuous] = 1;
+                            buttonActionsUI[i][ActionHoldContinuous] = 1;
                             writeButtonFlag = i;
                             writeActionFlag = ActionHoldContinuous;
                         }
@@ -416,8 +416,8 @@ namespace vocodec
                             if (buttonCounters[i] < buttonHoldMax) buttonCounters[i]++;
                             if ((buttonCounters[i] >= buttonHoldThreshold) && (cleanButtonValues[i] == 1))
                             {
-                                buttonActionsSFX[i][ActionHoldInstant] = TRUE;
-                                buttonActionsUI[i][ActionHoldInstant] = TRUE;
+                                buttonActionsSFX[i][ActionHoldInstant] = 1;
+                                buttonActionsUI[i][ActionHoldInstant] = 1;
                                 writeButtonFlag = i;
                                 writeActionFlag = ActionHoldInstant;
                             }
@@ -430,15 +430,15 @@ namespace vocodec
 
                             if (cleanButtonValues[i] == 1)
                             {
-                                buttonActionsSFX[i][ActionPress] = TRUE;
-                                buttonActionsUI[i][ActionPress] = TRUE;
+                                buttonActionsSFX[i][ActionPress] = 1;
+                                buttonActionsUI[i][ActionPress] = 1;
                                 writeButtonFlag = i;
                                 writeActionFlag = ActionPress;
                             }
                             else if (cleanButtonValues[i] == 0)
                             {
-                                buttonActionsSFX[i][ActionRelease] = TRUE;
-                                buttonActionsUI[i][ActionRelease] = TRUE;
+                                buttonActionsSFX[i][ActionRelease] = 1;
+                                buttonActionsUI[i][ActionRelease] = 1;
                                 writeButtonFlag = i;
                                 writeActionFlag = ActionRelease;
                             }
@@ -584,7 +584,7 @@ namespace vocodec
                 for (int i = 0; i < 6; i++)
                 {
 
-                    if (fastabsf(floatADC[i] - lastFloatADC[i]) > adcHysteresisThreshold)
+                    if (fabsf(floatADC[i] - lastFloatADC[i]) > adcHysteresisThreshold)
                     {
                         if (buttonActionsUI[ButtonEdit][ActionHoldContinuous])
                         {
@@ -600,7 +600,7 @@ namespace vocodec
                     // check once and floatADCUI has been set in OLED_writeKnobParameter
                     if (floatADCUI[i] >= 0.0f)
                     {
-                        if (fastabsf(smoothedADC[i] - floatADCUI[i]) > adcHysteresisThreshold)
+                        if (fabsf(smoothedADC[i] - floatADCUI[i]) > adcHysteresisThreshold)
                         {
                             if (i == 5) writeKnobFlag = cvAddParam[currentPreset] - (knobPage * KNOB_PAGE_SIZE);
                             else writeKnobFlag = i;
