@@ -60,7 +60,7 @@ int numBuffersCleared = 0;
 #define ATODB_TABLE_SIZE_MINUS_ONE 511
 float atodbTable[ATODB_TABLE_SIZE];
 
-
+LEAF leaf;
 
 /**********************************************/
 
@@ -73,22 +73,22 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 {
 	// Initialize LEAF.
 
-	LEAF_init(SAMPLE_RATE, AUDIO_FRAME_SIZE, small_memory, SMALL_MEM_SIZE, &randomNumber);
+	LEAF_init(&leaf, SAMPLE_RATE, AUDIO_FRAME_SIZE, small_memory, SMALL_MEM_SIZE, &randomNumber);
 
-	tMempool_init (&mediumPool, medium_memory, MED_MEM_SIZE);
-	tMempool_init (&largePool, large_memory, LARGE_MEM_SIZE);
+	tMempool_init (&mediumPool, medium_memory, MED_MEM_SIZE, &leaf);
+	tMempool_init (&largePool, large_memory, LARGE_MEM_SIZE, &leaf);
 
 	initFunctionPointers();
 
 	//ramps to smooth the knobs
 	for (int i = 0; i < 6; i++)
 	{
-		tExpSmooth_init(&adc[i], 0.0f, 0.2f);
+		tExpSmooth_init(&adc[i], 0.0f, 0.2f, &leaf);
 	}
 
 	for (int i = 0; i < 4; i++)
 	{
-		tEnvelopeFollower_init(&LED_envelope[i], 0.0001f, .9995f);
+		tEnvelopeFollower_init(&LED_envelope[i], 0.0001f, .9995f, &leaf);
 	}
 	LEAF_generate_atodbPositiveClipped(atodbTable, -120.0f, 380.f, ATODB_TABLE_SIZE);
 	initGlobalSFXObjects();
