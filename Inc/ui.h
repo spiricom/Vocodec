@@ -11,6 +11,8 @@
 #include "leaf.h"
 #endif
 
+#include "sfx.h"
+
 #ifdef __cplusplus
 #include <stdint.h>
 namespace vocodec
@@ -19,132 +21,49 @@ namespace vocodec
     {
 #endif
 
-#define NUM_ADC_CHANNELS 6
-#define NUM_BUTTONS 10
-#define NUM_PRESET_KNOB_VALUES 25
-#define KNOB_PAGE_SIZE 5
+        void initModeNames(Vocodec* vcd);
 
-        //PresetNil is used as a counter for the size of the enum
-        typedef enum _VocodecPresetType
-        {
-            Vocoder = 0,
-            VocoderCh,
-            Pitchshift,
-            AutotuneMono,
-            AutotunePoly,
-            SamplerButtonPress,
-            SamplerKeyboard,
-            SamplerAutoGrab,
-            Distortion,
-            Wavefolder,
-            BitCrusher,
-            Delay,
-            Reverb,
-            Reverb2,
-            LivingString,
-            LivingStringSynth,
-            ClassicSynth,
-            Rhodes,
-            PresetNil
-        } VocodecPresetType;
+        void buttonCheck(Vocodec* vcd);
 
-        typedef enum _VocodecButton
-        {
-            ButtonEdit = 0,
-            ButtonLeft,
-            ButtonRight,
-            ButtonDown,
-            ButtonUp,
-            ButtonA,
-            ButtonB,
-            ButtonC,
-            ButtonD,
-            ButtonE,
-            ExtraMessage,
-            ButtonNil
-        } VocodecButton;
+        void adcCheck(Vocodec* vcd);
 
-        typedef enum _ButtonAction
-        {
-            ActionPress = 0,
-            ActionRelease,
-            ActionHoldInstant,
-            ActionHoldContinuous,
-            ActionNil
-        } ButtonAction;
+        void clearButtonActions(Vocodec* vcd);
 
-        extern tExpSmooth adc[6];
-        extern uint16_t ADC_values[NUM_ADC_CHANNELS];
+        void changeTuning(Vocodec* vcd);
 
-        extern float smoothedADC[6];
+        void writeCurrentPresetToFlash(Vocodec* vcd);
 
-        extern uint8_t buttonValues[NUM_BUTTONS];
-        //extern uint8_t buttonPressed[NUM_BUTTONS];
-        //extern uint8_t buttonReleased[NUM_BUTTONS];
+        void incrementPage(Vocodec* vcd);
 
-        extern int8_t writeKnobFlag;
-        extern int8_t writeButtonFlag;
-        extern int8_t writeActionFlag;
+        void decrementPage(Vocodec* vcd);
 
-        extern float floatADCUI[NUM_ADC_CHANNELS];
+        void checkPage(Vocodec* vcd);
 
-        extern VocodecPresetType currentPreset;
-        extern VocodecPresetType previousPreset;
-        extern uint8_t loadingPreset;
-        // Display values
-        extern const char* modeNames[PresetNil];
-        extern const char* modeNamesDetails[PresetNil];
-        extern const char* shortModeNames[PresetNil];
-        extern const char* knobParamNames[PresetNil][NUM_PRESET_KNOB_VALUES];
-        extern float displayValues[NUM_PRESET_KNOB_VALUES];
-        extern int8_t cvAddParam[PresetNil];
-        extern uint8_t knobPage;
-        extern uint8_t numPages[PresetNil];
-        extern uint8_t buttonActionsUI[NUM_BUTTONS+1][ActionNil];
-        extern uint8_t buttonActionsSFX[NUM_BUTTONS+1][ActionNil];
-        extern const char* (*buttonActionFunctions[PresetNil])(VocodecButton, ButtonAction);
+        void resetKnobValues(Vocodec* vcd);
 
-        void initModeNames(void);
+        void setKnobValues(Vocodec* vcd, float* values);
 
-        void buttonCheck(void);
+        void deactivateKnob(Vocodec* vcd, int knob);
+        void deactivateAllKnobs(Vocodec* vcd);
 
-        void adcCheck(void);
-
-        void clearButtonActions(void);
-
-        void changeTuning(void);
-
-        void writeCurrentPresetToFlash(void);
-
-        void incrementPage(void);
-
-        void decrementPage(void);
-
-        void resetKnobValues(void);
-
-        void setKnobValues(float* values);
-
-        void deactivateKnob(int knob);
-        void deactivateAllKnobs(void);
-
-        const char* UIVocoderButtons(VocodecButton button, ButtonAction action);
-        const char* UIVocoderChButtons(VocodecButton button, ButtonAction action);
-        const char* UIPitchShiftButtons(VocodecButton button, ButtonAction action);
-        const char* UINeartuneButtons(VocodecButton button, ButtonAction action);
-        const char* UIAutotuneButtons(VocodecButton button, ButtonAction action);
-        const char* UISamplerBPButtons(VocodecButton button, ButtonAction action);
-        const char* UISamplerKButtons(VocodecButton button, ButtonAction action);
-        const char* UISamplerAutoButtons(VocodecButton button, ButtonAction action);
-        const char* UIDistortionButtons(VocodecButton button, ButtonAction action);
-        const char* UIWaveFolderButtons(VocodecButton button, ButtonAction action);
-        const char* UIBitcrusherButtons(VocodecButton button, ButtonAction action);
-        const char* UIDelayButtons(VocodecButton button, ButtonAction action);
-        const char* UIReverbButtons(VocodecButton button, ButtonAction action);
-        const char* UIReverb2Buttons(VocodecButton button, ButtonAction action);
-        const char* UILivingStringButtons(VocodecButton button, ButtonAction action);
-        const char* UILivingStringSynthButtons(VocodecButton button, ButtonAction action);
-        const char* UIClassicSynthButtons(VocodecButton button, ButtonAction action);
-        const char* UIRhodesButtons(VocodecButton button, ButtonAction action);
+        const char* UIVocoderButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UIVocoderChButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UIPitchShiftButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UINeartuneButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UIAutotuneButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UISamplerBPButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UISamplerKButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UISamplerAutoButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UIDistortionButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UIWaveFolderButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UIBitcrusherButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UIDelayButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UIReverbButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UIReverb2Buttons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UILivingStringButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UILivingStringSynthButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UIClassicSynthButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
+        const char* UIRhodesButtons(Vocodec* vcd, VocodecButton button, ButtonAction action);
 
 #ifdef __cplusplus
     }

@@ -12,11 +12,10 @@
 #include "leaf.h"
 #include "codec.h"
 #include "ui.h"
-#include "oled.h"
 #include "tunings.h"
+#include "oled.h"
 #include "i2c.h"
 #include "gpio.h"
-#include "sfx.h"
 #include "tim.h"
 #include "usbh_MIDI.h"
 #include "MIDI_application.h"
@@ -31,9 +30,9 @@ int32_t audioInBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
 //float displayBlockVal = 0.0f;
 //uint32_t displayBlockCount = 0;
 
-void audioFrame(uint16_t buffer_offset);
-uint32_t audioTick(float* samples);
-void buttonCheck(void);
+void audioFrame(Vocodec* vcd, uint16_t buffer_offset);
+uint32_t audioTick(Vocodec* vcd, float* samples);
+void buttonCheck(Vocodec* vcd);
 
 HAL_StatusTypeDef transmit_status;
 HAL_StatusTypeDef receive_status;
@@ -50,7 +49,6 @@ uint32_t clipCounter[4] = {0,0,0,0};
 uint32_t clipped[4] = {0,0,0,0};
 uint32_t clipHappened[4] = {0,0,0,0};
 
-
 BOOL bufferCleared = TRUE;
 
 int numBuffersToClearOnLoad = 2;
@@ -64,21 +62,21 @@ LEAF leaf;
 
 /**********************************************/
 
-void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn)
+void audioInit(Vocodec* vcd, I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn)
 {
 	// Initialize LEAF.
 
 	LEAF_init(&leaf, SAMPLE_RATE, AUDIO_FRAME_SIZE, small_memory, SMALL_MEM_SIZE, &randomNumber);
 
-	tMempool_init (&mediumPool, medium_memory, MED_MEM_SIZE, &leaf);
-	tMempool_init (&largePool, large_memory, LARGE_MEM_SIZE, &leaf);
+	tMempool_init (&vcd->mediumPool, medium_memory, MED_MEM_SIZE, &leaf);
+	tMempool_init (&vcd->largePool, large_memory, LARGE_MEM_SIZE, &leaf);
 
-	initFunctionPointers();
+	initFunctionPointers(vcd);
 
 	//ramps to smooth the knobs
 	for (int i = 0; i < 6; i++)
 	{
-		tExpSmooth_init(&adc[i], 0.0f, 0.2f, &leaf);
+		tExpSmooth_init(&vcd->adc[i], 0.0f, 0.2f, &leaf);
 	}
 
 	for (int i = 0; i < 4; i++)
@@ -86,10 +84,10 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 		tEnvelopeFollower_init(&LED_envelope[i], 0.0001f, .9995f, &leaf);
 	}
 	LEAF_generate_atodbPositiveClipped(atodbTable, -120.0f, 380.f, ATODB_TABLE_SIZE);
-	initGlobalSFXObjects();
+	initGlobalSFXObjects(vcd);
 
-	loadingPreset = 1;
-	previousPreset = PresetNil;
+	vcd->loadingPreset = 1;
+	vcd->previousPreset = PresetNil;
 
 	HAL_Delay(10);
 
@@ -124,7 +122,7 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
-void audioFrame(uint16_t buffer_offset)
+void audioFrame(Vocodec* vcd, uint16_t buffer_offset)
 {
 	//volatile uint32_t tempCount5 = 0;
 	//volatile uint32_t tempCount6 = 0;
@@ -134,9 +132,9 @@ void audioFrame(uint16_t buffer_offset)
 
 	//tempCount5 = DWT->CYCCNT;
 
-	buttonCheck();
+	buttonCheck(vcd);
 
-	adcCheck();
+	adcCheck(vcd);
 
 	// if the USB write pointer has advanced (indicating unread data is in the buffer),
 	// or the overflow bit is set, meaning that the write pointer wrapped around and the read pointer hasn't caught up to it yet
@@ -147,25 +145,25 @@ void audioFrame(uint16_t buffer_offset)
 	}
 
 
-	if (!loadingPreset)
+	if (!vcd->loadingPreset)
 	{
 
 		for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 		{
-			smoothedADC[i] = tExpSmooth_tick(&adc[i]);
+			vcd->smoothedADC[i] = tExpSmooth_tick(&vcd->adc[i]);
 			for (int i = 0; i < KNOB_PAGE_SIZE; i++)
 			{
-				presetKnobValues[currentPreset][i + (knobPage * KNOB_PAGE_SIZE)] = smoothedADC[i];
+				vcd->presetKnobValues[vcd->currentPreset][i + (vcd->knobPage * KNOB_PAGE_SIZE)] = vcd->smoothedADC[i];
 			}
 		}
 
 
-		if (cvAddParam[currentPreset] >= 0)
+		if (vcd->cvAddParam[vcd->currentPreset] >= 0)
 		{
-			presetKnobValues[currentPreset][cvAddParam[currentPreset]] = smoothedADC[5];
+			vcd->presetKnobValues[vcd->currentPreset][vcd->cvAddParam[vcd->currentPreset]] = vcd->smoothedADC[5];
 		}
 
-		frameFunctions[currentPreset]();
+		vcd->frameFunctions[vcd->currentPreset](vcd);
 	}
 
 	//if the codec isn't ready, keep the buffer as all zeros
@@ -182,11 +180,11 @@ void audioFrame(uint16_t buffer_offset)
 			theSamples[0] = ((float)(audioInBuffer[buffer_offset + i] << 8)) * INV_TWO_TO_31;
 			theSamples[1] = ((float)(audioInBuffer[buffer_offset + i + 1] << 8)) * INV_TWO_TO_31;
 
-			clipCatcher |= audioTick(theSamples);
+			clipCatcher |= audioTick(vcd, theSamples);
 			audioOutBuffer[buffer_offset + i] = (int32_t)(theSamples[1] * TWO_TO_23);
 			audioOutBuffer[buffer_offset + i + 1] = (int32_t)(theSamples[0] * TWO_TO_23);
 		}
-		if (!loadingPreset)
+		if (!vcd->loadingPreset)
 		{
 			bufferCleared = 0;
 		}
@@ -199,23 +197,23 @@ void audioFrame(uint16_t buffer_offset)
 		if (numBuffersCleared >= numBuffersToClearOnLoad)
 		{
 			numBuffersCleared = numBuffersToClearOnLoad;
-			if (loadingPreset)
+			if (vcd->loadingPreset)
 			{
-				if (previousPreset != PresetNil)
+				if (vcd->previousPreset != PresetNil)
 				{
-					freeFunctions[previousPreset]();
+					vcd->freeFunctions[vcd->previousPreset](vcd);
 
 				}
-				setLED_A(0);
-				setLED_B(0);
-				setLED_C(0);
-				setLED_Edit(0);
-				setLED_1(0);
-				knobPage = 0;
-				resetKnobValues();
+				setLED_A(vcd, 0);
+				setLED_B(vcd, 0);
+				setLED_C(vcd, 0);
+				setLED_Edit(vcd, 0);
+				setLED_1(vcd, 0);
+				vcd->knobPage = 0;
+				resetKnobValues(vcd);
 				leaf.clearOnAllocation = 0;
-				allocFunctions[currentPreset]();
-				loadingPreset = 0;
+				vcd->allocFunctions[vcd->currentPreset](vcd);
+				vcd->loadingPreset = 0;
 			}
 		}
 	}
@@ -228,16 +226,16 @@ void audioFrame(uint16_t buffer_offset)
 			switch (i)
 			{
 				case 0:
-					setLED_leftin_clip(1);
+					setLED_leftin_clip(vcd, 1);
 					break;
 				case 1:
-					setLED_rightin_clip(1);
+					setLED_rightin_clip(vcd, 1);
 					break;
 				case 2:
-					setLED_leftout_clip(1);
+					setLED_leftout_clip(vcd, 1);
 					break;
 				case 3:
-					setLED_rightout_clip(1);
+					setLED_rightout_clip(vcd, 1);
 					break;
 			}
 			clipCounter[i] = 80;
@@ -255,16 +253,16 @@ void audioFrame(uint16_t buffer_offset)
 			switch (i)
 			{
 				case 0:
-					setLED_leftin_clip(0);
+					setLED_leftin_clip(vcd, 0);
 					break;
 				case 1:
-					setLED_rightin_clip(0);
+					setLED_rightin_clip(vcd, 0);
 					break;
 				case 2:
-					setLED_leftout_clip(0);
+					setLED_leftout_clip(vcd, 0);
 					break;
 				case 3:
-					setLED_rightout_clip(0);
+					setLED_rightout_clip(vcd, 0);
 					break;
 			}
 			clipped[i] = 0;
@@ -303,10 +301,10 @@ void audioFrame(uint16_t buffer_offset)
 */
 
 
-uint32_t audioTick(float* samples)
+uint32_t audioTick(Vocodec* vcd, float* samples)
 {
 	uint32_t clips = 0;
-	if (loadingPreset)
+	if (vcd->loadingPreset)
 	{
 		samples[0] = 0.0f;
 		samples[1] = 0.0f;
@@ -333,7 +331,7 @@ uint32_t audioTick(float* samples)
 	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[2], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, current_env);
 
-	tickFunctions[currentPreset](samples);
+	vcd->tickFunctions[vcd->currentPreset](vcd, samples);
 
 	//now the samples array is output
 	if ((samples[1] >= 0.999999f) || (samples[1] <= -0.999999f))
@@ -436,7 +434,7 @@ float audioTickR(float audioIn)
 
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai)
 {
-	setLED_Edit(1);
+	setLED_Edit(&vocodec, 1);
 }
 
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
@@ -452,10 +450,10 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 
 void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai)
 {
-	audioFrame(HALF_BUFFER_SIZE);
+	audioFrame(&vocodec, HALF_BUFFER_SIZE);
 }
 
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 {
-	audioFrame(0);
+	audioFrame(&vocodec, 0);
 }

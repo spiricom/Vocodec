@@ -32,6 +32,7 @@
 #include "stm32h7xx_hal.h"
 #include "leaf.h"
 #include "main.h"
+#include "sfx.h"
 
 #define AUDIO_FRAME_SIZE      128
 #define HALF_BUFFER_SIZE      AUDIO_FRAME_SIZE * 2 //number of samples per half of the "double-buffer" (twice the audio frame size because there are interleaved samples for both left and right channels)
@@ -44,6 +45,7 @@ extern uint32_t codecReady;
 //extern float audioDisplayBuffer[128];
 extern uint32_t displayBufferIndex;
 extern LEAF leaf;
+
 /* Exported types ------------------------------------------------------------*/
 typedef enum
 {
@@ -72,9 +74,9 @@ typedef enum BOOL {
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn);
+void audioInit(Vocodec* vcd, I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn);
 
-void audioFrame(uint16_t buffer_offset);
+void audioFrame(Vocodec* vcd, uint16_t buffer_offset);
 
 void DMA1_TransferCpltCallback(DMA_HandleTypeDef *hdma);
 void DMA1_HalfTransferCpltCallback(DMA_HandleTypeDef *hdma);

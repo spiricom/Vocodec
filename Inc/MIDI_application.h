@@ -13,7 +13,6 @@
 #include "stdio.h"
 #include "usbh_core.h"
 #include "usbh_MIDI.h"
-#include "sfx.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdbool.h>

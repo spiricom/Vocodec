@@ -5,11 +5,12 @@
  *  Created on: Jul 6, 2018
  *      Author: jeffsnyder
  */
-#include "stm32h7xx_hal.h"
-#include "main.h"
 
 #ifndef SSD1306_H_
 #define SSD1306_H_
+
+#include "stm32h7xx_hal.h"
+#include "main.h"
 
 #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
