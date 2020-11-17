@@ -67,7 +67,11 @@ namespace vocodec
 #define pgm_read_word(addr) (*(const unsigned short *)(addr))
 #endif
 #ifndef pgm_read_dword
+#ifdef __cplusplus
 #define pgm_read_dword(addr) (*(const unsigned long long *)(addr))
+#else
+#define pgm_read_dword(addr) (*(const unsigned long *)(addr))
+#endif
 #endif
         
         // Pointers are a peculiar case...typically 16-bit on AVR boards,
@@ -85,7 +89,7 @@ namespace vocodec
 #define _swap_int16_t(a, b) { int16_t t = a; a = b; b = t; }
 #endif
         
-        void GFXinit(GFX* myGfx, int16_t w, int16_t h)
+        void GFXinit(GFX* myGfx, unsigned char* buffer, int16_t w, int16_t h)
         {
             myGfx->WIDTH = w;
             myGfx->HEIGHT = h;
@@ -103,6 +107,7 @@ namespace vocodec
             myGfx->rotation = 0;
             myGfx->fontDesc = 0;
             myGfx->fontHeight = 8;
+            myGfx->buffer = buffer;
         }
         
         // Bresenham's algorithm - thx wikpedia
@@ -174,9 +179,9 @@ namespace vocodec
             // x is which column
             switch (color)
             {
-                case WHITE:   buffer[x+ (y/8)*myGFX->WIDTH] |=  (1 << (y&7)); break;
-                case BLACK:   buffer[x+ (y/8)*myGFX->WIDTH] &= ~(1 << (y&7)); break;
-                case INVERSE: buffer[x+ (y/8)*myGFX->WIDTH] ^=  (1 << (y&7)); break;
+                case WHITE:   myGFX->buffer[x+ (y/8)*myGFX->WIDTH] |=  (1 << (y&7)); break;
+                case BLACK:   myGFX->buffer[x+ (y/8)*myGFX->WIDTH] &= ~(1 << (y&7)); break;
+                case INVERSE: myGFX->buffer[x+ (y/8)*myGFX->WIDTH] ^=  (1 << (y&7)); break;
             }
             
         }
@@ -507,9 +512,9 @@ namespace vocodec
         void GFXdrawBitmap(GFX* myGFX, int16_t x, int16_t y,
                            uint8_t *bitmap, int16_t w, int16_t h, uint16_t color, uint16_t bg) {
             
-// Getting a bit messy with these #ifndefs but startWrite() and endWrite()
-// don't seem to exist anywhere in the Vocodec code. Doesn't cause a build
-// error for the hardware version but does for JUCE version.
+            // Getting a bit messy with these #ifndefs but startWrite() and endWrite()
+            // don't seem to exist anywhere in the Vocodec code. Doesn't cause a build
+            // error for the hardware version but does for JUCE version.
 #ifndef __cplusplus
             int16_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
             uint8_t byte = 0;

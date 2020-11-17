@@ -43,7 +43,6 @@ extern int32_t audioInBuffer[AUDIO_BUFFER_SIZE];
 extern uint32_t codecReady;
 //extern float audioDisplayBuffer[128];
 extern uint32_t displayBufferIndex;
-extern LEAF leaf;
 /* Exported types ------------------------------------------------------------*/
 typedef enum
 {

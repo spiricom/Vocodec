@@ -43,9 +43,10 @@ namespace vocodec
             uint16_t fontHeight;
             uint16_t fontDesc;
             uint16_t autoscroll;
+            unsigned char* buffer;
         } GFX;
         
-        void GFXinit(GFX* myGfx, int16_t w, int16_t h); // Constructor
+        void GFXinit(GFX* myGfx, unsigned char* buffer, int16_t w, int16_t h); // Constructor
         
         // This MUST be defined by the subclass:
         void GFXdrawPixel(GFX* myGfx, int16_t x, int16_t y, uint16_t color);

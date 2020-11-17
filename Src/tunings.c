@@ -18,9 +18,6 @@ namespace vocodec
     {
 #endif
 
-        float centsDeviation[12] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-        uint32_t currentTuning = 0;
-        uint8_t keyCenter = 0;
         const char tuningNames[NUM_TUNINGS][13]= {
             {"12-TET      "},
             {"JustOvertone"},
@@ -222,8 +219,3 @@ namespace vocodec
     }
 } // extern "C"
 #endif
-
-
-
-
-

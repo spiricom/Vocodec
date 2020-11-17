@@ -179,18 +179,8 @@ int main(void)
 		Error_Handler();
 	}
   }
-  if (VarDataTab < PresetNil) //make sure the stored data is a number not past the number of available presets
-  {
-	  currentPreset = VarDataTab; //if it's good, start at that remembered preset number
-  }
-  else
-  {
-	  currentPreset = 0; //if the data is messed up for some reason, just initialize at the first preset (preset 0)
-  }
-
 
   CycleCounterInit();
-
 
   //pull reset pin on audio codec low to make sure it's stable
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);
@@ -202,23 +192,30 @@ int main(void)
 
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
 
-  if (HAL_ADC_Start_DMA(&hadc1,(uint32_t*)&ADC_values, NUM_ADC_CHANNELS) != HAL_OK)
+  if (HAL_ADC_Start_DMA(&hadc1,(uint32_t*)&vocodec.ADC_values, NUM_ADC_CHANNELS) != HAL_OK)
   {
       Error_Handler();
   }
 
   HAL_Delay(10);
-  OLED_init(&hi2c4);
-
   //HAL_Delay(10);
-
 
   SDRAM_Initialization_sequence();
 
+  SFX_init(&vocodec, &ADC_values);
+  OLED_init(&vocodec, &hi2c4);
   audioInit(&hi2c2, &hsai_BlockA1, &hsai_BlockB1);
 
+  if (VarDataTab < PresetNil) //make sure the stored data is a number not past the number of available presets
+  {
+  	  vocodec.currentPreset = 0;//VarDataTab; //if it's good, start at that remembered preset number
+  }
+  else
+  {
+  	  vocodec.currentPreset = 0; //if the data is messed up for some reason, just initialize at the first preset (preset 0)
+  }
 
-  OLED_writePreset();
+  OLED_writePreset(&vocodec);
 
   /* USER CODE END 2 */
 
@@ -228,12 +225,12 @@ int main(void)
   {
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
-    OLED_process(); // process what to write to the screen but don't actually draw
+    OLED_process(&vocodec); // process what to write to the screen but don't actually draw
     /* USER CODE BEGIN 3 */
 
  	if (hi2c4.State == HAL_I2C_STATE_READY)
 	{
-	  OLED_draw();
+	  OLED_draw(&vocodec);
 	}
 
   }

@@ -33,7 +33,6 @@ int32_t audioInBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
 
 void audioFrame(uint16_t buffer_offset);
 uint32_t audioTick(float* samples);
-void buttonCheck(void);
 
 HAL_StatusTypeDef transmit_status;
 HAL_StatusTypeDef receive_status;
@@ -60,36 +59,34 @@ int numBuffersCleared = 0;
 #define ATODB_TABLE_SIZE_MINUS_ONE 511
 float atodbTable[ATODB_TABLE_SIZE];
 
-LEAF leaf;
-
 /**********************************************/
 
 void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn)
 {
 	// Initialize LEAF.
 
-	LEAF_init(&leaf, SAMPLE_RATE, AUDIO_FRAME_SIZE, small_memory, SMALL_MEM_SIZE, &randomNumber);
+	LEAF_init(&vocodec.leaf, SAMPLE_RATE, AUDIO_FRAME_SIZE, small_memory, SMALL_MEM_SIZE, &randomNumber);
 
-	tMempool_init (&mediumPool, medium_memory, MED_MEM_SIZE, &leaf);
-	tMempool_init (&largePool, large_memory, LARGE_MEM_SIZE, &leaf);
+	tMempool_init (&vocodec.mediumPool, medium_memory, MED_MEM_SIZE, &vocodec.leaf);
+	tMempool_init (&vocodec.largePool, large_memory, LARGE_MEM_SIZE, &vocodec.leaf);
 
-	initFunctionPointers();
+	initFunctionPointers(&vocodec);
 
 	//ramps to smooth the knobs
 	for (int i = 0; i < 6; i++)
 	{
-		tExpSmooth_init(&adc[i], 0.0f, 0.2f, &leaf);
+		tExpSmooth_init(&vocodec.adc[i], 0.0f, 0.2f, &vocodec.leaf);
 	}
 
 	for (int i = 0; i < 4; i++)
 	{
-		tEnvelopeFollower_init(&LED_envelope[i], 0.0001f, .9995f, &leaf);
+		tEnvelopeFollower_init(&LED_envelope[i], 0.0001f, .9995f, &vocodec.leaf);
 	}
 	LEAF_generate_atodbPositiveClipped(atodbTable, -120.0f, 380.f, ATODB_TABLE_SIZE);
-	initGlobalSFXObjects();
+	initGlobalSFXObjects(&vocodec);
 
-	loadingPreset = 1;
-	previousPreset = PresetNil;
+	vocodec.loadingPreset = 1;
+	vocodec.previousPreset = PresetNil;
 
 	HAL_Delay(10);
 
@@ -134,9 +131,9 @@ void audioFrame(uint16_t buffer_offset)
 
 	//tempCount5 = DWT->CYCCNT;
 
-	buttonCheck();
+	buttonCheck(&vocodec);
 
-	adcCheck();
+	adcCheck(&vocodec);
 
 	// if the USB write pointer has advanced (indicating unread data is in the buffer),
 	// or the overflow bit is set, meaning that the write pointer wrapped around and the read pointer hasn't caught up to it yet
@@ -147,25 +144,25 @@ void audioFrame(uint16_t buffer_offset)
 	}
 
 
-	if (!loadingPreset)
+	if (!vocodec.loadingPreset)
 	{
 
 		for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 		{
-			smoothedADC[i] = tExpSmooth_tick(&adc[i]);
+			vocodec.smoothedADC[i] = tExpSmooth_tick(&vocodec.adc[i]);
 			for (int i = 0; i < KNOB_PAGE_SIZE; i++)
 			{
-				presetKnobValues[currentPreset][i + (knobPage * KNOB_PAGE_SIZE)] = smoothedADC[i];
+				vocodec.presetKnobValues[vocodec.currentPreset][i + (vocodec.knobPage * KNOB_PAGE_SIZE)] = vocodec.smoothedADC[i];
 			}
 		}
 
 
-		if (cvAddParam[currentPreset] >= 0)
+		if (vocodec.cvAddParam[vocodec.currentPreset] >= 0)
 		{
-			presetKnobValues[currentPreset][cvAddParam[currentPreset]] = smoothedADC[5];
+			vocodec.presetKnobValues[vocodec.currentPreset][vocodec.cvAddParam[vocodec.currentPreset]] = vocodec.smoothedADC[5];
 		}
 
-		frameFunctions[currentPreset]();
+		vocodec.frameFunctions[vocodec.currentPreset](&vocodec);
 	}
 
 	//if the codec isn't ready, keep the buffer as all zeros
@@ -186,7 +183,7 @@ void audioFrame(uint16_t buffer_offset)
 			audioOutBuffer[buffer_offset + i] = (int32_t)(theSamples[1] * TWO_TO_23);
 			audioOutBuffer[buffer_offset + i + 1] = (int32_t)(theSamples[0] * TWO_TO_23);
 		}
-		if (!loadingPreset)
+		if (!vocodec.loadingPreset)
 		{
 			bufferCleared = 0;
 		}
@@ -199,23 +196,24 @@ void audioFrame(uint16_t buffer_offset)
 		if (numBuffersCleared >= numBuffersToClearOnLoad)
 		{
 			numBuffersCleared = numBuffersToClearOnLoad;
-			if (loadingPreset)
+			if (vocodec.loadingPreset)
 			{
-				if (previousPreset != PresetNil)
+				if (vocodec.previousPreset != PresetNil)
 				{
-					freeFunctions[previousPreset]();
+					vocodec.freeFunctions[vocodec.previousPreset](&vocodec);
 
 				}
-				setLED_A(0);
-				setLED_B(0);
-				setLED_C(0);
-				setLED_Edit(0);
-				setLED_1(0);
-				knobPage = 0;
-				resetKnobValues();
-				leaf.clearOnAllocation = 0;
-				allocFunctions[currentPreset]();
-				loadingPreset = 0;
+				setLED_A(&vocodec, 0);
+				setLED_B(&vocodec, 0);
+				setLED_C(&vocodec, 0);
+				setLED_Edit(&vocodec, 0);
+				setLED_1(&vocodec, 0);
+				vocodec.knobPage = 0;
+				resetKnobValues(&vocodec);
+				vocodec.leaf.clearOnAllocation = 0;
+				vocodec.allocFunctions[vocodec.currentPreset](&vocodec);
+				vocodec.previousPreset = vocodec.currentPreset;
+				vocodec.loadingPreset = 0;
 			}
 		}
 	}
@@ -228,16 +226,16 @@ void audioFrame(uint16_t buffer_offset)
 			switch (i)
 			{
 				case 0:
-					setLED_leftin_clip(1);
+					setLED_leftin_clip(&vocodec, 1);
 					break;
 				case 1:
-					setLED_rightin_clip(1);
+					setLED_rightin_clip(&vocodec, 1);
 					break;
 				case 2:
-					setLED_leftout_clip(1);
+					setLED_leftout_clip(&vocodec, 1);
 					break;
 				case 3:
-					setLED_rightout_clip(1);
+					setLED_rightout_clip(&vocodec, 1);
 					break;
 			}
 			clipCounter[i] = 80;
@@ -255,16 +253,16 @@ void audioFrame(uint16_t buffer_offset)
 			switch (i)
 			{
 				case 0:
-					setLED_leftin_clip(0);
+					setLED_leftin_clip(&vocodec, 0);
 					break;
 				case 1:
-					setLED_rightin_clip(0);
+					setLED_rightin_clip(&vocodec, 0);
 					break;
 				case 2:
-					setLED_leftout_clip(0);
+					setLED_leftout_clip(&vocodec, 0);
 					break;
 				case 3:
-					setLED_rightout_clip(0);
+					setLED_rightout_clip(&vocodec, 0);
 					break;
 			}
 			clipped[i] = 0;
@@ -306,7 +304,7 @@ void audioFrame(uint16_t buffer_offset)
 uint32_t audioTick(float* samples)
 {
 	uint32_t clips = 0;
-	if (loadingPreset)
+	if (vocodec.loadingPreset)
 	{
 		samples[0] = 0.0f;
 		samples[1] = 0.0f;
@@ -333,7 +331,7 @@ uint32_t audioTick(float* samples)
 	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[2], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, current_env);
 
-	tickFunctions[currentPreset](samples);
+	vocodec.tickFunctions[vocodec.currentPreset](&vocodec, samples);
 
 	//now the samples array is output
 	if ((samples[1] >= 0.999999f) || (samples[1] <= -0.999999f))
@@ -436,7 +434,7 @@ float audioTickR(float audioIn)
 
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai)
 {
-	setLED_Edit(1);
+	setLED_Edit(&vocodec, 1);
 }
 
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)

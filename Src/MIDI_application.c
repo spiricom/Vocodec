@@ -14,6 +14,7 @@
 #include "MIDI_application.h"
 #include "usb_host.h"
 #include "oled.h"
+#include "sfx.h"
 uint8_t MIDI_RX_Buffer[2][RX_BUFF_SIZE] __ATTR_RAM_D2; // MIDI reception buffer
 int MIDI_read_buffer = 0;
 int MIDI_write_buffer = 1;
@@ -39,7 +40,7 @@ void MIDI_Application(void)
 	{
 		USBH_MIDI_Receive(&hUsbHostFS, MIDI_RX_Buffer[MIDI_write_buffer], RX_BUFF_SIZE); // just once at the beginning, start the first reception
 		Appli_state = APPLICATION_RUNNING;
-		setLED_USB(1);
+		setLED_USB(&vocodec, 1);
 
 	}
 	if(Appli_state == APPLICATION_RUNNING)
@@ -50,7 +51,7 @@ void MIDI_Application(void)
 	if(Appli_state == APPLICATION_DISCONNECT)
 	{
 		Appli_state = APPLICATION_IDLE;
-		setLED_USB(0);
+		setLED_USB(&vocodec, 0);
 		USBH_MIDI_Stop(&hUsbHostFS);
 		HAL_Delay(10);
 		MX_USB_HOST_DeInit();
@@ -74,14 +75,14 @@ void parse_MIDI_Message(void)
 			key = USB_message[2];
 			velocity = USB_message[3];
 
-			noteOff(key, velocity);
+			noteOff(&vocodec, key, velocity);
 
 			break;
 		case (0x90): // Note On
 			key = USB_message[2];
 			velocity = USB_message[3];
 
-			noteOn(key, velocity);
+			noteOn(&vocodec, key, velocity);
 
 			break;
 		case (0xA0):
@@ -95,13 +96,13 @@ void parse_MIDI_Message(void)
 				case (64): // sustain
 					if (data)
 					{
-						if (sustainInverted) 	sustainOff();
-						else					sustainOn();
+						if (sustainInverted) 	sustainOff(&vocodec);
+						else					sustainOn(&vocodec);
 					}
 					else
 					{
-						if (sustainInverted) 	sustainOn();
-						else					sustainOff();
+						if (sustainInverted) 	sustainOn(&vocodec);
+						else					sustainOff(&vocodec);
 					}
 					break;
 				default:
@@ -113,7 +114,7 @@ void parse_MIDI_Message(void)
 		case (0xD0): // Mono Aftertouch
 			break;
 		case (0xE0): // Pitch Bend
-			pitchBend((USB_message[2]) + (USB_message[3] << 7));
+			pitchBend(&vocodec, (USB_message[2]) + (USB_message[3] << 7));
 			break;
 		default:
 			break;
