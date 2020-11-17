@@ -16,8 +16,6 @@
 #include "main.h"
 #include "ssd1306.h"
 
-unsigned char buffer[512];
-
 //unsigned char buffer [] = {
 //
 //		0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0xC0, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -193,7 +191,7 @@ void ssd1306_dim(uint8_t dim) {
 
 
 
-void ssd1306_display_full_buffer(void) {
+void ssd1306_display_full_buffer(unsigned char buffer[512]) {
 
 	ssd1306_home();
 
@@ -246,7 +244,7 @@ void ssd1306_move(uint8_t row, uint8_t column) {
 }
 
 
-void ssd1306_write_internal(uint8_t* data, uint16_t numBytes) {
+void ssd1306_write_internal(unsigned char buffer[512], uint8_t* data, uint16_t numBytes) {
 	for (uint16_t i = 0; i < numBytes; i++)
 	{
 		buffer[i+(OLED_xpos + (OLED_ypos * 128))] = data[i];

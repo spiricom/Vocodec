@@ -333,7 +333,7 @@ namespace vocodec
 #ifndef __cplusplus
         void OLED_draw(Vocodec* vcd)
         {
-            ssd1306_display_full_buffer();
+            ssd1306_display_full_buffer(vcd->buffer);
         }
 #endif
 
