@@ -109,6 +109,11 @@ namespace vocodec
 #define NUM_STRINGS 6
         tComplexLivingString theString[NUM_STRINGS];
         
+
+        tExpLivingString theString2[NUM_STRINGS];
+
+
+
         float myDetune[NUM_STRINGS];
         float synthDetune[NUM_VOC_VOICES][NUM_OSC_PER_VOICE];
         //control objects
@@ -278,7 +283,7 @@ namespace vocodec
             defaultPresetKnobValues[LivingStringSynth][0] = 0.5f;
             defaultPresetKnobValues[LivingStringSynth][1] = 0.5f;
             defaultPresetKnobValues[LivingStringSynth][2] = .85f; // decay
-            defaultPresetKnobValues[LivingStringSynth][3] = 1.0f; // damping
+            defaultPresetKnobValues[LivingStringSynth][3] = 0.5f; // damping
             defaultPresetKnobValues[LivingStringSynth][4] = 0.4f; // pick pos
             defaultPresetKnobValues[LivingStringSynth][5] = 0.25f; // prep pos
             defaultPresetKnobValues[LivingStringSynth][6] = 0.0f; // prep index
@@ -2834,7 +2839,7 @@ namespace vocodec
             tSimplePoly_setNumVoices(&poly, NUM_STRINGS);
             for (int i = 0; i < NUM_STRINGS; i++)
             {
-                tComplexLivingString_initToPool(&theString[i], 440.f, 0.2f, 0.3f, 0.f, 9000.f, 1.0f, 0.0f, 0.01f, 0.125f, levModeStr, &mediumPool);
+                tExpLivingString_initToPool(&theString2[i], 440.f,0.9f, 1.0f, 0.0f, 0.01f, 0.125f, levModeStr, &mediumPool);
                 tSlide_init(&stringOutEnvs[i], 10.0f, 1000.0f, &leaf);
                 tSlide_init(&stringInEnvs[i], 12.0f, 1000.0f, &leaf);
                 tADSR4_init(&pluckEnvs[i], 4.0f, 70.0f, 0.0f, 5.0f, decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &leaf);
@@ -2871,7 +2876,7 @@ namespace vocodec
                 levModeStr = !levModeStr;
                 for (int i = 0; i < NUM_STRINGS; i++)
                 {
-                    tComplexLivingString_setLevMode(&theString[i], levModeStr);
+                    tExpLivingString_setLevMode(&theString2[i], levModeStr);
                 }
                 buttonActionsSFX[ButtonC][ActionPress] = 0;
                 setLED_C(levModeStr);
@@ -2881,7 +2886,7 @@ namespace vocodec
             displayValues[0] = presetKnobValues[LivingStringSynth][0] * 10.0f; //pluck volume
             displayValues[1] = presetKnobValues[LivingStringSynth][1]; //lowpass
             displayValues[2] = presetKnobValues[LivingStringSynth][2]; //decay
-            displayValues[3] = faster_mtof((presetKnobValues[LivingStringSynth][3] * 119.0f)+20.0f); //lowpass
+            displayValues[3] = presetKnobValues[LivingStringSynth][3]; //brightness 0-1.0f
             displayValues[4] = (presetKnobValues[LivingStringSynth][4] * 0.44f) + 0.52f;//pick Pos
             displayValues[5] = (presetKnobValues[LivingStringSynth][5] * 0.44f) + 0.04f;//prep Pos
             displayValues[6] = ((LEAF_tanh((presetKnobValues[LivingStringSynth][6] * 8.5f) - 4.25f)) * 0.5f) + 0.5f;//prep Index
@@ -2891,11 +2896,11 @@ namespace vocodec
             for (int i = 0; i < NUM_STRINGS; i++)
             {
                 //tComplexLivingString_setFreq(&theString[i], (i + (1.0f+(myDetune[i] * knobParams[1]))) * knobParams[0]);
-                tComplexLivingString_setDecay(&theString[i], ((displayValues[2]  * 0.02f) + 0.98f));
-                tComplexLivingString_setDampFreq(&theString[i], displayValues[3]);
-                tComplexLivingString_setPickPos(&theString[i], displayValues[4]);
-                tComplexLivingString_setPrepPos(&theString[i], displayValues[5]);
-                tComplexLivingString_setPrepIndex(&theString[i], displayValues[6]);
+                tExpLivingString_setDecay(&theString2[i], ((displayValues[2] * 10.0f) + 0.01f));
+                tExpLivingString_setBrightness(&theString2[i], displayValues[3]);
+                //tExpLivingString_setPickPos(&theString2[i], displayValues[4]);
+                //tExpLivingString_setPrepPos(&theString2[i], displayValues[5]);
+                //tExpLivingString_setPrepIndex(&theString2[i], displayValues[6]);
                 tSlide_setDownSlide(&stringOutEnvs[i], displayValues[9] * samplesPerMs);
                 //tADSR4_setDecay(&pluckEnvs[i], displayValues[9]);
                 
@@ -2905,16 +2910,16 @@ namespace vocodec
             {
                 //tRamp_setDest(&polyRamp[i], (tPoly_getVelocity(&poly, i) > 0));
                 calculateFreq(i);
-                tComplexLivingString_setFreq(&theString[i], freq[i]);
+                tExpLivingString_setFreq(&theString2[i], freq[i]);
                 //tComplexLivingString_setDampFreq(&theString[i], LEAF_clip(40.0f, freq[i] + displayValues[3], 23000.0f));
                 float voiceOn = (tSimplePoly_getVelocity(&poly, i) > 0);
                 if (levModeStr)
                 {
-                    tComplexLivingString_setTargetLev(&theString[i],voiceOn * displayValues[8]);
+                    tExpLivingString_setTargetLev(&theString2[i],voiceOn * displayValues[8]);
                 }
                 else
                 {
-                    tComplexLivingString_setTargetLev(&theString[i],1.0f);
+                    tExpLivingString_setTargetLev(&theString2[i],1.0f);
                 }
                 if (voiceOn)
                 {
@@ -2945,11 +2950,12 @@ namespace vocodec
                 
                 //float pluck = tNoise_tick(&stringPluckNoise);
                 inputSample = (input[1] * voicePluck) + (pluck * tADSR4_tick(&pluckEnvs[i]));
+                //TODO:
                 //inputSample = (input[1] * voicePluck) + (tVZFilter_tick(&pluckFilt, (tNoise_tick(&stringPluckNoise))) * tADSR4_tick(&pluckEnvs[i]));
-                sample += tComplexLivingString_tick(&theString[i], (inputSample * tSlide_tickNoInput(&stringOutEnvs[i]))) * tSlide_tickNoInput(&stringOutEnvs[i]);
+                sample += tExpLivingString_tick(&theString2[i], ((inputSample * tSlide_tickNoInput(&stringOutEnvs[i])))) * tSlide_tickNoInput(&stringOutEnvs[i]);
             }
             sample *= 0.1625f;
-            sample = LEAF_tanh(sample) * 0.98f;
+            sample = tanhf(sample) * 0.98f;
             input[0] = sample;
             input[1] = sample;
         }
@@ -2958,7 +2964,7 @@ namespace vocodec
         {
             for (int i = 0; i < NUM_STRINGS; i++)
             {
-                tComplexLivingString_free(&theString[i]);
+                tExpLivingString_free(&theString2[i]);
                 tSlide_free(&stringInEnvs[i]);
                 tSlide_free(&stringOutEnvs[i]);
                 tADSR4_free(&pluckEnvs[i]);
