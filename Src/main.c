@@ -88,6 +88,12 @@ void SDRAM_Initialization_sequence(void);
 static void CycleCounterInit( void );
 
 
+void emptyFunction(Vocodec* vcd);
+
+void emptyFunction(Vocodec* vcd)
+{
+	;
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -202,7 +208,7 @@ int main(void)
 
   SDRAM_Initialization_sequence();
 
-  SFX_init(&vocodec, &ADC_values);
+  SFX_init(&vocodec, &ADC_values, emptyFunction);
 
   if (VarDataTab < PresetNil) //make sure the stored data is a number not past the number of available presets
   {

@@ -51,7 +51,15 @@ namespace vocodec
 #define EXP_BUFFER_SIZE 128
 
 #define DECAY_EXP_BUFFER_SIZE 512
+
+#ifndef __cplusplus
 #define NUM_STRINGS 6
+#define NUM_STRINGS_SYNTH 5
+#else
+    #define NUM_STRINGS 8
+   #define NUM_STRINGS_SYNTH 8
+#endif
+
 #define MAX_AUTOSAMP_LENGTH 192000
 
         // UI
@@ -90,6 +98,9 @@ namespace vocodec
             LivingStringSynth,
             ClassicSynth,
             Rhodes,
+#ifdef __cplusplus
+            WavetableSynth,
+#endif
             PresetNil
         } VocodecPresetType;
 
@@ -245,6 +256,12 @@ namespace vocodec
             int tremoloStereo;
         } RhodesButtonParams;
         
+        typedef struct _WavetableSynthButtonParams
+        {
+            int numVoices;
+            int loadIndex;
+        } WavetableSynthButtonParams;
+
         typedef struct _Vocodec Vocodec;
         struct _Vocodec
         {
@@ -281,6 +298,15 @@ namespace vocodec
             LivingStringSynthButtonParams livingStringSynthParams;
             ClassicSynthButtonParams classicSynthParams;
             RhodesButtonParams rhodesParams;
+
+            WavetableSynthButtonParams wavetableSynthParams;
+            tWaveSynth waveSynth;
+            float* loadedTables[4];
+            int loadedTableSizes[4];
+            void (*loadWav)(Vocodec* vcd);
+            int attemptFileLoad;
+            int newWavLoaded;
+            char* loadedFilePaths[4];
 
             //audio objects
             tFormantShifter fs;
@@ -339,6 +365,7 @@ namespace vocodec
             float decayExpBufferSizeMinusOne;
 
             tComplexLivingString theString[NUM_STRINGS];
+            tLivingString2 theString2[NUM_STRINGS_SYNTH];
 
             float myDetune[NUM_STRINGS];
             float synthDetune[NUM_VOC_VOICES][NUM_OSC_PER_VOICE];
@@ -358,7 +385,7 @@ namespace vocodec
             tNoise vocoderNoise;
             tZeroCrossingCounter zerox;
             tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
-            tRosenbergGlottalPulse glottal[NUM_VOC_VOICES];
+            tRosenbergGlottalPulse glottal[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
             tExpSmooth noiseRamp;
             tNoise breathNoise;
             tHighpass noiseHP;
@@ -497,11 +524,14 @@ namespace vocodec
 
             //Living String Synth
 
-            tSlide stringOutEnvs[NUM_STRINGS];
-            tSlide stringInEnvs[NUM_STRINGS];
-            tADSR4 pluckEnvs[NUM_STRINGS];
+            tSlide stringOutEnvs[NUM_STRINGS_SYNTH];
+            tSlide stringInEnvs[NUM_STRINGS_SYNTH];
+            tADSRT pluckEnvs[NUM_STRINGS_SYNTH];
+            tExpSmooth pickPosSmooth;
+            tExpSmooth prepPosSmooth;
+            tExpSmooth pickupPosSmooth;
             tNoise stringPluckNoise;
-
+            tEnvelopeFollower prepEnvs[NUM_STRINGS_SYNTH];
             tVZFilter pluckFilt;
             float samplesPerMs;
 
@@ -509,8 +539,8 @@ namespace vocodec
 
             tEfficientSVF synthLP[NUM_VOC_VOICES];
             uint16_t filtFreqs[NUM_VOC_VOICES];
-            tADSR4 polyEnvs[NUM_VOC_VOICES];
-            tADSR4 polyFiltEnvs[NUM_VOC_VOICES];
+            tADSRT polyEnvs[NUM_VOC_VOICES];
+            tADSRT polyFiltEnvs[NUM_VOC_VOICES];
             tCycle pwmLFO1;
             tCycle pwmLFO2;
 
@@ -519,7 +549,7 @@ namespace vocodec
             tCycle FM_sines[NUM_VOC_VOICES][6];
             float FM_freqRatios[5][6];
             float FM_indices[5][6];
-            tADSR4 FM_envs[NUM_VOC_VOICES][6];
+            tADSRT FM_envs[NUM_VOC_VOICES][6];
             float feedback_output;
 
             float panValues[NUM_VOC_VOICES];
@@ -544,7 +574,6 @@ namespace vocodec
 
             // UI /////////
 
-            //            uint16_t ADC_values[NUM_ADC_CHANNELS] __ATTR_RAM_D2;
             uint16_t (*ADC_values)[NUM_ADC_CHANNELS];
 
             float floatADC[NUM_ADC_CHANNELS];
@@ -601,7 +630,6 @@ namespace vocodec
             uint32_t currentTuning;
             uint8_t keyCenter;
 
-
             // OLED
 
             unsigned char buffer[512];
@@ -613,11 +641,13 @@ namespace vocodec
         extern Vocodec vocodec;
 #endif
         
-        void SFX_init(Vocodec* vcd, uint16_t (*ADC_values)[NUM_ADC_CHANNELS]);
+        void SFX_init(Vocodec* vcd, uint16_t (*ADC_values)[NUM_ADC_CHANNELS],
+                      void (*loadFunction)(Vocodec* vcd));
         void initPresetParams(Vocodec* vcd);
         void initFunctionPointers(Vocodec* vcd);
         
         void initGlobalSFXObjects(Vocodec* vcd);
+        void freeGlobalSFXObjects(Vocodec* vcd);
         
         //LPC Vocoder
         void SFXVocoderAlloc(Vocodec* vcd);
@@ -715,7 +745,6 @@ namespace vocodec
         void SFXLivingStringSynthTick(Vocodec* vcd, float* input);
         void SFXLivingStringSynthFree(Vocodec* vcd);
         
-        
         // classic synth
         void SFXClassicSynthAlloc(Vocodec* vcd);
         void SFXClassicSynthFrame(Vocodec* vcd);
@@ -728,6 +757,12 @@ namespace vocodec
         void SFXRhodesTick(Vocodec* vcd, float* input);
         void SFXRhodesFree(Vocodec* vcd);
         
+        // wavetable synth
+        void SFXWavetableSynthAlloc(Vocodec* vcd);
+        void SFXWavetableSynthFrame(Vocodec* vcd);
+        void SFXWavetableSynthTick(Vocodec* vcd, float* input);
+        void SFXWavetableSynthFree(Vocodec* vcd);
+
         // MIDI FUNCTIONS
         void noteOn(Vocodec* vcd, int key, int velocity);
         void noteOff(Vocodec* vcd, int key, int velocity);

@@ -465,8 +465,8 @@ namespace vocodec
             float f = fabsf(input);
             if (f<1.0f)
             {
-                numDigits = 4;
-                numDecimal = 3;
+                numDigits = 3;
+                numDecimal = 2;
             }
 
             else if (f<10.0f)
