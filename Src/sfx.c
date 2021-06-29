@@ -4004,7 +4004,8 @@ namespace vocodec
             
         }
         
-        //reverb
+        //
+#ifdef __cplusplus
         void SFXWavetableSynthAlloc(Vocodec* vcd)
         {
             tWaveSynth_initToPool(&vcd->waveSynth, NUM_VOC_VOICES, vcd->loadedTables, vcd->loadedTableSizes, 4, 20000.0f, &vcd->largePool);
@@ -4030,7 +4031,7 @@ namespace vocodec
             setLED_B(vcd, 0);
             setLED_C(vcd, 0);
         }
-#ifdef __cplusplus
+
         void SFXWavetableSynthFrame(Vocodec* vcd)
         {
             if (vcd->buttonActionsSFX[ButtonA][ActionPress])
