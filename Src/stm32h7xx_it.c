@@ -71,7 +71,7 @@ extern SAI_HandleTypeDef hsai_BlockB1;
 /* USER CODE END EV */
 
 /******************************************************************************/
-/*           Cortex Processor Interruption and Exception Handlers          */ 
+/*           Cortex Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 /**
   * @brief This function handles Non maskable interrupt.
@@ -304,7 +304,6 @@ void DMA2_Stream0_IRQHandler(void)
 /**
   * @brief This function handles SAI1 global interrupt.
   */
-uint8_t isItCalled = 0;
 void SAI1_IRQHandler(void)
 {
   /* USER CODE BEGIN SAI1_IRQn 0 */
@@ -312,7 +311,7 @@ void SAI1_IRQHandler(void)
 	{
 		cycleCountVals[i][2] = 1; //set these bits to make sure cycle counting that is happening is invalidated during a USB interrupt (so it's not counted toward the averaged and min max totals)
 	}
-	isItCalled = 1;
+	//isItCalled = 1;
   /* USER CODE END SAI1_IRQn 0 */
   HAL_SAI_IRQHandler(&hsai_BlockA1);
   HAL_SAI_IRQHandler(&hsai_BlockB1);
@@ -427,4 +426,3 @@ void BDMA_Channel1_IRQHandler(void)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

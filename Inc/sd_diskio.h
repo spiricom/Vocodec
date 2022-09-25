@@ -24,7 +24,7 @@
 #ifndef __SD_DISKIO_H
 #define __SD_DISKIO_H
 
-/* USER CODE BEGIN firstSection */ 
+/* USER CODE BEGIN firstSection */
 /* can be used to modify / undefine following code or add new definitions */
 /* USER CODE END firstSection */
 
@@ -35,11 +35,8 @@
 /* Exported functions ------------------------------------------------------- */
 extern const Diskio_drvTypeDef  SD_Driver;
 
-/* USER CODE BEGIN lastSection */ 
+/* USER CODE BEGIN lastSection */
 /* can be used to modify / undefine previous code or add new definitions */
 /* USER CODE END lastSection */
 
 #endif /* __SD_DISKIO_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-

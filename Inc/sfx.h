@@ -14,6 +14,7 @@
 #endif
 
 #include "gfx.h"
+#include "leaf.h"
 
 #ifdef __cplusplus
 namespace vocodec

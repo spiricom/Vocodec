@@ -21,7 +21,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 
-
+#include "usb_host.h"
+#include "usbh_core.h"
+#include "usbh_audio.h"
 
 /* USER CODE BEGIN Includes */
 #include "usbh_MIDI.h"
@@ -38,10 +40,8 @@
 /* USER CODE END PFP */
 
 /* USB Host core handle declaration */
-
-
-USBH_HandleTypeDef hUsbHostFS __ATTR_RAM_D2;
-MIDI_ApplicationTypeDef Appli_state = APPLICATION_IDLE;
+USBH_HandleTypeDef hUsbHostFS;
+//ApplicationTypeDef Appli_stateU = APPLICATION_IDLE;
 
 /*
  * -- Insert your variables declaration here --
@@ -71,13 +71,13 @@ void MX_USB_HOST_Init(void)
   /* USER CODE BEGIN USB_HOST_Init_PreTreatment */
   
   /* USER CODE END USB_HOST_Init_PreTreatment */
-  
+
   /* Init host Library, add supported class and start the library. */
   if (USBH_Init(&hUsbHostFS, USBH_UserProcess, HOST_FS) != USBH_OK)
   {
     Error_Handler();
   }
-  if (USBH_RegisterClass(&hUsbHostFS, USBH_MIDI_CLASS) != USBH_OK)
+  if (USBH_RegisterClass(&hUsbHostFS, USBH_AUDIO_CLASS) != USBH_OK)
   {
     Error_Handler();
   }
@@ -90,39 +90,13 @@ void MX_USB_HOST_Init(void)
   /* USER CODE END USB_HOST_Init_PostTreatment */
 }
 
-
-void MX_USB_HOST_DeInit(void)
-{
-  /* USER CODE BEGIN USB_HOST_Init_PreTreatment */
-
-  /* USER CODE END USB_HOST_Init_PreTreatment */
-
-
-
-  if (USBH_Stop(&hUsbHostFS) != USBH_OK)
-  {
-    Error_Handler();
-  }
-
-  /* Init host Library, add supported class and start the library. */
-  if (USBH_DeInit(&hUsbHostFS) != USBH_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USB_HOST_Init_PostTreatment */
-  HAL_PWREx_DisableUSBVoltageDetector();
-  /* USER CODE END USB_HOST_Init_PostTreatment */
-}
-
 /*
  * Background task
  */
 void MX_USB_HOST_Process(void)
 {
   /* USB Host Background task */
-	MIDI_Application();
-
-	USBH_Process(&hUsbHostFS);
+  USBH_Process(&hUsbHostFS);
 }
 /*
  * user callback definition
@@ -136,15 +110,15 @@ static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
   break;
 
   case HOST_USER_DISCONNECTION:
-  Appli_state = APPLICATION_DISCONNECT;
+  //Appli_stateU = APPLICATION_DISCONNECT;
   break;
 
   case HOST_USER_CLASS_ACTIVE:
-  Appli_state = APPLICATION_READY;
+  //Appli_stateU = APPLICATION_READY;
   break;
 
   case HOST_USER_CONNECTION:
-  Appli_state = APPLICATION_START;
+  //Appli_stateU = APPLICATION_START;
   break;
 
   default:
@@ -161,4 +135,3 @@ static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
   * @}
   */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

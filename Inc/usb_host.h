@@ -31,7 +31,6 @@
 #include "stm32h7xx.h"
 #include "stm32h7xx_hal.h"
 
-
 /* USER CODE BEGIN INCLUDE */
 
 /* USER CODE END INCLUDE */
@@ -54,7 +53,7 @@
   * @}
   */
 
-/** Status of the application. */
+
 
 /** @defgroup USBH_HOST_Exported_FunctionsPrototype USBH_HOST_Exported_FunctionsPrototype
   * @brief Declaration of public functions for Usb host.
@@ -64,9 +63,8 @@
 /* Exported functions -------------------------------------------------------*/
 
 /** @brief USB Host initialization function. */
-
 void MX_USB_HOST_Init(void);
-void MX_USB_HOST_DeInit(void);
+
 void MX_USB_HOST_Process(void);
 
 /**
@@ -87,4 +85,3 @@ void MX_USB_HOST_Process(void);
 
 #endif /* __USB_HOST__H__ */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
