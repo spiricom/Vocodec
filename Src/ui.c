@@ -325,6 +325,19 @@ namespace vocodec
             vcd->knobParamNames[Rhodes][22] = "TUNE SNAP";
             vcd->knobParamNames[Rhodes][23] = "RAND DECAY";
             vcd->knobParamNames[Rhodes][24] = "RAND SUST";
+
+
+            vcd->modeNames[Tape] = "TAPE";
+            vcd->shortModeNames[Tape] = "TP";
+            vcd->modeNamesDetails[Tape] = "MACHINE";
+            vcd->numPages[Tape] = 1;
+            vcd->knobParamNames[Tape][0] = "BRIGHTNESS";
+            vcd->knobParamNames[Tape][1] = "TREM DEPTH";
+            vcd->knobParamNames[Tape][2] = "TREM RATE";
+            vcd->knobParamNames[Tape][3] = "DRIVE";
+            vcd->knobParamNames[Tape][4] = "PAN SPREAD";
+
+
         }
 
         void buttonCheck(Vocodec* vcd)
@@ -356,7 +369,7 @@ namespace vocodec
                 vcd->buttonValues[5] =!(GPIOB->IDR & GPIO_PIN_1);
                 vcd->buttonValues[6] =!(GPIOD->IDR & GPIO_PIN_7);
                 vcd->buttonValues[7] =!(GPIOB->IDR & GPIO_PIN_11);
-                vcd->buttonValues[8] =!(GPIOG->IDR & GPIO_PIN_11);
+                vcd->buttonValues[8] =!(GPIOG->IDR & GPIO_PIN_11); //TODO: pin 11 for rev3 board, pin 12 for rev4 board
                 vcd->buttonValues[9] =!(GPIOB->IDR & GPIO_PIN_10);
 #endif
 
@@ -1024,6 +1037,52 @@ namespace vocodec
             if (vcd->buttonActionsUI[ButtonC][ActionPress] == 1)
             {
                 writeString = (vcd->rhodesParams.tremoloStereo > 0) ? "STEREO TREM" : "MONO TREM";
+                vcd->buttonActionsUI[ButtonC][ActionPress] = 0;
+            }
+            return writeString;
+        }
+
+        const char* UITapeButtons(Vocodec* vcd, VocodecButton button, ButtonAction action)
+        {
+            const char* writeString = "";
+            if (vcd->buttonActionsUI[ButtonA][ActionPress])
+            {
+                if (vcd->tapeParams.shaper == 0)
+                {
+                	writeString = "Tanh";
+                }
+                else if (vcd->tapeParams.shaper == 1)
+                {
+                	writeString = "Shaper";
+                }
+                else if (vcd->tapeParams.shaper == 2)
+                {
+                	writeString = "Hardclip";
+                }
+                else if (vcd->tapeParams.shaper == 3)
+                {
+                	writeString = "softclip";
+                }
+                else if (vcd->tapeParams.shaper == 4)
+                {
+                	writeString = "ABSat";
+                }
+                else if (vcd->tapeParams.shaper == 5)
+                {
+                	writeString = "Wavefold";
+                }
+
+
+            	vcd->buttonActionsUI[ButtonA][ActionPress] = 0;
+            }
+            if (vcd->buttonActionsUI[ButtonB][ActionPress])
+            {
+                writeString = vcd->tapeParams.uncapFeedback ? "FB UNCAP" : "FB CAP";
+                vcd->buttonActionsUI[ButtonB][ActionPress] = 0;
+            }
+            if (vcd->buttonActionsUI[ButtonC][ActionPress])
+            {
+                writeString = vcd->tapeParams.freeze ? "FROZEN" : "UNFROZEN";
                 vcd->buttonActionsUI[ButtonC][ActionPress] = 0;
             }
             return writeString;

@@ -69,6 +69,9 @@ namespace vocodec
 #define NUM_PRESET_KNOB_VALUES 25
 #define KNOB_PAGE_SIZE 5
 
+
+#define numDist 6
+
 #define NUM_CHARACTERS_PER_PRESET_NAME 16
         //
 
@@ -99,6 +102,7 @@ namespace vocodec
             LivingStringSynth,
             ClassicSynth,
             Rhodes,
+			Tape,
 #ifdef __cplusplus
             WavetableSynth,
 #endif
@@ -257,6 +261,13 @@ namespace vocodec
             int tremoloStereo;
         } RhodesButtonParams;
         
+        typedef struct _TapeButtonParams
+        {
+            int shaper;
+            int uncapFeedback;
+            int freeze;
+        } TapeButtonParams;
+
         typedef struct _WavetableSynthButtonParams
         {
             int numVoices;
@@ -299,6 +310,9 @@ namespace vocodec
             LivingStringSynthButtonParams livingStringSynthParams;
             ClassicSynthButtonParams classicSynthParams;
             RhodesButtonParams rhodesParams;
+            TapeButtonParams tapeParams;
+
+
 
             WavetableSynthButtonParams wavetableSynthParams;
             tWaveSynth waveSynth;
@@ -392,6 +406,11 @@ namespace vocodec
             tHighpass noiseHP;
             tVZFilter shelf1;
             tVZFilter shelf2;
+
+            tHighpass dcBlock1;
+
+            float wfState;
+            float invCurFB;
 
             tVZFilter analysisBands[MAX_NUM_VOCODER_BANDS][MAX_VOCODER_FILTER_ORDER];
             tVZFilter synthesisBands[MAX_NUM_VOCODER_BANDS][MAX_VOCODER_FILTER_ORDER];
@@ -563,6 +582,11 @@ namespace vocodec
             float randomDecays[6];
             float randomSustains[6];
             float sustainsFinal[6];
+
+            //Tape Emulation
+
+            tRamp reelSmooth;
+
 
             // midi functions
 
@@ -758,6 +782,12 @@ namespace vocodec
         void SFXRhodesTick(Vocodec* vcd, float* input);
         void SFXRhodesFree(Vocodec* vcd);
         
+        // tape
+        void SFXTapeAlloc(Vocodec* vcd);
+        void SFXTapeFrame(Vocodec* vcd);
+        void SFXTapeTick(Vocodec* vcd, float* input);
+        void SFXTapeFree(Vocodec* vcd);
+
         // wavetable synth
         void SFXWavetableSynthAlloc(Vocodec* vcd);
         void SFXWavetableSynthFrame(Vocodec* vcd);

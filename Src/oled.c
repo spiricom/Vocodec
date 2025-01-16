@@ -96,6 +96,7 @@ namespace vocodec
             vcd->buttonActionFunctions[LivingStringSynth] = UILivingStringSynthButtons;
             vcd->buttonActionFunctions[ClassicSynth] = UIClassicSynthButtons;
             vcd->buttonActionFunctions[Rhodes] = UIRhodesButtons;
+            vcd->buttonActionFunctions[Tape] = UITapeButtons;
         }
 
 #ifndef __cplusplus

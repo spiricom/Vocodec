@@ -64,11 +64,11 @@ namespace vocodec
             //============================================//
 
             vcd->vocoderParams.numVoices = NUM_VOC_VOICES;
-            vcd->vocoderParams.internalExternal = 0;
+            vcd->vocoderParams.internalExternal = 1;
             vcd->vocoderParams.freeze = 0;
 
             vcd->vocoderChParams.numVoices = NUM_VOC_VOICES;
-            vcd->vocoderChParams.internalExternal = 0;
+            vcd->vocoderChParams.internalExternal = 1;
             vcd->vocoderChParams.freeze = 0;
 
             vcd->pitchShiftParams._ = 0;
@@ -115,6 +115,10 @@ namespace vocodec
             vcd->rhodesParams.numVoices = NUM_VOC_VOICES;
             vcd->rhodesParams.sound = 0;
             vcd->rhodesParams.tremoloStereo = 0;
+
+
+            //TODO initialize tape emulation params
+
 
             vcd->wavetableSynthParams.numVoices = NUM_VOC_VOICES;
             vcd->wavetableSynthParams.loadIndex = 0;
@@ -474,6 +478,14 @@ namespace vocodec
             vcd->defaultPresetKnobValues[Rhodes][22] = 0.00f;
             vcd->defaultPresetKnobValues[Rhodes][23] = 0.00f;
             vcd->defaultPresetKnobValues[Rhodes][24] = 0.00f;
+
+            vcd->defaultPresetKnobValues[Tape][0] = 0.25f;
+             vcd->defaultPresetKnobValues[Tape][1] = 0.25f;
+             vcd->defaultPresetKnobValues[Tape][2] = 0.25f;
+             vcd->defaultPresetKnobValues[Tape][3] = 0.5f;
+             vcd->defaultPresetKnobValues[Tape][4] = 0.0f;
+
+
 #ifdef __cplusplus
             vcd->defaultPresetKnobValues[WavetableSynth][0] = 0.5f; // gains
             vcd->defaultPresetKnobValues[WavetableSynth][1] = 0.5f;
@@ -590,6 +602,12 @@ namespace vocodec
             vcd->frameFunctions[Rhodes] = SFXRhodesFrame;
             vcd->tickFunctions[Rhodes] = SFXRhodesTick;
             vcd->freeFunctions[Rhodes] = SFXRhodesFree;
+
+            vcd->allocFunctions[Tape] = SFXTapeAlloc;
+            vcd->frameFunctions[Tape] = SFXTapeFrame;
+            vcd->tickFunctions[Tape] = SFXTapeTick;
+            vcd->freeFunctions[Tape] = SFXTapeFree;
+
 #ifdef __cplusplus
             vcd->allocFunctions[WavetableSynth] = SFXWavetableSynthAlloc;
             vcd->frameFunctions[WavetableSynth] = SFXWavetableSynthFrame;
@@ -4004,6 +4022,273 @@ namespace vocodec
             
         }
         
+
+
+        //delay
+        void SFXTapeAlloc(Vocodec* vcd)
+        {
+            vcd->leaf.clearOnAllocation = 1;
+            tTapeDelay_initToPool(&vcd->delay, 2000, 30000, &vcd->mediumPool);
+            tTapeDelay_initToPool(&vcd->delay2, 2000, 30000, &vcd->mediumPool);
+            tSVF_init(&vcd->delayLP, SVFTypeLowpass, 16000.f, .7f, &vcd->leaf);
+            tSVF_init(&vcd->delayHP, SVFTypeHighpass, 20.f, .7f, &vcd->leaf);
+
+            tSVF_init(&vcd->delayLP2, SVFTypeLowpass, 16000.f, .7f, &vcd->leaf);
+            tSVF_init(&vcd->delayHP2, SVFTypeHighpass, 20.f, .7f, &vcd->leaf);
+            tRamp_init(&vcd->reelSmooth, 1300.0f, 1, &vcd->leaf);
+
+            tHighpass_init(&vcd->delayShaperHp, 20.0f, &vcd->leaf);
+            tHighpass_init(&vcd->dcBlock1, 40.0f, &vcd->leaf);
+            tFeedbackLeveler_init(&vcd->feedbackControl, .99f, 0.01f, 0.125f, 0, &vcd->leaf);
+            tOversampler_init(&vcd->oversampler, 2, 0, &vcd->leaf);
+            setLED_A(vcd, vcd->tapeParams.shaper);
+            setLED_B(vcd, vcd->tapeParams.uncapFeedback);
+            setLED_C(vcd, vcd->tapeParams.freeze);
+            vcd->leaf.clearOnAllocation = 0;
+        }
+
+        void SFXTapeFrame(Vocodec* vcd)
+        {
+
+        	if (vcd->buttonActionsSFX[ButtonA][ActionPress])
+            {
+                vcd->tapeParams.shaper = (vcd->tapeParams.shaper + 1) % numDist;
+                vcd->buttonActionsSFX[ButtonA][ActionPress] = 0;
+                setLED_A(vcd, vcd->tapeParams.shaper % 1);
+            }
+            if (vcd->buttonActionsSFX[ButtonB][ActionPress])
+            {
+                vcd->tapeParams.uncapFeedback = !vcd->tapeParams.uncapFeedback;
+                vcd->buttonActionsSFX[ButtonB][ActionPress] = 0;
+                setLED_B(vcd, vcd->tapeParams.uncapFeedback);
+            }
+
+            if (vcd->buttonActionsSFX[ButtonC][ActionPress])
+            {
+                vcd->tapeParams.freeze = !vcd->tapeParams.freeze;
+                vcd->buttonActionsSFX[ButtonC][ActionPress] = 0;
+                setLED_C(vcd, vcd->tapeParams.freeze);
+            }
+
+            vcd->displayValues[0] = vcd->presetKnobValues[Tape][0] * 30000.0f;
+            vcd->displayValues[1] = vcd->presetKnobValues[Tape][1] * 30000.0f;
+            float cutoff1 = LEAF_clip(10.0f,
+                                      faster_mtof((vcd->presetKnobValues[Tape][2] * 133) + 3.0f),
+                                      20000.0f);
+            float cutoff2 = LEAF_clip(10.0f,
+                                      faster_mtof((vcd->presetKnobValues[Tape][3] * 133) + 3.0f),
+                                      20000.0f);
+            vcd->displayValues[2] = cutoff1;
+            vcd->displayValues[3] = cutoff2;
+
+            vcd->displayValues[4] = vcd->tapeParams.uncapFeedback ?
+            vcd->presetKnobValues[Tape][4] * 1.1f :
+            LEAF_clip(0.0f, vcd->presetKnobValues[Tape][4] * 1.1f, 0.9f);
+
+            vcd->displayValues[5] = vcd->presetKnobValues[Tape][5];
+        }
+
+
+
+
+        // Add stereo param so in1 -> out1 and in2 -> out2 instead of in1 -> out1 & out2 (like bitcrusher)?
+        void SFXTapeTick(Vocodec* vcd, float* input)
+        {
+            vcd->displayValues[0] = roundf(vcd->presetKnobValues[Tape][0] * 2.0f);
+            if (vcd->displayValues[0] > 1.1f)
+            {
+            	vcd->displayValues[0] = 21172.0f;
+            }
+            else if ((vcd->displayValues[0] < 1.1f) && (vcd->displayValues[0] > 0.7f))
+			{
+            	vcd->displayValues[0] = 10586.0f;
+			}
+            else if (vcd->displayValues[0] < 0.7f)
+			{
+            	vcd->displayValues[0] = 5293.0f;
+			}
+
+            tRamp_setDest(&vcd->reelSmooth, vcd->displayValues[0]);
+            float tapeSpeed = tRamp_tick(&vcd->reelSmooth);
+
+            vcd->displayValues[1] = vcd->presetKnobValues[Tape][1] * 30000.0f;
+            float cutoff1 = LEAF_clip(10.0f,
+                                      faster_mtof((vcd->presetKnobValues[Tape][2] * 133) + 3.0f),
+                                      20000.0f);
+            float cutoff2 = LEAF_clip(10.0f,
+                                      faster_mtof((vcd->presetKnobValues[Tape][3] * 133) + 3.0f),
+                                      20000.0f);
+            //vcd->displayValues[2] = 30.0f;
+            //vcd->displayValues[3] = 16000.0f;
+
+
+            vcd->displayValues[1] = vcd->presetKnobValues[Tape][1]*1.1f;
+            float param1 = vcd->displayValues[1];
+            vcd->displayValues[2] = vcd->presetKnobValues[Tape][2];
+            float param2 = vcd->displayValues[2];
+            vcd->displayValues[3] = vcd->presetKnobValues[Tape][3];
+            float param3 = vcd->displayValues[3];
+            vcd->displayValues[4] = vcd->tapeParams.uncapFeedback ?
+            vcd->presetKnobValues[Tape][4] * 1.1f :
+            LEAF_clip(0.0f, vcd->presetKnobValues[Tape][4] * 1.1f, 0.9f);
+
+            vcd->displayValues[5] = vcd->presetKnobValues[Tape][5];
+
+            tSVF_setFreq(&vcd->delayHP, 50.0f);
+            //tSVF_setFreq(&vcd->delayHP2, vcd->displayValues[2]);
+            tSVF_setFreq(&vcd->delayLP, 12000.0f);
+            //tSVF_setFreq(&vcd->delayLP2, vcd->displayValues[3]);
+
+            //swap tanh for shaper and add cheap fixed highpass after both shapers
+
+            float input1, input2;
+
+            tOversampler_upsample(&vcd->oversampler, input[1], vcd->oversamplerArray);
+			for (int i = 0; i < 2; i++)
+			{
+	            if (vcd->tapeParams.shaper == 0)
+	            {
+
+	            	vcd->oversamplerArray[i] = tFeedbackLeveler_tick(&vcd->feedbackControl, tanhf((input[1]*param1) + (vcd->delayFB1 * vcd->displayValues[4])));
+	                //input2 = tFeedbackLeveler_tick(&vcd->feedbackControl, tanhf(input[1] + (vcd->delayFB2 * vcd->displayValues[4])));
+	            }
+	            else if (vcd->tapeParams.shaper == 1)
+	            {
+	            	vcd->oversamplerArray[i] = tFeedbackLeveler_tick(&vcd->feedbackControl, tHighpass_tick(&vcd->delayShaperHp, LEAF_shaper((input[1]*param1) + (vcd->delayFB1 * vcd->displayValues[4] * 0.5f), 0.5f)));
+	                //input2 = tFeedbackLeveler_tick(&vcd->feedbackControl, tHighpass_tick(&vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB2 * vcd->displayValues[4] * 0.5f), 0.5f)));
+	            }
+	            else if (vcd->tapeParams.shaper == 2)
+	            {
+	            	//tFeedbackLeveler_tick(&vcd->feedbackControl, tHighpass_tick(&vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB1 * vcd->displayValues[4] * 0.5f), 0.5f)));
+	                //input2 = tFeedbackLeveler_tick(&vcd->feedbackControl, tHighpass_tick(&vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB2 * vcd->displayValues[4] * 0.5f), 0.5f)));
+	            	float sample = (((input[1]*param1)+param2)) + (vcd->delayFB1 * vcd->displayValues[4]);
+
+	            	param3 = (param3 * .99f) + 0.01f;
+	            	float shapeDividerS = 1.0f / (param3 - ((param3*param3*param3) * 0.3333333f));
+	            	sample = sample * param1;
+	                sample = sample + param2;
+	                float shape = param3;
+	                if (sample <= -1.0f)
+	                {
+	                    sample = -1.0f;
+	                } else if (sample >= 1.0f)
+	                {
+	                    sample = 1.0f;
+	                }
+	                {
+	                    sample = (shape * sample) - ((shape * (sample * sample * sample))* 0.3333333f);
+	                    sample = sample * shapeDividerS;
+	                }
+
+	                sample = tHighpass_tick(&vcd->dcBlock1, sample);
+	                //sample *= fxPostGain[v];
+	                vcd->oversamplerArray[i] = sample;
+	            }
+
+	            else if (vcd->tapeParams.shaper == 3)
+	            {
+	            	tFeedbackLeveler_tick(&vcd->feedbackControl, tHighpass_tick(&vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB1 * vcd->displayValues[4] * 0.5f), 0.5f)));
+	                //input2 = tFeedbackLeveler_tick(&vcd->feedbackControl, tHighpass_tick(&vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB2 * vcd->displayValues[4] * 0.5f), 0.5f)));
+	            	float sample = ((input[1]*param1)+param2) + (vcd->delayFB1 * vcd->displayValues[4]);
+
+	            	param3 = ((param3 * .99f) + 0.01f) * HALF_PI;
+	            	float shapeDividerH = 1.0f / sinf(param3);
+	                if (sample <= -1.0f)
+	                {
+	                    sample = -1.0f;
+	                } else if (sample >= 1.0f)
+	                {
+	                    sample = 1.0f;
+	                }
+	                {
+	                    sample = sinf(  (sinf(sample*param3) * shapeDividerH) * param3);
+	                    sample = sample * shapeDividerH;
+	                }
+	                sample = tHighpass_tick(&vcd->dcBlock1, sample);
+	                //sample *= fxPostGain[v];
+	                vcd->oversamplerArray[i] = sample;
+	            }
+
+	            else if (vcd->tapeParams.shaper == 4)
+	            {
+	            	//tFeedbackLeveler_tick(&vcd->feedbackControl, tHighpass_tick(&vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB1 * vcd->displayValues[4] * 0.5f), 0.5f)));
+	                //input2 = tFeedbackLeveler_tick(&vcd->feedbackControl, tHighpass_tick(&vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB2 * vcd->displayValues[4] * 0.5f), 0.5f)));
+	            	float sample = input[1] + (vcd->delayFB1 * vcd->displayValues[4]);
+
+	                sample = sample * param1;
+	                float temp = (sample + (param2 * param1)) / (1.0f + fabs(sample + param2));
+	                temp = tHighpass_tick(&vcd->dcBlock1, temp);
+	                temp = tanhf(temp);
+	                //temp *= fxPostGain[v];
+	                //sample *= fxPostGain[v];
+	                vcd->oversamplerArray[i] = sample;
+	            }
+
+	            else if (vcd->tapeParams.shaper == 5)
+	            {
+	            	float sample = input[1] + (vcd->delayFB1 * vcd->displayValues[4]);
+	            	sample = sample * param1 + ((param2 * param1));
+
+					float curFB = param3;
+					float curFF = 0.4f;
+					float ff = (curFF * tanhf(sample)) + ((1.0f - curFF) * sample); //these saturation functions could be soft clip or hard clip or tanh approx
+					float fb = curFB * tanhf(vcd->wfState);
+					vcd->wfState = (ff + fb) - 0.5f * sinf(TWO_PI * sample); //maybe switch for our own sine lookup (avoid the if statements in the CMSIS code)
+					sample = vcd->wfState * vcd->invCurFB;
+					sample = tHighpass_tick(&vcd->dcBlock1, sample);
+					//sample *= fxPostGain[v];
+					vcd->oversamplerArray[i] = sample;
+	            }
+
+
+
+			}
+			input1 = tOversampler_downsample(&vcd->oversampler, vcd->oversamplerArray);
+
+
+            tTapeDelay_setDelay(&vcd->delay, tapeSpeed);
+            //tTapeDelay_setDelay(&vcd->delay2, tapeSpeed);
+
+            if (!vcd->tapeParams.freeze)
+            {
+                vcd->delayFB1 = tTapeDelay_tick(&vcd->delay, input1);
+                //vcd->delayFB2 = tTapeDelay_tick(&vcd->delay2, input2);
+            }
+
+            else
+            {
+                vcd->delayFB1 = tTapeDelay_tick(&vcd->delay, vcd->delayFB1);
+                //vcd->delayFB2 = tTapeDelay_tick(&vcd->delay2, vcd->delayFB2);
+            }
+
+            vcd->delayFB1 = tSVF_tick(&vcd->delayLP, vcd->delayFB1);
+            //vcd->delayFB2 = tSVF_tick(&vcd->delayLP2, vcd->delayFB2);
+
+            vcd->delayFB1 = tanhf(tSVF_tick(&vcd->delayHP, vcd->delayFB1));
+            //vcd->delayFB2 = tanhf(tSVF_tick(&vcd->delayHP2, vcd->delayFB2));
+
+            input[0] = vcd->delayFB1;// * vcd->displayValues[5];
+            input[1] = vcd->delayFB1;
+            //input[1] = vcd->delayFB2;// * vcd->displayValues[5];
+
+        }
+
+        void SFXTapeFree(Vocodec* vcd)
+        {
+        	tTapeDelay_free(&vcd->delay);
+            tTapeDelay_free(&vcd->delay2);
+            tSVF_free(&vcd->delayLP);
+            tSVF_free(&vcd->delayHP);
+
+            tSVF_free(&vcd->delayLP2);
+            tSVF_free(&vcd->delayHP2);
+            tRamp_free(&vcd->reelSmooth);
+
+            tHighpass_free(&vcd->delayShaperHp);
+            tHighpass_free(&vcd->dcBlock1);
+            tFeedbackLeveler_free(&vcd->feedbackControl);
+            tOversampler_free(&vcd->oversampler);
+        }
         //
 #ifdef __cplusplus
         void SFXWavetableSynthAlloc(Vocodec* vcd)
