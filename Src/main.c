@@ -107,9 +107,12 @@ void emptyFunction(Vocodec* vcd)
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
   MPU_Conf();
   /* USER CODE END 1 */
+
+  /* Enable the CPU Cache */
 
   /* Enable I-Cache---------------------------------------------------------*/
   SCB_EnableICache();
@@ -135,7 +138,7 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
-/* Configure the peripherals common clocks */
+  /* Configure the peripherals common clocks */
   PeriphCommonClock_Config();
 
   /* USER CODE BEGIN SysInit */
@@ -212,15 +215,15 @@ int main(void)
   SDRAM_Initialization_sequence();
 
   SFX_init(&vocodec, &ADC_values, emptyFunction);
-
+/*
   if (VarDataTab < PresetNil) //make sure the stored data is a number not past the number of available presets
   {
   	  vocodec.currentPreset = VarDataTab; //if it's good, start at that remembered preset number
   }
   else
-  {
+  {*/
   	  vocodec.currentPreset = 0; //if the data is messed up for some reason, just initialize at the first preset (preset 0)
-  }
+  //}
 
   OLED_init(&vocodec, &hi2c4);
 
@@ -263,18 +266,9 @@ void SystemClock_Config(void)
 
   /** Configure the main internal regulator output voltage
   */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-
-  while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
-
-  __HAL_RCC_SYSCFG_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
   while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
-
-  /** Macro to configure the PLL clock source
-  */
-  __HAL_RCC_PLL_PLLSOURCE_CONFIG(RCC_PLLSOURCE_HSE);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.

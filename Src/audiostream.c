@@ -61,11 +61,20 @@ float atodbTable[ATODB_TABLE_SIZE];
 
 /**********************************************/
 
+LEAFErrorType errorTypes = 0;
+
+void LEAF_myError(LEAF* const, LEAFErrorType theError)
+{
+	errorTypes = theError;
+}
+
 void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn)
 {
 	// Initialize LEAF.
 
 	LEAF_init(&vocodec.leaf, SAMPLE_RATE, small_memory, SMALL_MEM_SIZE, &randomNumber);
+
+	LEAF_setErrorCallback(&vocodec.leaf, LEAF_myError);
 
 	tMempool_init (&vocodec.mediumPool, medium_memory, MED_MEM_SIZE, &vocodec.leaf);
 	tMempool_init (&vocodec.largePool, large_memory, LARGE_MEM_SIZE, &vocodec.leaf);
@@ -121,8 +130,16 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
+volatile int frameCount = 0;
+volatile float frameLoad = 0.0f;
+
+volatile float frameMax = 0.0f;
+volatile int setFrameMax = 1;
+
 void audioFrame(uint16_t buffer_offset)
 {
+	volatile tempCount5 = DWT->CYCCNT;
+
 	//volatile uint32_t tempCount5 = 0;
 	//volatile uint32_t tempCount6 = 0;
 	int i;
@@ -198,6 +215,7 @@ void audioFrame(uint16_t buffer_offset)
 			numBuffersCleared = numBuffersToClearOnLoad;
 			if (vocodec.loadingPreset)
 			{
+
 				if (vocodec.previousPreset != PresetNil)
 				{
 					vocodec.freeFunctions[vocodec.previousPreset](&vocodec);
@@ -214,6 +232,7 @@ void audioFrame(uint16_t buffer_offset)
 				vocodec.allocFunctions[vocodec.currentPreset](&vocodec);
 				vocodec.previousPreset = vocodec.currentPreset;
 				vocodec.loadingPreset = 0;
+				setFrameMax = 1;
 			}
 		}
 	}
@@ -269,6 +288,18 @@ void audioFrame(uint16_t buffer_offset)
 		}
 	}
 
+	frameCount = DWT->CYCCNT-tempCount5;
+	frameLoad = ((float)frameCount  / 1280000.0f);
+	if (frameLoad > frameMax)
+	{
+		frameMax = frameLoad;
+	}
+
+	if (setFrameMax)
+	{
+		frameMax = 0.0f;
+		setFrameMax = 0;
+	}
 /*
 	tempCount6 = DWT->CYCCNT;
 

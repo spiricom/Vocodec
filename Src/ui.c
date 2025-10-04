@@ -369,7 +369,7 @@ namespace vocodec
                 vcd->buttonValues[5] =!(GPIOB->IDR & GPIO_PIN_1);
                 vcd->buttonValues[6] =!(GPIOD->IDR & GPIO_PIN_7);
                 vcd->buttonValues[7] =!(GPIOB->IDR & GPIO_PIN_11);
-                vcd->buttonValues[8] =!(GPIOG->IDR & GPIO_PIN_11); //TODO: pin 11 for rev3 board, pin 12 for rev4 board
+                vcd->buttonValues[8] =!(GPIOG->IDR & GPIO_PIN_12); //TODO: pin 11 for rev3 board, pin 12 for rev4 board
                 vcd->buttonValues[9] =!(GPIOB->IDR & GPIO_PIN_10);
 #endif
 

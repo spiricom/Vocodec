@@ -6,13 +6,12 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2015 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2015 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under Ultimate Liberty license
-  * SLA0044, the "License"; You may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at:
-  *                      www.st.com/SLA0044
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -70,18 +69,12 @@
   * @{
   */
 static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost);
+static USBH_StatusTypeDef USBH_ParseDevDesc(USBH_HandleTypeDef *phost, uint8_t *buf, uint16_t length);
+static USBH_StatusTypeDef USBH_ParseCfgDesc(USBH_HandleTypeDef *phost, uint8_t *buf, uint16_t length);
+static USBH_StatusTypeDef USBH_ParseEPDesc(USBH_HandleTypeDef *phost, USBH_EpDescTypeDef *ep_descriptor, uint8_t *buf);
 
-static void USBH_ParseDevDesc(USBH_DevDescTypeDef *dev_desc,
-                              uint8_t *buf, uint16_t length);
-
-static USBH_StatusTypeDef USBH_ParseCfgDesc(USBH_HandleTypeDef *phost,
-                                            uint8_t *buf, uint16_t length);
-
-static USBH_StatusTypeDef USBH_ParseEPDesc(USBH_HandleTypeDef *phost, USBH_EpDescTypeDef  *ep_descriptor, uint8_t *buf);
 static void USBH_ParseStringDesc(uint8_t *psrc, uint8_t *pdest, uint16_t length);
 static void USBH_ParseInterfaceDesc(USBH_InterfaceDescTypeDef  *if_descriptor, uint8_t *buf);
-
-
 /**
   * @}
   */
@@ -100,20 +93,24 @@ static void USBH_ParseInterfaceDesc(USBH_InterfaceDescTypeDef  *if_descriptor, u
   * @param  length: Length of the descriptor
   * @retval USBH Status
   */
-USBH_StatusTypeDef USBH_Get_DevDesc(USBH_HandleTypeDef *phost, uint8_t length)
+USBH_StatusTypeDef USBH_Get_DevDesc(USBH_HandleTypeDef *phost, uint16_t length)
 {
   USBH_StatusTypeDef status;
 
+  if (length > sizeof(phost->device.Data))
+  {
+    USBH_ErrLog("Control error: Get Device Descriptor failed, data buffer size issue");
+    return USBH_NOT_SUPPORTED;
+  }
+
   status = USBH_GetDescriptor(phost,
                               USB_REQ_RECIPIENT_DEVICE | USB_REQ_TYPE_STANDARD,
-                              USB_DESC_DEVICE, phost->device.Data,
-                              (uint16_t)length);
+                              USB_DESC_DEVICE, phost->device.Data, length);
 
   if (status == USBH_OK)
   {
     /* Commands successfully sent and Response Received */
-    USBH_ParseDevDesc(&phost->device.DevDesc, phost->device.Data,
-                      (uint16_t)length);
+    status = USBH_ParseDevDesc(phost, phost->device.Data, length);
   }
 
   return status;
@@ -129,12 +126,16 @@ USBH_StatusTypeDef USBH_Get_DevDesc(USBH_HandleTypeDef *phost, uint8_t length)
   * @param  length: Length of the descriptor
   * @retval USBH Status
   */
-USBH_StatusTypeDef USBH_Get_CfgDesc(USBH_HandleTypeDef *phost,
-                                    uint16_t length)
-
+USBH_StatusTypeDef USBH_Get_CfgDesc(USBH_HandleTypeDef *phost, uint16_t length)
 {
   USBH_StatusTypeDef status;
   uint8_t *pData = phost->device.CfgDesc_Raw;
+
+  if (length > sizeof(phost->device.CfgDesc_Raw))
+  {
+    USBH_ErrLog("Control error: Get configuration Descriptor failed, data buffer size issue");
+    return USBH_NOT_SUPPORTED;
+  }
 
   status = USBH_GetDescriptor(phost, (USB_REQ_RECIPIENT_DEVICE | USB_REQ_TYPE_STANDARD),
                               USB_DESC_CONFIGURATION, pData, length);
@@ -159,11 +160,15 @@ USBH_StatusTypeDef USBH_Get_CfgDesc(USBH_HandleTypeDef *phost,
   * @param  length: Length of the descriptor
   * @retval USBH Status
   */
-USBH_StatusTypeDef USBH_Get_StringDesc(USBH_HandleTypeDef *phost,
-                                       uint8_t string_index, uint8_t *buff,
-                                       uint16_t length)
+USBH_StatusTypeDef USBH_Get_StringDesc(USBH_HandleTypeDef *phost, uint8_t string_index, uint8_t *buff, uint16_t length)
 {
   USBH_StatusTypeDef status;
+
+  if ((length > sizeof(phost->device.Data)) || (buff == NULL))
+  {
+    USBH_ErrLog("Control error: Get String Descriptor failed, data buffer size issue");
+    return USBH_NOT_SUPPORTED;
+  }
 
   status = USBH_GetDescriptor(phost,
                               USB_REQ_RECIPIENT_DEVICE | USB_REQ_TYPE_STANDARD,
@@ -172,7 +177,7 @@ USBH_StatusTypeDef USBH_Get_StringDesc(USBH_HandleTypeDef *phost,
 
   if (status == USBH_OK)
   {
-    /* Commands successfully sent and Response Received  */
+    /* Commands successfully sent and Response Received */
     USBH_ParseStringDesc(phost->device.Data, buff, length);
   }
 
@@ -191,11 +196,8 @@ USBH_StatusTypeDef USBH_Get_StringDesc(USBH_HandleTypeDef *phost,
   * @param  length: Length of the descriptor
   * @retval USBH Status
   */
-USBH_StatusTypeDef USBH_GetDescriptor(USBH_HandleTypeDef *phost,
-                                      uint8_t  req_type,
-                                      uint16_t value_idx,
-                                      uint8_t *buff,
-                                      uint16_t length)
+USBH_StatusTypeDef USBH_GetDescriptor(USBH_HandleTypeDef *phost, uint8_t req_type, uint16_t value_idx,
+                                      uint8_t *buff, uint16_t length)
 {
   if (phost->RequestState == CMD_SEND)
   {
@@ -275,8 +277,7 @@ USBH_StatusTypeDef USBH_SetCfg(USBH_HandleTypeDef *phost, uint16_t cfg_idx)
   * @param  altSetting: Interface value
   * @retval USBH Status
   */
-USBH_StatusTypeDef USBH_SetInterface(USBH_HandleTypeDef *phost, uint8_t ep_num,
-                                     uint8_t altSetting)
+USBH_StatusTypeDef USBH_SetInterface(USBH_HandleTypeDef *phost, uint8_t ep_num, uint8_t altSetting)
 {
   if (phost->RequestState == CMD_SEND)
   {
@@ -337,6 +338,7 @@ USBH_StatusTypeDef USBH_ClrFeature(USBH_HandleTypeDef *phost, uint8_t ep_num)
     phost->Control.setup.b.wIndex.w = ep_num;
     phost->Control.setup.b.wLength.w = 0U;
   }
+
   return USBH_CtlReq(phost, NULL, 0U);
 }
 
@@ -344,50 +346,75 @@ USBH_StatusTypeDef USBH_ClrFeature(USBH_HandleTypeDef *phost, uint8_t ep_num)
 /**
   * @brief  USBH_ParseDevDesc
   *         This function Parses the device descriptor
+  * @param  phost: Host Handle
   * @param  dev_desc: device_descriptor destination address
   * @param  buf: Buffer where the source descriptor is available
   * @param  length: Length of the descriptor
-  * @retval None
+  * @retval USBH status
   */
-static void  USBH_ParseDevDesc(USBH_DevDescTypeDef *dev_desc, uint8_t *buf,
-                               uint16_t length)
+static USBH_StatusTypeDef USBH_ParseDevDesc(USBH_HandleTypeDef *phost, uint8_t *buf, uint16_t length)
 {
-  dev_desc->bLength            = *(uint8_t *)(buf +  0);
-  dev_desc->bDescriptorType    = *(uint8_t *)(buf +  1);
-  dev_desc->bcdUSB             = LE16(buf +  2);
-  dev_desc->bDeviceClass       = *(uint8_t *)(buf +  4);
-  dev_desc->bDeviceSubClass    = *(uint8_t *)(buf +  5);
-  dev_desc->bDeviceProtocol    = *(uint8_t *)(buf +  6);
-  dev_desc->bMaxPacketSize     = *(uint8_t *)(buf +  7);
+  USBH_DevDescTypeDef *dev_desc = &phost->device.DevDesc;
+  USBH_StatusTypeDef status = USBH_OK;
 
-  /* Make sure that the max packet size is either 8, 16, 32, 64 or force it to 64 */
-  switch (dev_desc->bMaxPacketSize)
+  if (buf == NULL)
   {
-    case 8:
-    case 16:
-    case 32:
-    case 64:
-      dev_desc->bMaxPacketSize = dev_desc->bMaxPacketSize;
-      break;
+    return USBH_FAIL;
+  }
 
-    default:
-      /*set the size to 64 in case the device has answered with incorrect size */
-      dev_desc->bMaxPacketSize = 64U;
-      break;
+  dev_desc->bLength            = *(uint8_t *)(buf +  0U);
+  dev_desc->bDescriptorType    = *(uint8_t *)(buf +  1U);
+  dev_desc->bcdUSB             = LE16(buf +  2U);
+  dev_desc->bDeviceClass       = *(uint8_t *)(buf +  4U);
+  dev_desc->bDeviceSubClass    = *(uint8_t *)(buf +  5U);
+  dev_desc->bDeviceProtocol    = *(uint8_t *)(buf +  6U);
+  dev_desc->bMaxPacketSize     = *(uint8_t *)(buf +  7U);
+
+  if ((phost->device.speed == (uint8_t)USBH_SPEED_HIGH) ||
+      (phost->device.speed == (uint8_t)USBH_SPEED_FULL))
+  {
+    /* Make sure that the max packet size is either 8, 16, 32, 64 or force it to minimum allowed value */
+    switch (dev_desc->bMaxPacketSize)
+    {
+      case 8:
+      case 16:
+      case 32:
+      case 64:
+        break;
+
+      default:
+        /* set the size to min allowed value in case the device has answered with incorrect size */
+        dev_desc->bMaxPacketSize = 8U;
+        break;
+    }
+  }
+  else if (phost->device.speed == (uint8_t)USBH_SPEED_LOW)
+  {
+    if (dev_desc->bMaxPacketSize != 8U)
+    {
+      /* set the size to 8 in case the device has answered with incorrect size */
+      dev_desc->bMaxPacketSize = 8U;
+    }
+  }
+  else
+  {
+    status = USBH_NOT_SUPPORTED;
   }
 
   if (length > 8U)
   {
     /* For 1st time after device connection, Host may issue only 8 bytes for
     Device Descriptor Length  */
-    dev_desc->idVendor           = LE16(buf +  8);
-    dev_desc->idProduct          = LE16(buf + 10);
-    dev_desc->bcdDevice          = LE16(buf + 12);
-    dev_desc->iManufacturer      = *(uint8_t *)(buf + 14);
-    dev_desc->iProduct           = *(uint8_t *)(buf + 15);
-    dev_desc->iSerialNumber      = *(uint8_t *)(buf + 16);
-    dev_desc->bNumConfigurations = *(uint8_t *)(buf + 17);
+    dev_desc->idVendor           = LE16(buf +  8U);
+    dev_desc->idProduct          = LE16(buf + 10U);
+    dev_desc->bcdDevice          = LE16(buf + 12U);
+    dev_desc->iManufacturer      = *(uint8_t *)(buf + 14U);
+    dev_desc->iProduct           = *(uint8_t *)(buf + 15U);
+    dev_desc->iSerialNumber      = *(uint8_t *)(buf + 16U);
+    dev_desc->bNumConfigurations = *(uint8_t *)(buf + 17U);
   }
+
+  return status;
 }
 
 
@@ -397,36 +424,41 @@ static void  USBH_ParseDevDesc(USBH_DevDescTypeDef *dev_desc, uint8_t *buf,
   * @param  phost: USB Host handler
   * @param  buf: Buffer where the source descriptor is available
   * @param  length: Length of the descriptor
-  * @retval USBH statuse
+  * @retval USBH status
   */
 static USBH_StatusTypeDef USBH_ParseCfgDesc(USBH_HandleTypeDef *phost, uint8_t *buf, uint16_t length)
 {
   USBH_CfgDescTypeDef *cfg_desc = &phost->device.CfgDesc;
   USBH_StatusTypeDef           status = USBH_OK;
-  USBH_InterfaceDescTypeDef    *pif ;
+  USBH_InterfaceDescTypeDef    *pif;
   USBH_EpDescTypeDef           *pep;
-  USBH_DescHeader_t            *pdesc = (USBH_DescHeader_t *)(void *)buf;
+  USBH_DescHeader_t            *pdesc;
   uint16_t                     ptr;
   uint8_t                      if_ix = 0U;
   uint8_t                      ep_ix = 0U;
 
-  pdesc   = (USBH_DescHeader_t *)(void *)buf;
+  if (buf == NULL)
+  {
+    return USBH_FAIL;
+  }
+
+  pdesc = (USBH_DescHeader_t *)(void *)buf;
+
+  /* Make sure that the Configuration descriptor's bLength is equal to USB_CONFIGURATION_DESC_SIZE */
+  if (pdesc->bLength != USB_CONFIGURATION_DESC_SIZE)
+  {
+    pdesc->bLength = USB_CONFIGURATION_DESC_SIZE;
+  }
 
   /* Parse configuration descriptor */
-  cfg_desc->bLength             = *(uint8_t *)(buf + 0);
-  cfg_desc->bDescriptorType     = *(uint8_t *)(buf + 1);
-  cfg_desc->wTotalLength        = MIN(((uint16_t) LE16(buf + 2)), ((uint16_t)USBH_MAX_SIZE_CONFIGURATION));
-  cfg_desc->bNumInterfaces      = *(uint8_t *)(buf + 4);
-  cfg_desc->bConfigurationValue = *(uint8_t *)(buf + 5);
-  cfg_desc->iConfiguration      = *(uint8_t *)(buf + 6);
-  cfg_desc->bmAttributes        = *(uint8_t *)(buf + 7);
-  cfg_desc->bMaxPower           = *(uint8_t *)(buf + 8);
-
-  /* Make sure that the Confguration descriptor's bLength is equal to USB_CONFIGURATION_DESC_SIZE */
-  if (cfg_desc->bLength  != USB_CONFIGURATION_DESC_SIZE)
-  {
-    cfg_desc->bLength = USB_CONFIGURATION_DESC_SIZE;
-  }
+  cfg_desc->bLength             = *(uint8_t *)(buf + 0U);
+  cfg_desc->bDescriptorType     = *(uint8_t *)(buf + 1U);
+  cfg_desc->wTotalLength        = MIN(((uint16_t) LE16(buf + 2U)), ((uint16_t)USBH_MAX_SIZE_CONFIGURATION));
+  cfg_desc->bNumInterfaces      = *(uint8_t *)(buf + 4U);
+  cfg_desc->bConfigurationValue = *(uint8_t *)(buf + 5U);
+  cfg_desc->iConfiguration      = *(uint8_t *)(buf + 6U);
+  cfg_desc->bmAttributes        = *(uint8_t *)(buf + 7U);
+  cfg_desc->bMaxPower           = *(uint8_t *)(buf + 8U);
 
   if (length > USB_CONFIGURATION_DESC_SIZE)
   {
@@ -450,14 +482,15 @@ static USBH_StatusTypeDef USBH_ParseCfgDesc(USBH_HandleTypeDef *phost, uint8_t *
         ep_ix = 0U;
         pep = (USBH_EpDescTypeDef *)NULL;
 
-        while ((ep_ix < pif->bNumEndpoints) && (ptr < cfg_desc->wTotalLength))
+        while ((ep_ix < USBH_MAX_NUM_ENDPOINTS) && (ep_ix < pif->bNumEndpoints) && (ptr < cfg_desc->wTotalLength))
         {
           pdesc = USBH_GetNextDesc((uint8_t *)(void *)pdesc, &ptr);
 
           if (pdesc->bDescriptorType == USB_DESC_TYPE_ENDPOINT)
           {
             /* Check if the endpoint is appartening to an audio streaming interface */
-            if ((pif->bInterfaceClass == 0x01U) && (pif->bInterfaceSubClass == 0x02U))
+            if ((pif->bInterfaceClass == 0x01U) &&
+                ((pif->bInterfaceSubClass == 0x02U) || (pif->bInterfaceSubClass == 0x03U)))
             {
               /* Check if it is supporting the USB AUDIO 01 class specification */
               if ((pif->bInterfaceProtocol == 0x00U) && (pdesc->bLength != 0x09U))
@@ -467,13 +500,9 @@ static USBH_StatusTypeDef USBH_ParseCfgDesc(USBH_HandleTypeDef *phost, uint8_t *
             }
             /* Make sure that the endpoint descriptor's bLength is equal to
                USB_ENDPOINT_DESC_SIZE for all other endpoints types */
-            else if (pdesc->bLength != USB_ENDPOINT_DESC_SIZE)
-            {
-              pdesc->bLength = USB_ENDPOINT_DESC_SIZE;
-            }
             else
             {
-              /* ... */
+              pdesc->bLength = USB_ENDPOINT_DESC_SIZE;
             }
 
             pep = &cfg_desc->Itf_Desc[if_ix].Ep_Desc[ep_ix];
@@ -512,18 +541,17 @@ static USBH_StatusTypeDef USBH_ParseCfgDesc(USBH_HandleTypeDef *phost, uint8_t *
   * @param  buf: Buffer where the descriptor data is available
   * @retval None
   */
-static void  USBH_ParseInterfaceDesc(USBH_InterfaceDescTypeDef *if_descriptor,
-                                     uint8_t *buf)
+static void USBH_ParseInterfaceDesc(USBH_InterfaceDescTypeDef *if_descriptor, uint8_t *buf)
 {
-  if_descriptor->bLength            = *(uint8_t *)(buf + 0);
-  if_descriptor->bDescriptorType    = *(uint8_t *)(buf + 1);
-  if_descriptor->bInterfaceNumber   = *(uint8_t *)(buf + 2);
-  if_descriptor->bAlternateSetting  = *(uint8_t *)(buf + 3);
-  if_descriptor->bNumEndpoints      = *(uint8_t *)(buf + 4);
-  if_descriptor->bInterfaceClass    = *(uint8_t *)(buf + 5);
-  if_descriptor->bInterfaceSubClass = *(uint8_t *)(buf + 6);
-  if_descriptor->bInterfaceProtocol = *(uint8_t *)(buf + 7);
-  if_descriptor->iInterface         = *(uint8_t *)(buf + 8);
+  if_descriptor->bLength            = *(uint8_t *)(buf + 0U);
+  if_descriptor->bDescriptorType    = *(uint8_t *)(buf + 1U);
+  if_descriptor->bInterfaceNumber   = *(uint8_t *)(buf + 2U);
+  if_descriptor->bAlternateSetting  = *(uint8_t *)(buf + 3U);
+  if_descriptor->bNumEndpoints      = *(uint8_t *)(buf + 4U);
+  if_descriptor->bInterfaceClass    = *(uint8_t *)(buf + 5U);
+  if_descriptor->bInterfaceSubClass = *(uint8_t *)(buf + 6U);
+  if_descriptor->bInterfaceProtocol = *(uint8_t *)(buf + 7U);
+  if_descriptor->iInterface         = *(uint8_t *)(buf + 8U);
 }
 
 
@@ -535,44 +563,43 @@ static void  USBH_ParseInterfaceDesc(USBH_InterfaceDescTypeDef *if_descriptor,
   * @param  buf: Buffer where the parsed descriptor stored
   * @retval USBH Status
   */
-static USBH_StatusTypeDef  USBH_ParseEPDesc(USBH_HandleTypeDef *phost, USBH_EpDescTypeDef  *ep_descriptor,
-                                            uint8_t *buf)
+static USBH_StatusTypeDef USBH_ParseEPDesc(USBH_HandleTypeDef *phost, USBH_EpDescTypeDef *ep_descriptor, uint8_t *buf)
 {
   USBH_StatusTypeDef status = USBH_OK;
-  ep_descriptor->bLength          = *(uint8_t *)(buf + 0);
-  ep_descriptor->bDescriptorType  = *(uint8_t *)(buf + 1);
-  ep_descriptor->bEndpointAddress = *(uint8_t *)(buf + 2);
-  ep_descriptor->bmAttributes     = *(uint8_t *)(buf + 3);
-  ep_descriptor->wMaxPacketSize   = LE16(buf + 4);
-  ep_descriptor->bInterval        = *(uint8_t *)(buf + 6);
+
+  ep_descriptor->bLength          = *(uint8_t *)(buf + 0U);
+  ep_descriptor->bDescriptorType  = *(uint8_t *)(buf + 1U);
+  ep_descriptor->bEndpointAddress = *(uint8_t *)(buf + 2U);
+  ep_descriptor->bmAttributes     = *(uint8_t *)(buf + 3U);
+  ep_descriptor->wMaxPacketSize   = LE16(buf + 4U);
+  ep_descriptor->bInterval        = *(uint8_t *)(buf + 6U);
 
   /* Make sure that wMaxPacketSize is different from 0 */
-  if (ep_descriptor->wMaxPacketSize == 0x00U)
+  if ((ep_descriptor->wMaxPacketSize == 0x00U) ||
+      (ep_descriptor->wMaxPacketSize > USBH_MAX_EP_PACKET_SIZE) ||
+      (ep_descriptor->wMaxPacketSize > USBH_MAX_DATA_BUFFER))
   {
     status = USBH_NOT_SUPPORTED;
   }
-  else if (USBH_MAX_EP_PACKET_SIZE < (uint16_t)USBH_MAX_DATA_BUFFER)
-  {
-    /* Make sure that maximum packet size (bits 0..10) does not exceed the max endpoint packet size */
-    ep_descriptor->wMaxPacketSize &= ~0x7FFU;
-    ep_descriptor->wMaxPacketSize |=  MIN((uint16_t)(LE16(buf + 4) & 0x7FFU), (uint16_t)USBH_MAX_EP_PACKET_SIZE);
 
-  }
-  else if ((uint16_t)USBH_MAX_DATA_BUFFER < USBH_MAX_EP_PACKET_SIZE)
-  {
-    /* Make sure that maximum packet size (bits 0..10) does not exceed the total buffer length */
-    ep_descriptor->wMaxPacketSize &= ~0x7FFU;
-    ep_descriptor->wMaxPacketSize |= MIN((uint16_t)(LE16(buf + 4) & 0x7FFU), (uint16_t)USBH_MAX_DATA_BUFFER);
-  }
-  else
-  {
-    /* ... */
-  }
-
-  /* For high-speed interrupt/isochronous endpoints, bInterval can vary from 1 to 16 */
   if (phost->device.speed == (uint8_t)USBH_SPEED_HIGH)
   {
-    if (((ep_descriptor->bmAttributes & EP_TYPE_MSK) == EP_TYPE_ISOC) ||
+    if ((ep_descriptor->bmAttributes & EP_TYPE_MSK) == EP_TYPE_BULK)
+    {
+      if (ep_descriptor->wMaxPacketSize > 512U)
+      {
+        status = USBH_NOT_SUPPORTED;
+      }
+    }
+    else if ((ep_descriptor->bmAttributes & EP_TYPE_MSK) == EP_TYPE_CTRL)
+    {
+      if (ep_descriptor->wMaxPacketSize > 64U)
+      {
+        status = USBH_NOT_SUPPORTED;
+      }
+    }
+    /* For high-speed interrupt/isochronous endpoints, bInterval can vary from 1 to 16 */
+    else if (((ep_descriptor->bmAttributes & EP_TYPE_MSK) == EP_TYPE_ISOC) ||
         ((ep_descriptor->bmAttributes & EP_TYPE_MSK) == EP_TYPE_INTR))
     {
       if ((ep_descriptor->bInterval == 0U) || (ep_descriptor->bInterval > 0x10U))
@@ -580,29 +607,69 @@ static USBH_StatusTypeDef  USBH_ParseEPDesc(USBH_HandleTypeDef *phost, USBH_EpDe
         status = USBH_NOT_SUPPORTED;
       }
     }
-  }
-  else
-  {
-    /* For full-speed isochronous endpoints, the value of bInterval must be in the range from 1 to 16.*/
-    if ((ep_descriptor->bmAttributes & EP_TYPE_MSK) == EP_TYPE_ISOC)
+    else
     {
-      if ((ep_descriptor->bInterval == 0U) || (ep_descriptor->bInterval > 0x10U))
+      status = USBH_NOT_SUPPORTED;
+    }
+  }
+  else if (phost->device.speed == (uint8_t)USBH_SPEED_FULL)
+  {
+    if (((ep_descriptor->bmAttributes & EP_TYPE_MSK) == EP_TYPE_BULK) ||
+        ((ep_descriptor->bmAttributes & EP_TYPE_MSK) == EP_TYPE_CTRL))
+    {
+      if (ep_descriptor->wMaxPacketSize > 64U)
       {
         status = USBH_NOT_SUPPORTED;
       }
     }
-    /* For full-/low-speed interrupt endpoints, the value of bInterval may be from 1 to 255.*/
+    /* For full-speed isochronous endpoints, the value of bInterval must be in the range from 1 to 16.*/
+    else if ((ep_descriptor->bmAttributes & EP_TYPE_MSK) == EP_TYPE_ISOC)
+    {
+      if ((ep_descriptor->bInterval == 0U) ||
+          (ep_descriptor->bInterval > 0x10U) ||
+          (ep_descriptor->wMaxPacketSize > 64U))
+      {
+        status = USBH_NOT_SUPPORTED;
+      }
+    }
+    /* For full-speed interrupt endpoints, the value of bInterval may be from 1 to 255.*/
     else if ((ep_descriptor->bmAttributes & EP_TYPE_MSK) == EP_TYPE_INTR)
     {
-      if (ep_descriptor->bInterval == 0U)
+      if ((ep_descriptor->bInterval == 0U) || (ep_descriptor->wMaxPacketSize > 1023U))
       {
         status = USBH_NOT_SUPPORTED;
       }
     }
     else
     {
-      /* ... */
+      status = USBH_NOT_SUPPORTED;
     }
+  }
+  else if (phost->device.speed == (uint8_t)USBH_SPEED_LOW)
+  {
+    if ((ep_descriptor->bmAttributes & EP_TYPE_MSK) == EP_TYPE_CTRL)
+    {
+      if (ep_descriptor->wMaxPacketSize != 8U)
+      {
+        status = USBH_NOT_SUPPORTED;
+      }
+    }
+    /* For low-speed interrupt endpoints, the value of bInterval may be from 1 to 255.*/
+    else if ((ep_descriptor->bmAttributes & EP_TYPE_MSK) == EP_TYPE_INTR)
+    {
+      if ((ep_descriptor->bInterval == 0U) || (ep_descriptor->wMaxPacketSize > 8U))
+      {
+        status = USBH_NOT_SUPPORTED;
+      }
+    }
+    else
+    {
+      status = USBH_NOT_SUPPORTED;
+    }
+  }
+  else
+  {
+    status = USBH_NOT_SUPPORTED;
   }
 
   return status;
@@ -657,9 +724,9 @@ static void USBH_ParseStringDesc(uint8_t *psrc, uint8_t *pdest, uint16_t length)
   * @param  ptr: data pointer inside the cfg descriptor
   * @retval next header
   */
-USBH_DescHeader_t  *USBH_GetNextDesc(uint8_t   *pbuf, uint16_t  *ptr)
+USBH_DescHeader_t *USBH_GetNextDesc(uint8_t *pbuf, uint16_t *ptr)
 {
-  USBH_DescHeader_t  *pnext;
+  USBH_DescHeader_t *pnext;
 
   *ptr += ((USBH_DescHeader_t *)(void *)pbuf)->bLength;
   pnext = (USBH_DescHeader_t *)(void *)((uint8_t *)(void *)pbuf + \
@@ -696,13 +763,8 @@ USBH_StatusTypeDef USBH_CtlReq(USBH_HandleTypeDef *phost, uint8_t *buff,
       status = USBH_BUSY;
 
 #if (USBH_USE_OS == 1U)
-      phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-      (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+      USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
       break;
 
     case CMD_WAIT:
@@ -722,14 +784,10 @@ USBH_StatusTypeDef USBH_CtlReq(USBH_HandleTypeDef *phost, uint8_t *buff,
       {
         /* .. */
       }
+
 #if (USBH_USE_OS == 1U)
-      phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-      (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
       break;
 
     default:
@@ -800,13 +858,8 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
         }
 
 #if (USBH_USE_OS == 1U)
-        phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-        (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
       }
       else
       {
@@ -815,13 +868,8 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
           phost->Control.state = CTRL_ERROR;
 
 #if (USBH_USE_OS == 1U)
-          phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-          (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+          USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
         }
       }
       break;
@@ -829,6 +877,11 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
     case CTRL_DATA_IN:
       /* Issue an IN token */
       phost->Control.timer = (uint16_t)phost->Timer;
+
+#if defined (USBH_IN_NAK_PROCESS) && (USBH_IN_NAK_PROCESS == 1U)
+      phost->NakTimer = phost->Timer;
+#endif /* defined (USBH_IN_NAK_PROCESS) && (USBH_IN_NAK_PROCESS == 1U) */
+
       (void)USBH_CtlReceiveData(phost, phost->Control.buff,
                                 phost->Control.length, phost->Control.pipe_in);
 
@@ -845,29 +898,34 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
         phost->Control.state = CTRL_STATUS_OUT;
 
 #if (USBH_USE_OS == 1U)
-        phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-        (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
       }
+#if defined (USBH_IN_NAK_PROCESS) && (USBH_IN_NAK_PROCESS == 1U)
+      else if (URB_Status == USBH_URB_NAK_WAIT)
+      {
+        phost->Control.state = CTRL_DATA_IN_WAIT;
 
-      /* manage error cases*/
-      if (URB_Status == USBH_URB_STALL)
+        if ((phost->Timer - phost->NakTimer) > phost->NakTimeout)
+        {
+          phost->NakTimer = phost->Timer;
+          USBH_ActivatePipe(phost, phost->Control.pipe_in);
+        }
+
+#if (USBH_USE_OS == 1U)
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
+      }
+#endif /* defined (USBH_IN_NAK_PROCESS) && (USBH_IN_NAK_PROCESS == 1U) */
+      /* manage error cases */
+      else if (URB_Status == USBH_URB_STALL)
       {
         /* In stall case, return to previous machine state*/
         status = USBH_NOT_SUPPORTED;
 
 #if (USBH_USE_OS == 1U)
-        phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-        (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
       }
       else
       {
@@ -877,13 +935,8 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
           phost->Control.state = CTRL_ERROR;
 
 #if (USBH_USE_OS == 1U)
-          phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-          (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+          USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
         }
       }
       break;
@@ -907,13 +960,8 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
         phost->Control.state = CTRL_STATUS_IN;
 
 #if (USBH_USE_OS == 1U)
-        phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-        (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
       }
 
       /* handle error cases */
@@ -924,13 +972,8 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
         status = USBH_NOT_SUPPORTED;
 
 #if (USBH_USE_OS == 1U)
-        phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-        (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
       }
       else if (URB_Status == USBH_URB_NOTREADY)
       {
@@ -938,13 +981,8 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
         phost->Control.state = CTRL_DATA_OUT;
 
 #if (USBH_USE_OS == 1U)
-        phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-        (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
       }
       else
       {
@@ -955,13 +993,8 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
           status = USBH_FAIL;
 
 #if (USBH_USE_OS == 1U)
-          phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-          (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+          USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
         }
       }
       break;
@@ -969,6 +1002,10 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
     case CTRL_STATUS_IN:
       /* Send 0 bytes out packet */
       (void)USBH_CtlReceiveData(phost, NULL, 0U, phost->Control.pipe_in);
+
+#if defined (USBH_IN_NAK_PROCESS) && (USBH_IN_NAK_PROCESS == 1U)
+      phost->NakTimer = phost->Timer;
+#endif  /* defined (USBH_IN_NAK_PROCESS) && (USBH_IN_NAK_PROCESS == 1U) */
 
       phost->Control.timer = (uint16_t)phost->Timer;
       phost->Control.state = CTRL_STATUS_IN_WAIT;
@@ -986,26 +1023,32 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
         status = USBH_OK;
 
 #if (USBH_USE_OS == 1U)
-        phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-        (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
       }
+#if defined (USBH_IN_NAK_PROCESS) && (USBH_IN_NAK_PROCESS == 1U)
+      else if (URB_Status == USBH_URB_NAK_WAIT)
+      {
+        phost->Control.state = CTRL_STATUS_IN_WAIT;
+
+        if ((phost->Timer - phost->NakTimer) > phost->NakTimeout)
+        {
+          phost->NakTimer = phost->Timer;
+          USBH_ActivatePipe(phost, phost->Control.pipe_in);
+        }
+
+#if (USBH_USE_OS == 1U)
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
+      }
+#endif /* defined (USBH_IN_NAK_PROCESS) && (USBH_IN_NAK_PROCESS == 1U) */
       else if (URB_Status == USBH_URB_ERROR)
       {
         phost->Control.state = CTRL_ERROR;
 
 #if (USBH_USE_OS == 1U)
-        phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-        (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
       }
       else
       {
@@ -1015,13 +1058,8 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
           status = USBH_NOT_SUPPORTED;
 
 #if (USBH_USE_OS == 1U)
-          phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-          (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+          USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
         }
       }
       break;
@@ -1041,26 +1079,16 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
         phost->Control.state = CTRL_COMPLETE;
 
 #if (USBH_USE_OS == 1U)
-        phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-        (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
       }
       else if (URB_Status == USBH_URB_NOTREADY)
       {
         phost->Control.state = CTRL_STATUS_OUT;
 
 #if (USBH_USE_OS == 1U)
-        phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-        (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+        USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
       }
       else
       {
@@ -1069,13 +1097,8 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
           phost->Control.state = CTRL_ERROR;
 
 #if (USBH_USE_OS == 1U)
-          phost->os_msg = (uint32_t)USBH_CONTROL_EVENT;
-#if (osCMSIS < 0x20000U)
-          (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
-#else
-          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
-#endif
-#endif
+          USBH_OS_PutMessage(phost, USBH_CONTROL_EVENT, 0U, 0U);
+#endif /* (USBH_USE_OS == 1U) */
         }
       }
       break;
@@ -1132,8 +1155,6 @@ static USBH_StatusTypeDef USBH_HandleControl(USBH_HandleTypeDef *phost)
 /**
   * @}
   */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 
 
 

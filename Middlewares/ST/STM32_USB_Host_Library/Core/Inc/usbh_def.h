@@ -6,13 +6,12 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2015 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2015 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under Ultimate Liberty license
-  * SLA0044, the "License"; You may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at:
-  *                      www.st.com/SLA0044
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -186,6 +185,10 @@ extern "C" {
 #define USBH_MAX_PIPES_NBR                                 16U
 #endif /* USBH_MAX_PIPES_NBR */
 
+#ifndef USBH_NAK_SOF_COUNT
+#define USBH_NAK_SOF_COUNT                                 0x01U
+#endif /* USBH_NAK_SOF_COUNT */
+
 #define USBH_DEVICE_ADDRESS_DEFAULT                        0x00U
 #define USBH_DEVICE_ADDRESS                                0x01U
 
@@ -193,7 +196,7 @@ extern "C" {
 
 #if (USBH_USE_OS == 1U)
 #define MSGQUEUE_OBJECTS                                   0x10U
-#endif
+#endif /* (USBH_USE_OS == 1U) */
 
 
 /**
@@ -257,9 +260,9 @@ typedef struct _DeviceDescriptor
   code if equal to 0xFF, the class code is vendor specified.
   Otherwise field is valid Class Code.*/
   uint8_t   bMaxPacketSize;
-  uint16_t  idVendor;      /* Vendor ID (Assigned by USB Org) */
-  uint16_t  idProduct;     /* Product ID (Assigned by Manufacturer) */
-  uint16_t  bcdDevice;     /* Device Release Number */
+  uint16_t   idVendor;      /* Vendor ID (Assigned by USB Org) */
+  uint16_t   idProduct;     /* Product ID (Assigned by Manufacturer) */
+  uint16_t   bcdDevice;     /* Device Release Number */
   uint8_t   iManufacturer;  /* Index of Manufacturer String Descriptor */
   uint8_t   iProduct;       /* Index of Product String Descriptor */
   uint8_t   iSerialNumber;  /* Index of Serial Number String Descriptor */
@@ -273,7 +276,7 @@ typedef struct _EndpointDescriptor
   uint8_t   bDescriptorType;
   uint8_t   bEndpointAddress;   /* indicates what endpoint this descriptor is describing */
   uint8_t   bmAttributes;       /* specifies the transfer type. */
-  uint16_t  wMaxPacketSize;    /* Maximum Packet Size this endpoint is capable of sending or receiving */
+  uint16_t  wMaxPacketSize;     /* Maximum Packet Size this endpoint is capable of sending or receiving */
   uint8_t   bInterval;          /* is used to specify the polling interval of certain transfers. */
 }
 USBH_EpDescTypeDef;
@@ -298,12 +301,12 @@ typedef struct _ConfigurationDescriptor
 {
   uint8_t   bLength;
   uint8_t   bDescriptorType;
-  uint16_t  wTotalLength;        /* Total Length of Data Returned */
+  uint16_t  wTotalLength;         /* Total Length of Data Returned */
   uint8_t   bNumInterfaces;       /* Number of Interfaces */
   uint8_t   bConfigurationValue;  /* Value to use as an argument to select this configuration*/
-  uint8_t   iConfiguration;       /*Index of String Descriptor Describing this configuration */
+  uint8_t   iConfiguration;       /* Index of String Descriptor Describing this configuration */
   uint8_t   bmAttributes;         /* D7 Bus Powered , D6 Self Powered, D5 Remote Wakeup , D4..0 Reserved (0)*/
-  uint8_t   bMaxPower;            /*Maximum Power Consumption */
+  uint8_t   bMaxPower;            /* Maximum Power Consumption */
   USBH_InterfaceDescTypeDef        Itf_Desc[USBH_MAX_NUM_INTERFACES];
 }
 USBH_CfgDescTypeDef;
@@ -400,7 +403,8 @@ typedef enum
   USBH_URB_NOTREADY,
   USBH_URB_NYET,
   USBH_URB_ERROR,
-  USBH_URB_STALL
+  USBH_URB_STALL,
+  USBH_URB_NAK_WAIT
 } USBH_URBStateTypeDef;
 
 typedef enum
@@ -440,7 +444,7 @@ typedef struct
   __IO uint8_t                      is_connected;
   __IO uint8_t                      is_disconnected;
   __IO uint8_t                      is_ReEnumerated;
-  uint8_t                           PortEnabled;
+  __IO uint8_t                      PortEnabled;
   uint8_t                           current_interface;
   USBH_DevDescTypeDef               DevDesc;
   USBH_CfgDescTypeDef               CfgDesc;
@@ -474,6 +478,10 @@ typedef struct _USBH_HandleTypeDef
   uint32_t              ClassNumber;
   uint32_t              Pipes[16];
   __IO uint32_t         Timer;
+#if defined (USBH_IN_NAK_PROCESS) && (USBH_IN_NAK_PROCESS == 1U)
+  uint32_t              NakTimer;
+  uint32_t              NakTimeout;
+#endif /* defined (USBH_IN_NAK_PROCESS) && (USBH_IN_NAK_PROCESS == 1U) */
   uint32_t              Timeout;
   uint8_t               id;
   void                 *pData;
@@ -488,7 +496,7 @@ typedef struct _USBH_HandleTypeDef
   osThreadId_t          thread;
 #endif
   uint32_t              os_msg;
-#endif
+#endif /* (USBH_USE_OS == 1U) */
 
 } USBH_HandleTypeDef;
 
@@ -508,5 +516,4 @@ typedef struct _USBH_HandleTypeDef
 
 #endif /* USBH_DEF_H */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 
