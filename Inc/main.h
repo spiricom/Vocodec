@@ -63,6 +63,8 @@ void Error_Handler(void);
 extern  volatile int64_t cycleCountVals[4][3];
 
 
+
+
 //simple cycle counter - writes to cycleCountVals: fills one of 16 slots with two numbers - the start count [0] and the time between start and end count [1].
 #define CYCLE_COUNT_START0 {cycleCountVals[0][2] = 0; cycleCountVals[0][0] = DWT->CYCCNT;}
 #define CYCLE_COUNT_START1 	{cycleCountVals[1][2] = 0;cycleCountVals[1][0] = DWT->CYCCNT;}

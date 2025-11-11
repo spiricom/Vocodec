@@ -2,5 +2,5 @@
 ../Src/eeprom.c:549:17:EE_VerifyPageFullWriteVariable	80	static
 ../Src/eeprom.c:420:26:EE_Format	72	static
 ../Src/eeprom.c:337:10:EE_ReadVariable	8	static
-../Src/eeprom.c:38:10:EE_Init	80	static
+../Src/eeprom.c:38:10:EE_Init	88	static
 ../Src/eeprom.c:396:10:EE_WriteVariable	120	static

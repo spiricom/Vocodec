@@ -586,7 +586,7 @@ namespace vocodec
                         else vcd->writeKnobFlag = i;
                     }
                 }
-                if (vcd->knobActive[i]) tExpSmooth_setDest(&vcd->adc[i], vcd->floatADC[i]);
+                if (vcd->knobActive[i]) tExpSmooth_setDest(vcd->adc[i], vcd->floatADC[i]);
             }
 
         }
@@ -670,7 +670,7 @@ namespace vocodec
                     value =
                     vcd->presetKnobValues[vcd->currentPreset][i + (vcd->knobPage * KNOB_PAGE_SIZE)];
                 }
-                tExpSmooth_setValAndDest(&vcd->adc[i], value);
+                tExpSmooth_setValAndDest(vcd->adc[i], value);
                 vcd->smoothedADC[i] = value;
             }
         }
@@ -687,7 +687,7 @@ namespace vocodec
                 }
                 vcd->knobActive[knob] = 0;
                 vcd->floatADCUI[knob] = -1.0f;
-                tExpSmooth_setValAndDest(&vcd->adc[knob], values[knob]);
+                tExpSmooth_setValAndDest(vcd->adc[knob], values[knob]);
 
                 vcd->smoothedADC[knob] = values[knob];
             }
@@ -702,7 +702,7 @@ namespace vocodec
             }
             vcd->knobActive[knob] = 0;
             vcd->floatADCUI[knob] = -1.0f;
-            tExpSmooth_setValAndDest(&vcd->adc[knob], value);
+            tExpSmooth_setValAndDest(vcd->adc[knob], value);
             vcd->smoothedADC[knob] = value;
         }
 

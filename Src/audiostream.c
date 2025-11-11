@@ -76,8 +76,10 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 
 	LEAF_setErrorCallback(&vocodec.leaf, LEAF_myError);
 
-	tMempool_init (&vocodec.mediumPool, medium_memory, MED_MEM_SIZE, &vocodec.leaf);
 	tMempool_init (&vocodec.largePool, large_memory, LARGE_MEM_SIZE, &vocodec.leaf);
+
+	tMempool_init (&vocodec.mediumPool, medium_memory, MED_MEM_SIZE, &vocodec.leaf);
+
 
 	initFunctionPointers(&vocodec);
 
@@ -113,10 +115,10 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 	// with the CS4271 codec IC, the SAI Transmit and Receive must be happening before the chip will respond to
 	// I2C setup messages (it seems to use the masterclock input as it's own internal clock for i2c data, etc)
 	// so while we used to set up codec before starting SAI, now we need to set up codec afterwards, and set a flag to make sure it's ready
-
 	//now to send all the necessary messages to the codec
 	AudioCodec_init(hi2c);
 	HAL_Delay(1);
+
 
 	//now reconfigue so buttons C and E can be used (they were also connected to I2C for codec setup)
 	HAL_I2C_MspDeInit(hi2c);
@@ -136,59 +138,63 @@ volatile float frameLoad = 0.0f;
 volatile float frameMax = 0.0f;
 volatile int setFrameMax = 1;
 
+volatile int freeCheck = 0;
+volatile uint32_t overrun = 0;
 void audioFrame(uint16_t buffer_offset)
 {
 	volatile tempCount5 = DWT->CYCCNT;
 
-	//volatile uint32_t tempCount5 = 0;
-	//volatile uint32_t tempCount6 = 0;
-	int i;
-	//int32_t current_sample;
-	uint32_t clipCatcher = 0;
-
-	//tempCount5 = DWT->CYCCNT;
-
-	buttonCheck(&vocodec);
-
-	adcCheck(&vocodec);
-
-	// if the USB write pointer has advanced (indicating unread data is in the buffer),
-	// or the overflow bit is set, meaning that the write pointer wrapped around and the read pointer hasn't caught up to it yet
-	// then process that new data this frame
-	if ((myUSB_FIFO_overflowBit) || (myUSB_FIFO_writePointer > myUSB_FIFO_readPointer))
-	{
-		ProcessReceivedMidiDatas();
-	}
-
-
-	if (!vocodec.loadingPreset)
-	{
-
-		for (int i = 0; i < NUM_ADC_CHANNELS; i++)
-		{
-			vocodec.smoothedADC[i] = tExpSmooth_tick(&vocodec.adc[i]);
-			for (int i = 0; i < KNOB_PAGE_SIZE; i++)
-			{
-				vocodec.presetKnobValues[vocodec.currentPreset][i + (vocodec.knobPage * KNOB_PAGE_SIZE)] = vocodec.smoothedADC[i];
-			}
-		}
-
-
-		if (vocodec.cvAddParam[vocodec.currentPreset] >= 0)
-		{
-			vocodec.presetKnobValues[vocodec.currentPreset][vocodec.cvAddParam[vocodec.currentPreset]] = vocodec.smoothedADC[5];
-		}
-
-		vocodec.frameFunctions[vocodec.currentPreset](&vocodec);
-	}
-
-	//if the codec isn't ready, keep the buffer as all zeros
-	//otherwise, start computing audio!
-
-	bufferCleared = TRUE;
-
 	if (codecReady)
 	{
+
+		//volatile uint32_t tempCount5 = 0;
+		//volatile uint32_t tempCount6 = 0;
+		int i;
+		//int32_t current_sample;
+		uint32_t clipCatcher = 0;
+
+		//tempCount5 = DWT->CYCCNT;
+
+		buttonCheck(&vocodec);
+
+		adcCheck(&vocodec);
+
+		// if the USB write pointer has advanced (indicating unread data is in the buffer),
+		// or the overflow bit is set, meaning that the write pointer wrapped around and the read pointer hasn't caught up to it yet
+		// then process that new data this frame
+		if ((myUSB_FIFO_overflowBit) || (myUSB_FIFO_writePointer > myUSB_FIFO_readPointer))
+		{
+			ProcessReceivedMidiDatas();
+		}
+
+
+		if (!vocodec.loadingPreset)
+		{
+
+			for (int i = 0; i < NUM_ADC_CHANNELS; i++)
+			{
+				vocodec.smoothedADC[i] = tExpSmooth_tick(vocodec.adc[i]);
+				for (int i = 0; i < KNOB_PAGE_SIZE; i++)
+				{
+					vocodec.presetKnobValues[vocodec.currentPreset][i + (vocodec.knobPage * KNOB_PAGE_SIZE)] = vocodec.smoothedADC[i];
+				}
+			}
+
+
+			if (vocodec.cvAddParam[vocodec.currentPreset] >= 0)
+			{
+				vocodec.presetKnobValues[vocodec.currentPreset][vocodec.cvAddParam[vocodec.currentPreset]] = vocodec.smoothedADC[5];
+			}
+
+			vocodec.frameFunctions[vocodec.currentPreset](&vocodec);
+		}
+
+		//if the codec isn't ready, keep the buffer as all zeros
+		//otherwise, start computing audio!
+
+		bufferCleared = TRUE;
+
+
 
 		for (i = 0; i < (HALF_BUFFER_SIZE); i += 2)
 		{
@@ -204,101 +210,107 @@ void audioFrame(uint16_t buffer_offset)
 		{
 			bufferCleared = 0;
 		}
-	}
 
 
-	if (bufferCleared)
-	{
-		numBuffersCleared++;
-		if (numBuffersCleared >= numBuffersToClearOnLoad)
+
+		if (bufferCleared)
 		{
-			numBuffersCleared = numBuffersToClearOnLoad;
-			if (vocodec.loadingPreset)
+			numBuffersCleared++;
+			if (numBuffersCleared >= numBuffersToClearOnLoad)
 			{
-
-				if (vocodec.previousPreset != PresetNil)
+				numBuffersCleared = numBuffersToClearOnLoad;
+				if (vocodec.loadingPreset)
 				{
-					vocodec.freeFunctions[vocodec.previousPreset](&vocodec);
 
+					if (vocodec.previousPreset != PresetNil)
+					{
+						vocodec.freeFunctions[vocodec.previousPreset](&vocodec);
+
+					}
+					setLED_A(&vocodec, 0);
+					setLED_B(&vocodec, 0);
+					setLED_C(&vocodec, 0);
+					setLED_Edit(&vocodec, 0);
+					setLED_1(&vocodec, 0);
+					vocodec.knobPage = 0;
+					resetKnobValues(&vocodec);
+					vocodec.leaf.clearOnAllocation = 0;
+					vocodec.allocFunctions[vocodec.currentPreset](&vocodec);
+					vocodec.previousPreset = vocodec.currentPreset;
+					vocodec.loadingPreset = 0;
+					setFrameMax = 1;
+					freeCheck = vocodec.leaf.allocCount - vocodec.leaf.freeCount;
 				}
-				setLED_A(&vocodec, 0);
-				setLED_B(&vocodec, 0);
-				setLED_C(&vocodec, 0);
-				setLED_Edit(&vocodec, 0);
-				setLED_1(&vocodec, 0);
-				vocodec.knobPage = 0;
-				resetKnobValues(&vocodec);
-				vocodec.leaf.clearOnAllocation = 0;
-				vocodec.allocFunctions[vocodec.currentPreset](&vocodec);
-				vocodec.previousPreset = vocodec.currentPreset;
-				vocodec.loadingPreset = 0;
-				setFrameMax = 1;
 			}
 		}
-	}
-	else numBuffersCleared = 0;
+		else numBuffersCleared = 0;
 
-	for (int i = 0; i < 4; i++)
-	{
-		if ((clipCatcher >> i) & 1)
+		for (int i = 0; i < 4; i++)
 		{
-			switch (i)
+			if ((clipCatcher >> i) & 1)
 			{
-				case 0:
-					setLED_leftin_clip(&vocodec, 1);
-					break;
-				case 1:
-					setLED_rightin_clip(&vocodec, 1);
-					break;
-				case 2:
-					setLED_leftout_clip(&vocodec, 1);
-					break;
-				case 3:
-					setLED_rightout_clip(&vocodec, 1);
-					break;
+				switch (i)
+				{
+					case 0:
+						setLED_leftin_clip(&vocodec, 1);
+						break;
+					case 1:
+						setLED_rightin_clip(&vocodec, 1);
+						break;
+					case 2:
+						setLED_leftout_clip(&vocodec, 1);
+						break;
+					case 3:
+						setLED_rightout_clip(&vocodec, 1);
+						break;
+				}
+				clipCounter[i] = 80;
+				clipped[i] = 1;
+				clipHappened[i] = 0;
 			}
-			clipCounter[i] = 80;
-			clipped[i] = 1;
-			clipHappened[i] = 0;
-		}
 
-		if ((clipCounter[i] > 0) && (clipped[i] == 1))
-		{
-			clipCounter[i]--;
-		}
-
-		else if ((clipCounter[i] == 0) && (clipped[i] == 1))
-		{
-			switch (i)
+			if ((clipCounter[i] > 0) && (clipped[i] == 1))
 			{
-				case 0:
-					setLED_leftin_clip(&vocodec, 0);
-					break;
-				case 1:
-					setLED_rightin_clip(&vocodec, 0);
-					break;
-				case 2:
-					setLED_leftout_clip(&vocodec, 0);
-					break;
-				case 3:
-					setLED_rightout_clip(&vocodec, 0);
-					break;
+				clipCounter[i]--;
 			}
-			clipped[i] = 0;
+
+			else if ((clipCounter[i] == 0) && (clipped[i] == 1))
+			{
+				switch (i)
+				{
+					case 0:
+						setLED_leftin_clip(&vocodec, 0);
+						break;
+					case 1:
+						setLED_rightin_clip(&vocodec, 0);
+						break;
+					case 2:
+						setLED_leftout_clip(&vocodec, 0);
+						break;
+					case 3:
+						setLED_rightout_clip(&vocodec, 0);
+						break;
+				}
+				clipped[i] = 0;
+			}
 		}
-	}
 
-	frameCount = DWT->CYCCNT-tempCount5;
-	frameLoad = ((float)frameCount  / 1280000.0f);
-	if (frameLoad > frameMax)
-	{
-		frameMax = frameLoad;
-	}
+		frameCount = DWT->CYCCNT-tempCount5;
+		frameLoad = ((float)frameCount  / 1280000.0f);
+		if (frameLoad > frameMax)
+		{
+			frameMax = frameLoad;
+			if (frameMax > 1.0f)
+			{
+				overrun++;
+			}
+		}
 
-	if (setFrameMax)
-	{
-		frameMax = 0.0f;
-		setFrameMax = 0;
+		if (setFrameMax)
+		{
+			frameMax = 0.0f;
+			setFrameMax = 0;
+		}
 	}
 /*
 	tempCount6 = DWT->CYCCNT;
@@ -357,9 +369,9 @@ uint32_t audioTick(float* samples)
 	}
 
 
-	uint16_t current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[0], LEAF_clip(-1.0f, samples[1], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
+	uint16_t current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(LED_envelope[0], LEAF_clip(-1.0f, samples[1], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, current_env);
-	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[2], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
+	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(LED_envelope[2], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, current_env);
 
 	vocodec.tickFunctions[vocodec.currentPreset](&vocodec, samples);
@@ -374,9 +386,9 @@ uint32_t audioTick(float* samples)
 	{
 		clips |= 8;
 	}
-	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[1], LEAF_clip(-1.0f, samples[1], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
+	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(LED_envelope[1], LEAF_clip(-1.0f, samples[1], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, current_env);
-	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[3], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
+	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(LED_envelope[3], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, current_env);
 
 	//uint32_t tempCount6 = DWT->CYCCNT;

@@ -1,8 +1,0 @@
-../Src/audiostream.c:64:6:audioInit	64	static
-../Src/audiostream.c:304:10:audioTick	32	static
-../Src/audiostream.c:124:6:audioFrame	48	static
-../Src/audiostream.c:435:6:HAL_SAI_ErrorCallback	0	static
-../Src/audiostream.c:440:6:HAL_SAI_TxCpltCallback	0	static
-../Src/audiostream.c:445:6:HAL_SAI_TxHalfCpltCallback	0	static
-../Src/audiostream.c:451:6:HAL_SAI_RxCpltCallback	0	static
-../Src/audiostream.c:456:6:HAL_SAI_RxHalfCpltCallback	0	static
