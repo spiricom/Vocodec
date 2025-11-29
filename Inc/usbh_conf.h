@@ -22,7 +22,6 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __USBH_CONF__H__
 #define __USBH_CONF__H__
-
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -138,7 +137,7 @@
 #if (USBH_DEBUG_LEVEL > 1U)
 
 #define  USBH_ErrLog(...) do { \
-                            printf("ERROR: "); \
+                            printf("ERROR: ") ; \
                             printf(__VA_ARGS__); \
                             printf("\n"); \
 } while (0)
@@ -148,7 +147,7 @@
 
 #if (USBH_DEBUG_LEVEL > 2U)
 #define  USBH_DbgLog(...)   do { \
-                            printf("DEBUG : "); \
+                            printf("DEBUG : ") ; \
                             printf(__VA_ARGS__); \
                             printf("\n"); \
 } while (0)
@@ -191,4 +190,5 @@
 #ifdef __cplusplus
 }
 #endif
+
 #endif /* __USBH_CONF__H__ */

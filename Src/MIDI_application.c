@@ -54,7 +54,7 @@ void MIDI_Application(void)
 		setLED_USB(&vocodec, 0);
 		USBH_MIDI_Stop(&hUsbHostFS);
 		HAL_Delay(10);
-		//MX_USB_HOST_DeInit();
+		MX_USB_HOST_DeInit();
 		HAL_Delay(10);
 		MX_USB_HOST_Init();
 
@@ -159,4 +159,3 @@ void USBH_MIDI_ReceiveCallback(USBH_HandleTypeDef *phost)
 {
 
 }
-
