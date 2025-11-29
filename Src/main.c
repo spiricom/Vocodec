@@ -211,7 +211,7 @@ int main(void)
 
   SDRAM_Initialization_sequence();
 
-  SFX_init(&vocodec, &ADC_values, emptyFunction);
+  //SFX_init(&vocodec, &ADC_values, emptyFunction);
 
   if (VarDataTab < PresetNil) //make sure the stored data is a number not past the number of available presets
   {
@@ -226,7 +226,7 @@ int main(void)
 
   OLED_writePreset(&vocodec);
 
-  audioInit(&hi2c2, &hsai_BlockA1, &hsai_BlockB1);
+  //audioInit(&hi2c2, &hsai_BlockA1, &hsai_BlockB1);
 
   /* USER CODE END 2 */
 

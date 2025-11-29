@@ -315,7 +315,7 @@ namespace vocodec
 
 
             WavetableSynthButtonParams wavetableSynthParams;
-            tWaveSynth waveSynth;
+            //tWaveSynth waveSynth;
             float* loadedTables[4];
             int loadedTableSizes[4];
             void (*loadWav)(Vocodec* vcd);
@@ -396,7 +396,7 @@ namespace vocodec
 
             ///1 vocoder internal poly
 
-            tTalkboxFloat vocoder;
+            tTalkbox vocoder;
             tNoise vocoderNoise;
             tZeroCrossingCounter zerox;
             tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
