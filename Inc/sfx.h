@@ -15,6 +15,7 @@
 
 #include "gfx.h"
 #include "leaf.h"
+#include "main.h"
 
 #ifdef __cplusplus
 namespace vocodec
@@ -77,8 +78,8 @@ namespace vocodec
 
 #ifndef __cplusplus
         extern char small_memory[SMALL_MEM_SIZE];
-        extern char medium_memory[MED_MEM_SIZE] __ATTR_RAM_D1;
-        extern char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
+        extern char medium_memory[MED_MEM_SIZE];
+        extern char large_memory[LARGE_MEM_SIZE];
 #endif
 
         //PresetNil is used as a counter for the size of the enum

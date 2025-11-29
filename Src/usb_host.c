@@ -40,8 +40,7 @@
 /* USER CODE END PFP */
 
 /* USB Host core handle declaration */
-USBH_HandleTypeDef hUsbHostFS;
-//ApplicationTypeDef Appli_stateU = APPLICATION_IDLE;
+USBH_HandleTypeDef hUsbHostFS __ATTR_RAM_D2;
 
 /*
  * -- Insert your variables declaration here --
@@ -77,7 +76,7 @@ void MX_USB_HOST_Init(void)
   {
     Error_Handler();
   }
-  if (USBH_RegisterClass(&hUsbHostFS, USBH_AUDIO_CLASS) != USBH_OK)
+  if (USBH_RegisterClass(&hUsbHostFS, &MIDI_Class) != USBH_OK)
   {
     Error_Handler();
   }
@@ -110,15 +109,15 @@ static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
   break;
 
   case HOST_USER_DISCONNECTION:
-  //Appli_stateU = APPLICATION_DISCONNECT;
+  Appli_state = APPLICATION_DISCONNECT;
   break;
 
   case HOST_USER_CLASS_ACTIVE:
-  //Appli_stateU = APPLICATION_READY;
+  Appli_state = APPLICATION_READY;
   break;
 
   case HOST_USER_CONNECTION:
-  //Appli_stateU = APPLICATION_START;
+  Appli_state = APPLICATION_START;
   break;
 
   default:

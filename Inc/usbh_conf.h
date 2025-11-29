@@ -66,7 +66,7 @@
 #define USBH_MAX_NUM_ENDPOINTS      4U
 
 /*----------   -----------*/
-#define USBH_MAX_NUM_INTERFACES      1U
+#define USBH_MAX_NUM_INTERFACES      16U
 
 /*----------   -----------*/
 #define USBH_MAX_NUM_CONFIGURATION      1U

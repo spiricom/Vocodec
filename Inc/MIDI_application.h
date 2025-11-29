@@ -17,6 +17,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "main.h"
 
 #define RX_BUFF_SIZE   64  /* Max Received data 64 bytes */
 
@@ -30,11 +31,12 @@ typedef enum
 	APPLICATION_DISCONNECT
 }
 MIDI_ApplicationTypeDef;
+extern MIDI_ApplicationTypeDef Appli_state;
 
 /*------------------------------------------------------------------------------*/
 extern USBH_HandleTypeDef hUsbHostFS;
-extern MIDI_ApplicationTypeDef Appli_state;
-extern uint8_t MIDI_RX_Buffer[2][RX_BUFF_SIZE] __ATTR_RAM_D2; // MIDI reception buffer
+
+extern uint8_t MIDI_RX_Buffer[2][RX_BUFF_SIZE]; // MIDI reception buffer
 extern int MIDI_read_buffer;
 extern int MIDI_write_buffer;
 /* Exported functions ------------------------------------------------------- */

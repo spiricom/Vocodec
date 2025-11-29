@@ -53,6 +53,15 @@ extern "C" {
 #define __ATTR_SDRAM	__attribute__ ((section(".SDRAM"))) __attribute__ ((aligned (32)))
 
 #define STM32 // define this so that LEAF knows you are building for STM32
+#ifndef TRUE
+//#define TRUE 1U
+#endif
+#ifndef FALSE
+//#define FALSE 0
+#endif
+
+#include "usbh_MIDI.h"
+#include "MIDI_application.h"
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/

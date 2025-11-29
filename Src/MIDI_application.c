@@ -20,6 +20,8 @@ int MIDI_read_buffer = 0;
 int MIDI_write_buffer = 1;
 int key, velocity, ctrl, data, sustainInverted;
 int USB_message[4];
+
+MIDI_ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 //int CCs[128];
 /* Private define ------------------------------------------------------------*/
 

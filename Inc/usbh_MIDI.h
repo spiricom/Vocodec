@@ -29,8 +29,8 @@
 #define __USBH_MIDI_CORE_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "usbh_core.h"
 
+#include "usbh_core.h"
 
 /*-------------------------------------------------------------------------------*/
 // buffer size (should be at least >= MIOS32_USB_MIDI_DESC_DATA_*_SIZE/4)

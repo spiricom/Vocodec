@@ -39,6 +39,7 @@
 #include "leaf.h"
 #include "audiostream.h"
 #include "eeprom.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -194,7 +195,10 @@ int main(void)
   PeriphCommonClock_Config();
 
   /* USER CODE BEGIN SysInit */
+  SCB_DisableICache();
 
+   /* Enable D-Cache---------------------------------------------------------*/
+   SCB_DisableDCache();
 
   /* USER CODE END SysInit */
 
@@ -227,7 +231,6 @@ int main(void)
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
-
   //HAL_Delay(1);
   // Emulated EEPROM Init
   HAL_FLASH_Unlock();
@@ -294,6 +297,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  MIDI_Application();
     MX_USB_HOST_Process();
 
     /* USER CODE BEGIN 3 */
