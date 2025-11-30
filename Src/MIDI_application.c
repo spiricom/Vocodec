@@ -92,6 +92,7 @@ void parse_MIDI_Message(void)
 			ctrl = USB_message[2];
 			data = USB_message[3];
 			//CCs[ctrl] = data;
+
 			switch(ctrl)
 			{
 				case (64): // sustain
@@ -107,6 +108,7 @@ void parse_MIDI_Message(void)
 					}
 					break;
 				default:
+					ctrlInput(&vocodec,ctrl, data);
 					break;
 			}
 			break;

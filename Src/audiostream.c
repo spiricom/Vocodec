@@ -86,7 +86,7 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 	//ramps to smooth the knobs
 	for (int i = 0; i < 6; i++)
 	{
-		tExpSmooth_init(&vocodec.adc[i], 0.0f, 0.2f, &vocodec.leaf);
+		tExpSmooth_init(&vocodec.adc[i], 0.0f, 0.1f, &vocodec.leaf);
 	}
 
 	for (int i = 0; i < 4; i++)

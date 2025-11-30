@@ -41,7 +41,7 @@ USBH_HandleTypeDef hUsbHostFS __ATTR_RAM_D2;
 /* USER CODE END PFP */
 
 /* USB Host core handle declaration */
-USBH_HandleTypeDef hUsbHostFS;
+//USBH_HandleTypeDef hUsbHostFS;
 ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 
 /*

@@ -4835,6 +4835,7 @@ namespace vocodec
         
         void ctrlInput(Vocodec* vcd, int ctrl, int value)
         {
+        	//vocodec.presetKnobValues[vocodec.currentPreset][ctrl] = value * 0.00787402f; //would need to make the part that writes the knobs switch out for this dynamically to make it work
             
         }
         

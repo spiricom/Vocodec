@@ -270,15 +270,15 @@ int main(void)
   HAL_Delay(10);
   //SDRAM_test();
   SFX_init(&vocodec, &ADC_values, emptyFunction);
-/*
+
   if (VarDataTab < PresetNil) //make sure the stored data is a number not past the number of available presets
   {
   	  vocodec.currentPreset = VarDataTab; //if it's good, start at that remembered preset number
   }
   else
-  {*/
-  	  vocodec.currentPreset = 15; //if the data is messed up for some reason, just initialize at the first preset (preset 0)
-  //}
+  {
+  	  vocodec.currentPreset = 0; //if the data is messed up for some reason, just initialize at the first preset (preset 0)
+  }
 
   OLED_init(&vocodec, &hi2c4);
 
