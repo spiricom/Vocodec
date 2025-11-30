@@ -60,8 +60,7 @@ extern "C" {
 //#define FALSE 0
 #endif
 
-#include "usbh_MIDI.h"
-#include "MIDI_application.h"
+
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/

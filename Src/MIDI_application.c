@@ -15,13 +15,13 @@
 #include "usb_host.h"
 #include "oled.h"
 #include "sfx.h"
+#include "main.h"
 uint8_t MIDI_RX_Buffer[2][RX_BUFF_SIZE] __ATTR_RAM_D2; // MIDI reception buffer
 int MIDI_read_buffer = 0;
 int MIDI_write_buffer = 1;
 int key, velocity, ctrl, data, sustainInverted;
 int USB_message[4];
 
-MIDI_ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 //int CCs[128];
 /* Private define ------------------------------------------------------------*/
 
@@ -56,8 +56,7 @@ void MIDI_Application(void)
 		setLED_USB(&vocodec, 0);
 		USBH_MIDI_Stop(&hUsbHostFS);
 		HAL_Delay(10);
-		MX_USB_HOST_DeInit();
-		HAL_Delay(10);
+
 		MX_USB_HOST_Init();
 
 	}

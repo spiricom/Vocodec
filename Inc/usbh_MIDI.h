@@ -2,8 +2,8 @@
  ******************************************************************************
  * @file    usbh_MIDI.h
  * @author  Xavier Halgand
- * @version 
- * @date    
+ * @version
+ * @date
  * @brief   This file contains all the prototypes for the usbh_MIDI.c
  ******************************************************************************
  */
@@ -28,9 +28,13 @@
 #ifndef __USBH_MIDI_CORE_H
 #define __USBH_MIDI_CORE_H
 
-/* Includes ------------------------------------------------------------------*/
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
+/* Includes ------------------------------------------------------------------*/
 #include "usbh_core.h"
+//#include "stm32f7xx_nucleo_144.h"
 
 /*-------------------------------------------------------------------------------*/
 // buffer size (should be at least >= MIOS32_USB_MIDI_DESC_DATA_*_SIZE/4)
@@ -88,6 +92,7 @@ typedef enum {
 	Chn16
 } midi_chn_t;
 
+#pragma anon_unions
 
 typedef union {
 	struct {
@@ -185,8 +190,6 @@ extern volatile uint8_t myUSB_FIFO[USB_FIFO_SIZE];
 extern volatile uint16_t myUSB_FIFO_readPointer;
 extern volatile uint16_t myUSB_FIFO_writePointer;
 extern volatile uint8_t myUSB_FIFO_overflowBit;
-
-
 
 /*---------------------------Exported_FunctionsPrototype-------------------------------------*/
 

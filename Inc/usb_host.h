@@ -53,8 +53,15 @@
   * @}
   */
 
-
-
+/** Status of the application. */
+typedef enum {
+  APPLICATION_IDLE = 0,
+  APPLICATION_START,
+  APPLICATION_READY,
+  APPLICATION_DISCONNECT,
+  APPLICATION_RUNNING
+}ApplicationTypeDef;
+extern ApplicationTypeDef Appli_state;
 /** @defgroup USBH_HOST_Exported_FunctionsPrototype USBH_HOST_Exported_FunctionsPrototype
   * @brief Declaration of public functions for Usb host.
   * @{
@@ -84,3 +91,4 @@ void MX_USB_HOST_Process(void);
 #endif
 
 #endif /* __USB_HOST__H__ */
+

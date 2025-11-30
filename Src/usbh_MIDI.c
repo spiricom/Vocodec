@@ -28,6 +28,7 @@
  */
 
 /* Includes ------------------------------------------------------------------*/
+
 #include "usbh_MIDI.h"
 #include "usb_host.h"
 #include "MIDI_application.h"

@@ -44,6 +44,13 @@ extern "C" {
 #define NULL  0U
 #endif
 
+#ifndef FALSE
+#define FALSE 0U
+#endif
+
+#ifndef TRUE
+#define TRUE  1U
+#endif
 
 #ifndef USBH_DEV_RESET_TIMEOUT
 #define USBH_DEV_RESET_TIMEOUT                        1000U

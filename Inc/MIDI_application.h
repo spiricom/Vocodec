@@ -12,6 +12,7 @@
 
 #include "stdio.h"
 #include "usbh_core.h"
+#include "usb_host.h"
 #include "usbh_MIDI.h"
 #include "sfx.h"
 #include <math.h>
@@ -22,16 +23,7 @@
 #define RX_BUFF_SIZE   64  /* Max Received data 64 bytes */
 
 /*------------------------------------------------------------------------------*/
-typedef enum
-{
-	APPLICATION_IDLE = 0,
-	APPLICATION_START,
-	APPLICATION_READY,
-	APPLICATION_RUNNING,
-	APPLICATION_DISCONNECT
-}
-MIDI_ApplicationTypeDef;
-extern MIDI_ApplicationTypeDef Appli_state;
+
 
 /*------------------------------------------------------------------------------*/
 extern USBH_HandleTypeDef hUsbHostFS;
