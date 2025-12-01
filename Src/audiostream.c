@@ -58,7 +58,7 @@ int numBuffersCleared = 0;
 #define ATODB_TABLE_SIZE 512
 #define ATODB_TABLE_SIZE_MINUS_ONE 511
 float atodbTable[ATODB_TABLE_SIZE];
-
+float frameMult = 1.0f / (AUDIO_FRAME_SIZE * 10000.0f);
 /**********************************************/
 
 LEAFErrorType errorTypes = 0;
@@ -86,7 +86,7 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 	//ramps to smooth the knobs
 	for (int i = 0; i < 6; i++)
 	{
-		tExpSmooth_init(&vocodec.adc[i], 0.0f, 0.1f, &vocodec.leaf);
+		tDynamicSmoother_init(&vocodec.adc[i],&vocodec.leaf);
 	}
 
 	for (int i = 0; i < 4; i++)
@@ -173,7 +173,7 @@ void audioFrame(uint16_t buffer_offset)
 
 			for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 			{
-				vocodec.smoothedADC[i] = tExpSmooth_tick(vocodec.adc[i]);
+				vocodec.smoothedADC[i] = LEAF_clip(0.0f, tDynamicSmoother_tickNoInput(vocodec.adc[i]), 1.0f);
 				for (int i = 0; i < KNOB_PAGE_SIZE; i++)
 				{
 					vocodec.presetKnobValues[vocodec.currentPreset][i + (vocodec.knobPage * KNOB_PAGE_SIZE)] = vocodec.smoothedADC[i];
@@ -296,7 +296,7 @@ void audioFrame(uint16_t buffer_offset)
 		}
 
 		frameCount = DWT->CYCCNT-tempCount5;
-		frameLoad = ((float)frameCount  / 1280000.0f);
+		frameLoad = ((float)frameCount * frameMult);
 		if (frameLoad > frameMax)
 		{
 			frameMax = frameLoad;

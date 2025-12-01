@@ -397,7 +397,7 @@ namespace vocodec
 
             ///1 vocoder internal poly
 
-            tTalkbox vocoder;
+            tTalkboxLfloat vocoder;
             tNoise vocoderNoise;
             tZeroCrossingCounter zerox;
             tSawtooth osc[NUM_VOC_VOICES * NUM_OSC_PER_VOICE];
@@ -558,7 +558,7 @@ namespace vocodec
 
             // CLASSIC SUBTRACTIVE SYNTH
 
-            tEfficientSVF synthLP[NUM_VOC_VOICES];
+            tSVF_LP synthLP[NUM_VOC_VOICES];
             uint16_t filtFreqs[NUM_VOC_VOICES];
             tADSRT polyEnvs[NUM_VOC_VOICES];
             tADSRT polyFiltEnvs[NUM_VOC_VOICES];
@@ -606,7 +606,7 @@ namespace vocodec
             float lastFloatADC[NUM_ADC_CHANNELS];
             float floatADCUI[NUM_ADC_CHANNELS];
             float adcHysteresisThreshold;
-            tExpSmooth adc[6];
+            tDynamicSmoother adc[6];
             float smoothedADC[6];
 
             uint8_t knobPage;

@@ -639,8 +639,8 @@ namespace vocodec
         void SFXVocoderAlloc(Vocodec* vcd)
         {
             vcd->leaf.clearOnAllocation = 1;
-            tTalkbox_init(&vcd->vocoder, 1024, &vcd->leaf);
-            tTalkbox_setWarpOn(vcd->vocoder, 1);
+            tTalkboxLfloat_init(&vcd->vocoder, 1024, &vcd->leaf);
+            tTalkboxLfloat_setWarpOn(vcd->vocoder, 1);
             tNoise_init(&vcd->vocoderNoise, WhiteNoise, &vcd->leaf);
             tZeroCrossingCounter_init(&vcd->zerox, 16, &vcd->leaf);
             tSimplePoly_setNumVoices(vcd->poly, vcd->vocoderParams.numVoices);
@@ -667,9 +667,13 @@ namespace vocodec
             vcd->leaf.clearOnAllocation = 0;
         }
         
+        volatile  uint32_t vcount1F = 0;
+        volatile  uint32_t vcount1M = 0;
         void SFXVocoderFrame(Vocodec* vcd)
         {
-            if (vcd->buttonActionsSFX[ButtonA][ActionPress] == 1)
+        	uint32_t vcount1 = DWT->CYCCNT;
+
+        	if (vcd->buttonActionsSFX[ButtonA][ActionPress] == 1)
             {
                 vcd->vocoderParams.numVoices = (vcd->vocoderParams.numVoices > 1) ? 1 : NUM_VOC_VOICES;
                 tSimplePoly_setNumVoices(vcd->poly, vcd->vocoderParams.numVoices);
@@ -685,7 +689,7 @@ namespace vocodec
             if (vcd->buttonActionsSFX[ButtonC][ActionPress] == 1)
             {
                 vcd->vocoderParams.freeze = !vcd->vocoderParams.freeze;
-                tTalkbox_setFreeze(vcd->vocoder, vcd->vocoderParams.freeze);
+                tTalkboxLfloat_setFreeze(vcd->vocoder, vcd->vocoderParams.freeze);
                 vcd->buttonActionsSFX[ButtonC][ActionPress] = 0;
                 setLED_C(vcd, vcd->vocoderParams.freeze);
             }
@@ -700,8 +704,8 @@ namespace vocodec
             vcd->displayValues[7] = vcd->presetKnobValues[Vocoder][7]; //pulse length
             vcd->displayValues[8] = vcd->presetKnobValues[Vocoder][8]; //open length
             
-            tTalkbox_setWarpFactor( vcd->vocoder, vcd->displayValues[1]);
-            tTalkbox_setQuality( vcd->vocoder, vcd->displayValues[2]);
+            tTalkboxLfloat_setWarpFactor( vcd->vocoder, vcd->displayValues[1]);
+            tTalkboxLfloat_setQuality( vcd->vocoder, vcd->displayValues[2]);
             
             for (int i = 0; i < tSimplePoly_getNumVoices(vcd->poly); i++)
             {
@@ -709,8 +713,7 @@ namespace vocodec
                 calculateFreq(vcd, i);
                 tSawtooth_setFreq(vcd->osc[i], vcd->freq[i]);
                 tRosenbergGlottalPulse_setFreq(vcd->glottal[i], vcd->freq[i]);
-                tRosenbergGlottalPulse_setOpenLengthAndPulseLength(vcd->glottal[i], vcd->displayValues[8] *
-                                                                   vcd->displayValues[7], vcd->displayValues[7]);
+                tRosenbergGlottalPulse_setOpenLengthAndPulseLength(vcd->glottal[i], vcd->displayValues[8] * vcd->displayValues[7], vcd->displayValues[7]);
             }
             
             if (tSimplePoly_getNumActiveVoices(vcd->poly) != 0)
@@ -724,8 +727,25 @@ namespace vocodec
             
             tVZFilter_setGain(vcd->shelf1, fasterdbtoa(-1.0f * vcd->displayValues[6]));
             tVZFilter_setGain(vcd->shelf2, fastdbtoa(vcd->displayValues[6]));
+        	vcount1F = DWT->CYCCNT-vcount1;
+        	if (vcount1F > vcount1M)
+        	{
+        		vcount1M = vcount1F;
+        	}
+
         }
         
+        volatile uint32_t vcount2F = 0;
+        volatile uint32_t vcount2M = 0;
+
+        volatile uint32_t vcount3F = 0;
+        volatile uint32_t vcount3M = 0;
+
+        volatile uint32_t vcount4F = 0;
+        volatile uint32_t vcount4M = 0;
+        volatile uint32_t vcount5F = 0;
+        volatile uint32_t vcount5M = 0;
+
         void SFXVocoderTick(Vocodec* vcd, float* input)
         {
             
@@ -739,6 +759,8 @@ namespace vocodec
             }
             else
             {
+            	uint32_t vcount2 = DWT->CYCCNT;
+
                 zerocross = tZeroCrossingCounter_tick(vcd->zerox, input[1]);
 
                 if (!vcd->vocoderParams.freeze)
@@ -754,8 +776,7 @@ namespace vocodec
                 {
                     sample += tSawtooth_tick(vcd->osc[i]) *
                     tExpSmooth_tick(vcd->polyRamp[i]) * (1.0f - vcd->displayValues[3]);
-                    sample += tRosenbergGlottalPulse_tickHQ(vcd->glottal[i]) *
-                    tExpSmooth_tick(vcd->polyRamp[i]) * 1.9f * vcd->displayValues[3];
+                    sample += tRosenbergGlottalPulse_tickHQ(vcd->glottal[i]) * tExpSmooth_tick(vcd->polyRamp[i]) * 1.9f * vcd->displayValues[3];
                 }
                 
                 
@@ -765,22 +786,46 @@ namespace vocodec
                 sample += (tHighpass_tick(vcd->noiseHP, tNoise_tick(vcd->breathNoise)) *
                            vcd->displayValues[5] * 1.5f);
                 sample *= tExpSmooth_tick(vcd->comp);
+
+            	vcount2F = DWT->CYCCNT-vcount2;
+            	if (vcount2F > vcount2M)
+            	{
+            		vcount2M = vcount2F;
+            	}
             }
-            
+
+        	uint32_t vcount3 = DWT->CYCCNT;
             sample = tanhf(sample);
-            
-            sample = tTalkbox_tick(vcd->vocoder, sample, input[1]);
+        	vcount3F = DWT->CYCCNT-vcount3;
+        	if (vcount3F > vcount3M)
+        	{
+        		vcount3M = vcount3F;
+        	}
+        	uint32_t vcount4 = DWT->CYCCNT;
+            sample = tTalkboxLfloat_tick(vcd->vocoder, sample, input[1]);
+
+        	vcount4F = DWT->CYCCNT-vcount4;
+        	if (vcount4F > vcount4M)
+        	{
+        		vcount4M = vcount4F;
+        	}
+        	uint32_t vcount5 = DWT->CYCCNT;
             sample = tVZFilter_tickEfficient(vcd->shelf1, sample); //put it through the low shelf
             sample = tVZFilter_tickEfficient(vcd->shelf2, sample); // now put that result through the high shelf
             sample *= vcd->displayValues[0] * 0.6f;
             sample = tanhf(sample);
             input[0] = sample;
             input[1] = sample;
+            vcount5F = DWT->CYCCNT-vcount5;
+			if (vcount5F > vcount5M)
+			{
+				vcount5M = vcount5F;
+			}
         }
         
         void SFXVocoderFree(Vocodec* vcd)
         {
-            tTalkbox_free(&vcd->vocoder);
+        	tTalkboxLfloat_free(&vcd->vocoder);
             tNoise_free(&vcd->vocoderNoise);
             tZeroCrossingCounter_free(&vcd->zerox);
             tExpSmooth_free(&vcd->noiseRamp);
@@ -3357,7 +3402,7 @@ namespace vocodec
             
             vcd->displayValues[0] = knobs[0]; //synth volume
             
-            vcd->displayValues[1] = knobs[1] * 4096.0f; //lowpass cutoff
+            vcd->displayValues[1] = knobs[1] * 134.0f; //lowpass cutoff
             
             vcd->displayValues[2] = knobs[2]; //keyfollow filter cutoff
             
@@ -3385,7 +3430,7 @@ namespace vocodec
             
             vcd->displayValues[14] = knobs[14]; //leak
             
-            vcd->displayValues[15] = knobs[15] * 4095.0f;  // filter envelope amount
+            vcd->displayValues[15] = knobs[15] * 134.0f;  // filter envelope amount
             
             vcd->displayValues[16] = knobs[16];  // fade between sawtooth and glottal pulse
             
@@ -3401,7 +3446,7 @@ namespace vocodec
                     tRosenbergGlottalPulse_setPulseLength(vcd->glottal[k], 0.4f);
                 }
                 
-                tEfficientSVF_init(&vcd->synthLP[i], SVFTypeLowpass, 2000, vcd->displayValues[4], &vcd->leaf);
+                tSVF_LP_init(&vcd->synthLP[i], 2000.0f, vcd->displayValues[4], &vcd->leaf);
                 tADSRT_init(&vcd->polyEnvs[i], vcd->displayValues[5], vcd->displayValues[6], vcd->displayValues[7], vcd->displayValues[8], vcd->decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &vcd->leaf);
                 tADSRT_setLeakFactor(vcd->polyEnvs[i],((1.0f - vcd->displayValues[9]) * 0.00005f) + 0.99995f);
                 tADSRT_init(&vcd->polyFiltEnvs[i], vcd->displayValues[10], vcd->displayValues[11], vcd->displayValues[12], vcd->displayValues[13], vcd->decayExpBuffer, DECAY_EXP_BUFFER_SIZE, &vcd->leaf);
@@ -3451,7 +3496,7 @@ namespace vocodec
                         vcd->displayValues[0] = knobs[0]; //synth volume
                         break;
                     case 1:
-                        vcd->displayValues[1] = knobs[1] * 4096.0f; //lowpass cutoff
+                        vcd->displayValues[1] = knobs[1] * 134.0f; //lowpass cutoff
                         break;
                     case 2:
                         vcd->displayValues[2] = knobs[2]; //keyfollow filter cutoff
@@ -3463,7 +3508,7 @@ namespace vocodec
                         vcd->displayValues[4] = (knobs[4] * 2.0f) + 0.4f; //filter Q
                         for (int i = 0; i < vcd->classicSynthParams.numVoices; i++)
                         {
-                            tEfficientSVF_setQ(vcd->synthLP[i], vcd->displayValues[4]);
+                        	tSVF_LP_setQ(vcd->synthLP[i], vcd->displayValues[4]);
                         }
                         break;
                     case 5:
@@ -3565,9 +3610,9 @@ namespace vocodec
                 }
                 
                 
-                float keyFollowFilt = myMidiNote * vcd->displayValues[2] * 64.0f;
+                float keyFollowFilt = myMidiNote * vcd->displayValues[2];
                 float tempFreq2 = vcd->displayValues[1] +  keyFollowFilt;
-                tempFreq2 = LEAF_clip(0.0f, tempFreq2, 4095.0f);
+                tempFreq2 = LEAF_clip(0.0f, tempFreq2, 134.0f);
                 vcd->filtFreqs[i] = (uint16_t) tempFreq2;
                 
                 if (vcd->classicSynthParams.numVoices > 1)
@@ -3643,8 +3688,8 @@ namespace vocodec
                     tempSample += tRosenbergGlottalPulse_tickHQ(vcd->glottal[(i * NUM_OSC_PER_VOICE) + j]) * env * (vcd->displayValues[16]);
 #endif
                 }
-                tEfficientSVF_setFreq(vcd->synthLP[i], LEAF_clip(0.0f, (vcd->filtFreqs[i] + (vcd->displayValues[15] * tADSRT_tick(vcd->polyFiltEnvs[i]))), 4095.0f));
-                sample += tEfficientSVF_tick(vcd->synthLP[i], tempSample);
+                tSVF_LP_setFreqFast(vcd->synthLP[i], LEAF_clip(0.0f, (vcd->filtFreqs[i] + (vcd->displayValues[15] * tADSRT_tick(vcd->polyFiltEnvs[i]))), 134.0f));
+                sample += tSVF_LP_tick(vcd->synthLP[i], tempSample);
             }
             sample *= INV_NUM_OSC_PER_VOICE * vcd->displayValues[0];
             
@@ -3663,7 +3708,7 @@ namespace vocodec
                     tSawtooth_free(&vcd->osc[(i * NUM_OSC_PER_VOICE) + j]);
                     tRosenbergGlottalPulse_free(&vcd->glottal[(i * NUM_OSC_PER_VOICE) + j]);
                 }
-                tEfficientSVF_free(&vcd->synthLP[i]);
+                tSVF_LP_free(&vcd->synthLP[i]);
                 tADSRT_free(&vcd->polyEnvs[i]);
                 tADSRT_free(&vcd->polyFiltEnvs[i]);
             }
