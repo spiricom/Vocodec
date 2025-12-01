@@ -331,11 +331,11 @@ namespace vocodec
             vcd->shortModeNames[Tape] = "TP";
             vcd->modeNamesDetails[Tape] = "MACHINE";
             vcd->numPages[Tape] = 1;
-            vcd->knobParamNames[Tape][0] = "BRIGHTNESS";
-            vcd->knobParamNames[Tape][1] = "TREM DEPTH";
-            vcd->knobParamNames[Tape][2] = "TREM RATE";
-            vcd->knobParamNames[Tape][3] = "DRIVE";
-            vcd->knobParamNames[Tape][4] = "PAN SPREAD";
+            vcd->knobParamNames[Tape][0] = "SPEED";
+            vcd->knobParamNames[Tape][1] = "INPUT GAIN";
+            vcd->knobParamNames[Tape][2] = "OFFSET";
+            vcd->knobParamNames[Tape][3] = "SHAPE";
+            vcd->knobParamNames[Tape][4] = "FEEDBACK";
 
 
         }

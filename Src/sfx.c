@@ -4123,7 +4123,8 @@ namespace vocodec
         // Add stereo param so in1 -> out1 and in2 -> out2 instead of in1 -> out1 & out2 (like bitcrusher)?
         void SFXTapeTick(Vocodec* vcd, float* input)
         {
-            vcd->displayValues[0] = roundf(vcd->presetKnobValues[Tape][0] * 2.0f);
+            //three tape speeds
+        	vcd->displayValues[0] = roundf(vcd->presetKnobValues[Tape][0] * 2.0f);
             if (vcd->displayValues[0] > 1.1f)
             {
             	vcd->displayValues[0] = 21172.0f;
@@ -4178,19 +4179,19 @@ namespace vocodec
 	            if (vcd->tapeParams.shaper == 0)
 	            {
 
-	            	vcd->oversamplerArray[i] = tFeedbackLeveler_tick(vcd->feedbackControl, tanhf((input[1]*param1) + (vcd->delayFB1 * vcd->displayValues[4])));
+	            	vcd->oversamplerArray[i] = tFeedbackLeveler_tick(vcd->feedbackControl, tanhf((input[1]*param1+param2) + (vcd->delayFB1 * vcd->displayValues[4])));
 	                //input2 = tFeedbackLeveler_tick(vcd->feedbackControl, tanhf(input[1] + (vcd->delayFB2 * vcd->displayValues[4])));
 	            }
 	            else if (vcd->tapeParams.shaper == 1)
 	            {
-	            	vcd->oversamplerArray[i] = tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper((input[1]*param1) + (vcd->delayFB1 * vcd->displayValues[4] * 0.5f), 0.5f)));
+	            	vcd->oversamplerArray[i] = tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper((input[1]*param1+param2) + (vcd->delayFB1 * vcd->displayValues[4] * 0.5f), 0.5f)));
 	                //input2 = tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB2 * vcd->displayValues[4] * 0.5f), 0.5f)));
 	            }
 	            else if (vcd->tapeParams.shaper == 2)
 	            {
 	            	//tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB1 * vcd->displayValues[4] * 0.5f), 0.5f)));
 	                //input2 = tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB2 * vcd->displayValues[4] * 0.5f), 0.5f)));
-	            	float sample = (((input[1]*param1)+param2)) + (vcd->delayFB1 * vcd->displayValues[4]);
+	            	float sample = (input[1]) + (vcd->delayFB1 * vcd->displayValues[4]);
 
 	            	param3 = (param3 * .99f) + 0.01f;
 	            	float shapeDividerS = 1.0f / (param3 - ((param3*param3*param3) * 0.3333333f));
@@ -4259,11 +4260,12 @@ namespace vocodec
 	            	sample = sample * param1 + ((param2 * param1));
 
 					float curFB = param3;
+
 					float curFF = 0.4f;
 					float ff = (curFF * tanhf(sample)) + ((1.0f - curFF) * sample); //these saturation functions could be soft clip or hard clip or tanh approx
 					float fb = curFB * tanhf(vcd->wfState);
 					vcd->wfState = (ff + fb) - 0.5f * sinf(TWO_PI * sample); //maybe switch for our own sine lookup (avoid the if statements in the CMSIS code)
-					sample = vcd->wfState * vcd->invCurFB;
+					sample = vcd->wfState / LEAF_clip(0.1, curFB, 10.0f);
 					sample = tHighpass_tick(vcd->dcBlock1, sample);
 					//sample *= fxPostGain[v];
 					vcd->oversamplerArray[i] = sample;
