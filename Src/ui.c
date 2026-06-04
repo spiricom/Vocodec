@@ -330,12 +330,17 @@ namespace vocodec
             vcd->modeNames[Tape] = "TAPE";
             vcd->shortModeNames[Tape] = "TP";
             vcd->modeNamesDetails[Tape] = "MACHINE";
-            vcd->numPages[Tape] = 1;
+            vcd->numPages[Tape] = 2;
             vcd->knobParamNames[Tape][0] = "SPEED";
             vcd->knobParamNames[Tape][1] = "INPUT GAIN";
-            vcd->knobParamNames[Tape][2] = "OFFSET";
-            vcd->knobParamNames[Tape][3] = "SHAPE";
+            vcd->knobParamNames[Tape][2] = "HIGHPASS";
+            vcd->knobParamNames[Tape][3] = "LOWPASS";
             vcd->knobParamNames[Tape][4] = "FEEDBACK";
+            vcd->knobParamNames[Tape][5] = "OFFSET";
+            vcd->knobParamNames[Tape][6] = "SHAPE";
+            vcd->knobParamNames[Tape][7] = "";
+            vcd->knobParamNames[Tape][8] = "";
+            vcd->knobParamNames[Tape][9] = "";
 
 
         }
@@ -586,7 +591,7 @@ namespace vocodec
                         else vcd->writeKnobFlag = i;
                     }
                 }
-                if (vcd->knobActive[i]) tDynamicSmoother_setDest(vcd->adc[i], vcd->floatADC[i]);
+                if (vcd->knobActive[i]) tExpSmooth_setDest(vcd->adc[i], vcd->floatADC[i]);
             }
 
         }
@@ -670,7 +675,7 @@ namespace vocodec
                     value =
                     vcd->presetKnobValues[vcd->currentPreset][i + (vcd->knobPage * KNOB_PAGE_SIZE)];
                 }
-                tDynamicSmoother_setValAndDest(vcd->adc[i], value);
+                tExpSmooth_setValAndDest(vcd->adc[i], value);
                 vcd->smoothedADC[i] = value;
             }
         }
@@ -687,7 +692,7 @@ namespace vocodec
                 }
                 vcd->knobActive[knob] = 0;
                 vcd->floatADCUI[knob] = -1.0f;
-                tDynamicSmoother_setValAndDest(vcd->adc[knob], values[knob]);
+                tExpSmooth_setValAndDest(vcd->adc[knob], values[knob]);
 
                 vcd->smoothedADC[knob] = values[knob];
             }
@@ -702,7 +707,7 @@ namespace vocodec
             }
             vcd->knobActive[knob] = 0;
             vcd->floatADCUI[knob] = -1.0f;
-            tDynamicSmoother_setValAndDest(vcd->adc[knob], value);
+            tExpSmooth_setValAndDest(vcd->adc[knob], value);
             vcd->smoothedADC[knob] = value;
         }
 

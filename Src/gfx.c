@@ -41,6 +41,7 @@
 #ifndef __cplusplus
 #include "stm32h7xx_hal.h"
 #include "main.h"
+#include <stdlib.h>
 #else
 #include <stdlib.h>
 #include "PluginEditor.h"

@@ -40,7 +40,8 @@ namespace vocodec
         
 #define NUM_AUTOTUNE 4
 #define NUM_RETUNE 1
-#define MAX_OVERSAMPLER_RATIO 4
+#define MAX_OVERSAMPLER_RATIO 8
+#define TAPE_OVERSAMPLE 8
 #define OVERSAMPLER_HQ FALSE
         
 #define NUM_SAMPLER_VOICES 6 // need to limit this because too many samplers going can take too long
@@ -374,6 +375,8 @@ namespace vocodec
 
             tExpSmooth neartune_smoother;
 
+            tExpSmooth tapeSmoothers[4];
+
             float expBuffer[EXP_BUFFER_SIZE];
             float expBufferSizeMinusOne;
 
@@ -606,7 +609,7 @@ namespace vocodec
             float lastFloatADC[NUM_ADC_CHANNELS];
             float floatADCUI[NUM_ADC_CHANNELS];
             float adcHysteresisThreshold;
-            tDynamicSmoother adc[6];
+            tExpSmooth adc[6];
             float smoothedADC[6];
 
             uint8_t knobPage;

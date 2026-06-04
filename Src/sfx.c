@@ -22,6 +22,8 @@ namespace vocodec
     {
 #endif
         
+   volatile uint32_t Errorcount = 0;
+
 #define INC_MISC_WT 0
 #define USE_FILTERTAN_TABLE 1
         
@@ -361,7 +363,7 @@ namespace vocodec
             vcd->defaultPresetKnobValues[Distortion][3] = 0.5f; // mid freq
             vcd->defaultPresetKnobValues[Distortion][4] = 0.25f; //post gain
             
-            vcd->defaultPresetKnobValues[Wavefolder][0] = 0.4f; // gain
+            vcd->defaultPresetKnobValues[Wavefolder][0] = 0.6f; // gain
             vcd->defaultPresetKnobValues[Wavefolder][1] = 0.5f; // offset1
             vcd->defaultPresetKnobValues[Wavefolder][2] = 0.5f; // offset2
             vcd->defaultPresetKnobValues[Wavefolder][3] = 0.75f; // post gain
@@ -371,7 +373,7 @@ namespace vocodec
             vcd->defaultPresetKnobValues[BitCrusher][1] = 0.5f; // samp ratio
             vcd->defaultPresetKnobValues[BitCrusher][2] = 0.0f; // rounding
             vcd->defaultPresetKnobValues[BitCrusher][3] = 0.0f; // operation
-            vcd->defaultPresetKnobValues[BitCrusher][4] = 0.5f; // post gain
+            vcd->defaultPresetKnobValues[BitCrusher][4] = 0.2f; // post gain
             vcd->defaultPresetKnobValues[BitCrusher][5] = 0.0f; // pre gain
             
             vcd->defaultPresetKnobValues[Delay][0] = 0.25f; // delayL
@@ -470,10 +472,13 @@ namespace vocodec
             vcd->defaultPresetKnobValues[Rhodes][24] = 0.00f;
 
             vcd->defaultPresetKnobValues[Tape][0] = 0.25f;
-             vcd->defaultPresetKnobValues[Tape][1] = 0.25f;
-             vcd->defaultPresetKnobValues[Tape][2] = 0.25f;
-             vcd->defaultPresetKnobValues[Tape][3] = 0.5f;
-             vcd->defaultPresetKnobValues[Tape][4] = 0.0f;
+             vcd->defaultPresetKnobValues[Tape][1] = 0.99f;
+             vcd->defaultPresetKnobValues[Tape][2] = 0.0f;
+             vcd->defaultPresetKnobValues[Tape][3] = 0.9f;
+             vcd->defaultPresetKnobValues[Tape][4] = 0.9f;
+             vcd->defaultPresetKnobValues[Tape][5] = 0.0f;
+              vcd->defaultPresetKnobValues[Tape][6] = 0.0f;
+
 
 
 #ifdef __cplusplus
@@ -1069,6 +1074,9 @@ namespace vocodec
                     vcd->analysisBands[vcd->currentBandToAlter][1]->g =
                     vcd->analysisBands[vcd->currentBandToAlter][0]->g;
 
+                    vcd->analysisBands[vcd->currentBandToAlter][1]->R2Plusg =
+                    vcd->analysisBands[vcd->currentBandToAlter][0]->R2Plusg;
+
                     vcd->analysisOrSynthesis++;
                 }
                 else
@@ -1098,6 +1106,9 @@ namespace vocodec
 
                     vcd->synthesisBands[vcd->currentBandToAlter][1]->g =
                     vcd->synthesisBands[vcd->currentBandToAlter][0]->g;
+
+                    vcd->synthesisBands[vcd->currentBandToAlter][1]->R2Plusg =
+                    vcd->synthesisBands[vcd->currentBandToAlter][0]->R2Plusg;
 
                     vcd->currentBandToAlter++;
                     vcd->analysisOrSynthesis = 0;
@@ -1288,7 +1299,13 @@ namespace vocodec
                 {
 #ifndef __cplusplus
                     tempSamp = tVZFilter_tickEfficient(vcd->analysisBands[i][0], tempSamp);
+                    if (isnan(tempSamp)){
+                    	Errorcount++;
+                    }
                     tempSamp = tVZFilter_tickEfficient(vcd->analysisBands[i][1], tempSamp);
+                    if (isnan(tempSamp)){
+                    	Errorcount++;
+                    }
 #else
                     tempSamp = tVZFilter_tick(vcd->analysisBands[i][0], tempSamp);
                     tempSamp = tVZFilter_tick(vcd->analysisBands[i][1], tempSamp);
@@ -1313,8 +1330,8 @@ namespace vocodec
             float finalSample1 = tHighpass_tick(vcd->chVocFinalHP1, (output[0] + (output[1] * vcd->oneMinusStereo)) * vcd->chVocOutputGain);
             float finalSample2 = tHighpass_tick(vcd->chVocFinalHP2, (output[1] + (output[0] * vcd->oneMinusStereo)) * vcd->chVocOutputGain);
 #ifndef __cplusplus
-            input[0] = 0.98f * fast_tanh4(finalSample1);
-            input[1] = 0.98f * fast_tanh4(finalSample2);
+            input[0] = 0.98f * tanhf(finalSample1); //was fast_tanh but wasn't needed because we were within time budget
+            input[1] = 0.98f * tanhf(finalSample2); //was fast_tanh but wasn't needed because we were within time budget
 #else
             input[0] = 0.98f * tanhf(finalSample1);
             input[1] = 0.98f * tanhf(finalSample2);
@@ -1354,6 +1371,7 @@ namespace vocodec
             tRetune_initToPool(&vcd->retune, NUM_RETUNE, mtof(42), mtof(84), 1024, &vcd->mediumPool);
             tRetune_initToPool(&vcd->retune2, NUM_RETUNE, mtof(42), mtof(84), 1024, &vcd->mediumPool);
             vcd->retune2->index = 512;
+            vcd->retune2->dp->_pd1->index = 128;
             tRamp_init(&vcd->pitchshiftRamp, 100.0f, 1, &vcd->leaf);
             tRamp_setVal(vcd->pitchshiftRamp, 1.0f);
 
@@ -4057,19 +4075,22 @@ namespace vocodec
         void SFXTapeAlloc(Vocodec* vcd)
         {
             vcd->leaf.clearOnAllocation = 1;
-            tTapeDelay_initToPool(&vcd->delay, 2000, 30000, &vcd->mediumPool);
-            tTapeDelay_initToPool(&vcd->delay2, 2000, 30000, &vcd->mediumPool);
+            tTapeDelay_initToPool(&vcd->delay, 2000, 50000, &vcd->mediumPool);
+            //tTapeDelay_initToPool(&vcd->delay2, 2000, 50000, &vcd->mediumPool);
             tSVF_init(&vcd->delayLP, SVFTypeLowpass, 16000.f, .7f, &vcd->leaf);
             tSVF_init(&vcd->delayHP, SVFTypeHighpass, 20.f, .7f, &vcd->leaf);
 
             tSVF_init(&vcd->delayLP2, SVFTypeLowpass, 16000.f, .7f, &vcd->leaf);
             tSVF_init(&vcd->delayHP2, SVFTypeHighpass, 20.f, .7f, &vcd->leaf);
             tRamp_init(&vcd->reelSmooth, 1300.0f, 1, &vcd->leaf);
-
-            tHighpass_init(&vcd->delayShaperHp, 20.0f, &vcd->leaf);
-            tHighpass_init(&vcd->dcBlock1, 40.0f, &vcd->leaf);
+            tExpSmooth_init(&vcd->tapeSmoothers[0], 0.0f, 0.001f, &vcd->leaf);
+            tExpSmooth_init(&vcd->tapeSmoothers[1], 0.0f, 0.001f, &vcd->leaf);
+            tExpSmooth_init(&vcd->tapeSmoothers[2], 0.0f, 0.001f, &vcd->leaf);
+            tExpSmooth_init(&vcd->tapeSmoothers[3], 0.0f, 0.001f, &vcd->leaf);
+            tHighpass_init(&vcd->delayShaperHp, 2.0f, &vcd->leaf);
+            tHighpass_init(&vcd->dcBlock1, 2.0f, &vcd->leaf);
             tFeedbackLeveler_init(&vcd->feedbackControl, .99f, 0.01f, 0.125f, 0, &vcd->leaf);
-            tOversampler_init(&vcd->oversampler, 2, 0, &vcd->leaf);
+            tOversampler_init(&vcd->oversampler, TAPE_OVERSAMPLE, 0, &vcd->leaf);
             setLED_A(vcd, vcd->tapeParams.shaper);
             setLED_B(vcd, vcd->tapeParams.uncapFeedback);
             setLED_C(vcd, vcd->tapeParams.freeze);
@@ -4099,22 +4120,11 @@ namespace vocodec
                 setLED_C(vcd, vcd->tapeParams.freeze);
             }
 
-            vcd->displayValues[0] = vcd->presetKnobValues[Tape][0] * 30000.0f;
-            vcd->displayValues[1] = vcd->presetKnobValues[Tape][1] * 30000.0f;
-            float cutoff1 = LEAF_clip(10.0f,
-                                      faster_mtof((vcd->presetKnobValues[Tape][2] * 133) + 3.0f),
-                                      20000.0f);
-            float cutoff2 = LEAF_clip(10.0f,
-                                      faster_mtof((vcd->presetKnobValues[Tape][3] * 133) + 3.0f),
-                                      20000.0f);
-            vcd->displayValues[2] = cutoff1;
-            vcd->displayValues[3] = cutoff2;
 
             vcd->displayValues[4] = vcd->tapeParams.uncapFeedback ?
             vcd->presetKnobValues[Tape][4] * 1.1f :
             LEAF_clip(0.0f, vcd->presetKnobValues[Tape][4] * 1.1f, 0.9f);
 
-            vcd->displayValues[5] = vcd->presetKnobValues[Tape][5];
         }
 
 
@@ -4138,66 +4148,78 @@ namespace vocodec
             	vcd->displayValues[0] = 5293.0f;
 			}
 
+
             tRamp_setDest(vcd->reelSmooth, vcd->displayValues[0]);
             float tapeSpeed = tRamp_tick(vcd->reelSmooth);
 
-            vcd->displayValues[1] = vcd->presetKnobValues[Tape][1] * 30000.0f;
+            //vcd->displayValues[1] = vcd->presetKnobValues[Tape][1] * 30000.0f;
             float cutoff1 = LEAF_clip(10.0f,
-                                      faster_mtof((vcd->presetKnobValues[Tape][2] * 133) + 3.0f),
-                                      20000.0f);
+                                      faster_mtof((vcd->presetKnobValues[Tape][2] * 133.0f) + 3.0f),
+                                      13000.0f);
             float cutoff2 = LEAF_clip(10.0f,
-                                      faster_mtof((vcd->presetKnobValues[Tape][3] * 133) + 3.0f),
-                                      20000.0f);
+                                      faster_mtof((vcd->presetKnobValues[Tape][3] * 133.0f) + 3.0f),
+                                      13000.0f);
             //vcd->displayValues[2] = 30.0f;
             //vcd->displayValues[3] = 16000.0f;
 
 
-            vcd->displayValues[1] = vcd->presetKnobValues[Tape][1]*1.1f;
-            float param1 = vcd->displayValues[1];
-            vcd->displayValues[2] = vcd->presetKnobValues[Tape][2];
-            float param2 = vcd->displayValues[2];
-            vcd->displayValues[3] = vcd->presetKnobValues[Tape][3];
-            float param3 = vcd->displayValues[3];
+            vcd->displayValues[1] = vcd->presetKnobValues[Tape][1]*1.6f;
+            tExpSmooth_setDest(vcd->tapeSmoothers[0], vcd->displayValues[1]);
+            vcd->displayValues[5] = vcd->presetKnobValues[Tape][5];
+            tExpSmooth_setDest(vcd->tapeSmoothers[1], vcd->displayValues[5]);
+            vcd->displayValues[6] = vcd->presetKnobValues[Tape][6];
+            tExpSmooth_setDest(vcd->tapeSmoothers[2], vcd->displayValues[6]);
             vcd->displayValues[4] = vcd->tapeParams.uncapFeedback ?
             vcd->presetKnobValues[Tape][4] * 1.1f :
             LEAF_clip(0.0f, vcd->presetKnobValues[Tape][4] * 1.1f, 0.9f);
+            tExpSmooth_setDest(vcd->tapeSmoothers[3], vcd->displayValues[4]);
 
-            vcd->displayValues[5] = vcd->presetKnobValues[Tape][5];
+            float smoothedparam1 = tExpSmooth_tick(vcd->tapeSmoothers[0]);
 
-            tSVF_setFreq(vcd->delayHP, 50.0f);
+
+            float smoothedparam2 = tExpSmooth_tick(vcd->tapeSmoothers[1]);
+
+            float smoothedparam3 = tExpSmooth_tick(vcd->tapeSmoothers[2]);
+            float smoothedparam4 = tExpSmooth_tick(vcd->tapeSmoothers[3]);
+
+            vcd->displayValues[2] = vcd->presetKnobValues[Tape][2];
+            vcd->displayValues[3] = vcd->presetKnobValues[Tape][3];
+
+            //tSVF_setFreq(vcd->delayHP, 50.0f);
             //tSVF_setFreq(vcd->delayHP2, vcd->displayValues[2]);
-            tSVF_setFreq(vcd->delayLP, 12000.0f);
+            //tSVF_setFreq(vcd->delayLP, 14000.0f);
             //tSVF_setFreq(vcd->delayLP2, vcd->displayValues[3]);
 
             //swap tanh for shaper and add cheap fixed highpass after both shapers
 
-            float input1, input2;
+
 
             tOversampler_upsample(vcd->oversampler, input[1], vcd->oversamplerArray);
-			for (int i = 0; i < 2; i++)
+			for (int i = 0; i < TAPE_OVERSAMPLE; i++)
 			{
 	            if (vcd->tapeParams.shaper == 0)
 	            {
 
-	            	vcd->oversamplerArray[i] = tFeedbackLeveler_tick(vcd->feedbackControl, tanhf((input[1]*param1+param2) + (vcd->delayFB1 * vcd->displayValues[4])));
+	            	vcd->oversamplerArray[i] = tFeedbackLeveler_tick(vcd->feedbackControl, tanhf((input[1]*smoothedparam1+smoothedparam2) + (vcd->delayFB1 * smoothedparam4)));
 	                //input2 = tFeedbackLeveler_tick(vcd->feedbackControl, tanhf(input[1] + (vcd->delayFB2 * vcd->displayValues[4])));
 	            }
 	            else if (vcd->tapeParams.shaper == 1)
 	            {
-	            	vcd->oversamplerArray[i] = tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper((input[1]*param1+param2) + (vcd->delayFB1 * vcd->displayValues[4] * 0.5f), 0.5f)));
+	            	vcd->oversamplerArray[i] = tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper((input[1]*smoothedparam1+smoothedparam2) + (vcd->delayFB1 * smoothedparam4 * 0.5f), smoothedparam3)));
 	                //input2 = tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB2 * vcd->displayValues[4] * 0.5f), 0.5f)));
 	            }
+	            //hard clip
 	            else if (vcd->tapeParams.shaper == 2)
 	            {
 	            	//tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB1 * vcd->displayValues[4] * 0.5f), 0.5f)));
 	                //input2 = tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB2 * vcd->displayValues[4] * 0.5f), 0.5f)));
-	            	float sample = (input[1]) + (vcd->delayFB1 * vcd->displayValues[4]);
+	            	float sample = (input[1]) + (vcd->delayFB1 * smoothedparam4);
 
-	            	param3 = (param3 * .99f) + 0.01f;
-	            	float shapeDividerS = 1.0f / (param3 - ((param3*param3*param3) * 0.3333333f));
-	            	sample = sample * param1;
-	                sample = sample + param2;
-	                float shape = param3;
+	            	smoothedparam3 = (smoothedparam3 * .99f) + 0.01f;
+	            	float shapeDividerS = 1.0f / (smoothedparam3 - ((smoothedparam3*smoothedparam3*smoothedparam3) * 0.3333333f));
+	            	sample = sample * smoothedparam1;
+	                sample = sample + smoothedparam2;
+	                float shape = smoothedparam3;
 	                if (sample <= -1.0f)
 	                {
 	                    sample = -1.0f;
@@ -4212,17 +4234,25 @@ namespace vocodec
 
 	                sample = tHighpass_tick(vcd->dcBlock1, sample);
 	                //sample *= fxPostGain[v];
+	                sample = tanhf(sample);
 	                vcd->oversamplerArray[i] = sample;
 	            }
 
+	            //softclip
 	            else if (vcd->tapeParams.shaper == 3)
 	            {
-	            	tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB1 * vcd->displayValues[4] * 0.5f), 0.5f)));
+	            	//tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB1 * smoothedparam4 * 0.5f), 0.5f)));
 	                //input2 = tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB2 * vcd->displayValues[4] * 0.5f), 0.5f)));
-	            	float sample = ((input[1]*param1)+param2) + (vcd->delayFB1 * vcd->displayValues[4]);
+	            	float sample = ((input[1]*smoothedparam1)+smoothedparam2) + (vcd->delayFB1 * smoothedparam4);
+	            	float param3 = ((0.75f * .99f) + 0.01f) * HALF_PI;
+	            	float tempDiv = sinf(0.75f);
+	            	if (tempDiv == 0.0f)
+	            	{
+	            		tempDiv = 0.001f;
+	            	}
+	            	float shapeDividerH = 1.0f/tempDiv;
 
-	            	param3 = ((param3 * .99f) + 0.01f) * HALF_PI;
-	            	float shapeDividerH = 1.0f / sinf(param3);
+
 	                if (sample <= -1.0f)
 	                {
 	                    sample = -1.0f;
@@ -4231,10 +4261,11 @@ namespace vocodec
 	                    sample = 1.0f;
 	                }
 	                {
-	                    sample = sinf(  (sinf(sample*param3) * shapeDividerH) * param3);
+	                    sample = sinf(  (sinf(sample*0.75f) * shapeDividerH) * 0.75f);
 	                    sample = sample * shapeDividerH;
 	                }
 	                sample = tHighpass_tick(vcd->dcBlock1, sample);
+	                sample = tanhf(sample*1.9f);
 	                //sample *= fxPostGain[v];
 	                vcd->oversamplerArray[i] = sample;
 	            }
@@ -4243,10 +4274,10 @@ namespace vocodec
 	            {
 	            	//tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB1 * vcd->displayValues[4] * 0.5f), 0.5f)));
 	                //input2 = tFeedbackLeveler_tick(vcd->feedbackControl, tHighpass_tick(vcd->delayShaperHp, LEAF_shaper(input[1] + (vcd->delayFB2 * vcd->displayValues[4] * 0.5f), 0.5f)));
-	            	float sample = input[1] + (vcd->delayFB1 * vcd->displayValues[4]);
+	            	float sample = input[1] + (vcd->delayFB1 * smoothedparam4);
 
-	                sample = sample * param1;
-	                float temp = (sample + (param2 * param1)) / (1.0f + fabs(sample + param2));
+	                sample = sample * smoothedparam1;
+	                float temp = (sample + (smoothedparam2 * smoothedparam1)) / (1.0f + fabs(sample + smoothedparam2));
 	                temp = tHighpass_tick(vcd->dcBlock1, temp);
 	                temp = tanhf(temp);
 	                //temp *= fxPostGain[v];
@@ -4256,30 +4287,55 @@ namespace vocodec
 
 	            else if (vcd->tapeParams.shaper == 5)
 	            {
-	            	float sample = input[1] + (vcd->delayFB1 * vcd->displayValues[4]);
-	            	sample = sample * param1 + ((param2 * param1));
+	            	float sample = (input[1] * smoothedparam1 + ((smoothedparam2 * smoothedparam1)))+ (vcd->delayFB1 * smoothedparam4*0.02f);;
+	            	//sample = sample * param1[v][string] + ((param2[v][string] * param1[v][string]));
+	                float curFB = smoothedparam3 * 0.6f;
+	                float curFF = 0.2f;
 
-					float curFB = param3;
+	                //softclip approx for tanh saturation in original code
+	                float ffSample = sample;
+	                if (ffSample <= -1.0f)
+	                {
+	                	ffSample = -1.0f;
+	                } else if (ffSample >= 1.0f)
+	                {
+	                	ffSample = 1.0f;
+	                }
+	                ffSample = ffSample - ((ffSample * ffSample * ffSample)* 0.3333333f);
+	                ffSample *= 1.499999f;
+	                float ff = (curFF * ffSample) + ((1.0f - curFF) * sample);
 
-					float curFF = 0.4f;
-					float ff = (curFF * tanhf(sample)) + ((1.0f - curFF) * sample); //these saturation functions could be soft clip or hard clip or tanh approx
-					float fb = curFB * tanhf(vcd->wfState);
-					vcd->wfState = (ff + fb) - 0.5f * sinf(TWO_PI * sample); //maybe switch for our own sine lookup (avoid the if statements in the CMSIS code)
+	                //softclip approx for tanh saturation in original code
+	                float fbSample = vcd->wfState;
+	                if (fbSample <= -1.0f)
+	                {
+	                	fbSample = -1.0f;
+	                } else if (fbSample >= 1.0f)
+	                {
+	                	fbSample = 1.0f;
+	                }
+	                fbSample = fbSample - ((fbSample * fbSample * fbSample)* 0.3333333f);
+	                fbSample *= 1.499999f;
+	                float fb = curFB * fbSample;
+
+	                vcd->wfState = (ff + fb) - 1.0f * sinf(TWO_PI * sample); //maybe switch for our own sine lookup (avoid the if statements in the CMSIS code)
 					sample = vcd->wfState / LEAF_clip(0.1, curFB, 10.0f);
 					sample = tHighpass_tick(vcd->dcBlock1, sample);
-					//sample *= fxPostGain[v];
 					vcd->oversamplerArray[i] = sample;
+
 	            }
 
 
 
 			}
+            float input1 = 0.0f;
 			input1 = tOversampler_downsample(vcd->oversampler, vcd->oversamplerArray);
 
 
             tTapeDelay_setDelay(vcd->delay, tapeSpeed);
             //tTapeDelay_setDelay(vcd->delay2, tapeSpeed);
-
+            float tapeStop =  1.0f - LEAF_clip(0.0f, ((vcd->floatADC[5] * vcd->floatADC[5] * vcd->floatADC[5] * vcd->floatADC[5]) * 1.5f), 1.0f);
+            tTapeDelay_setRate(vcd->delay, tapeStop);
             if (!vcd->tapeParams.freeze)
             {
                 vcd->delayFB1 = tTapeDelay_tick(vcd->delay, input1);
@@ -4291,34 +4347,37 @@ namespace vocodec
                 vcd->delayFB1 = tTapeDelay_tick(vcd->delay, vcd->delayFB1);
                 //vcd->delayFB2 = tTapeDelay_tick(vcd->delay2, vcd->delayFB2);
             }
-
+            tSVF_setFreq(vcd->delayHP, cutoff1);
+            tSVF_setFreq(vcd->delayLP, cutoff2);
             vcd->delayFB1 = tSVF_tick(vcd->delayLP, vcd->delayFB1);
             //vcd->delayFB2 = tSVF_tick(vcd->delayLP2, vcd->delayFB2);
 
             vcd->delayFB1 = tanhf(tSVF_tick(vcd->delayHP, vcd->delayFB1));
             //vcd->delayFB2 = tanhf(tSVF_tick(vcd->delayHP2, vcd->delayFB2));
 
-            input[0] = vcd->delayFB1;// * vcd->displayValues[5];
-            input[1] = vcd->delayFB1;
+            input[0] = vcd->delayFB1 * tapeStop;// * vcd->displayValues[5];
+            input[1] = input[0];
             //input[1] = vcd->delayFB2;// * vcd->displayValues[5];
 
         }
 
         void SFXTapeFree(Vocodec* vcd)
         {
-        	tTapeDelay_free(&vcd->delay);
-            tTapeDelay_free(&vcd->delay2);
-            tSVF_free(&vcd->delayLP);
-            tSVF_free(&vcd->delayHP);
-
-            tSVF_free(&vcd->delayLP2);
-            tSVF_free(&vcd->delayHP2);
-            tRamp_free(&vcd->reelSmooth);
-
-            tHighpass_free(&vcd->delayShaperHp);
-            tHighpass_free(&vcd->dcBlock1);
-            tFeedbackLeveler_free(&vcd->feedbackControl);
             tOversampler_free(&vcd->oversampler);
+            tFeedbackLeveler_free(&vcd->feedbackControl);
+            tHighpass_free(&vcd->dcBlock1);
+            tHighpass_free(&vcd->delayShaperHp);
+            tExpSmooth_free(&vcd->tapeSmoothers[3]);
+            tExpSmooth_free(&vcd->tapeSmoothers[2]);
+            tExpSmooth_free(&vcd->tapeSmoothers[1]);
+            tExpSmooth_free(&vcd->tapeSmoothers[0]);
+            tRamp_free(&vcd->reelSmooth);
+            tSVF_free(&vcd->delayHP2);
+            tSVF_free(&vcd->delayLP2);
+            tSVF_free(&vcd->delayHP);
+            tSVF_free(&vcd->delayLP);
+            //tTapeDelay_free(&vcd->delay2);
+        	tTapeDelay_free(&vcd->delay);
         }
         //
 #ifdef __cplusplus

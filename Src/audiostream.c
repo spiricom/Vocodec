@@ -86,7 +86,7 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 	//ramps to smooth the knobs
 	for (int i = 0; i < 6; i++)
 	{
-		tDynamicSmoother_init(&vocodec.adc[i],&vocodec.leaf);
+		tExpSmooth_init(&vocodec.adc[i],0.0f, 0.3f,&vocodec.leaf);
 	}
 
 	for (int i = 0; i < 4; i++)
@@ -142,7 +142,7 @@ volatile int freeCheck = 0;
 volatile uint32_t overrun = 0;
 void audioFrame(uint16_t buffer_offset)
 {
-	volatile tempCount5 = DWT->CYCCNT;
+	volatile uint32_t tempCount5 = DWT->CYCCNT;
 
 	if (codecReady)
 	{
@@ -173,7 +173,7 @@ void audioFrame(uint16_t buffer_offset)
 
 			for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 			{
-				vocodec.smoothedADC[i] = LEAF_clip(0.0f, tDynamicSmoother_tickNoInput(vocodec.adc[i]), 1.0f);
+				vocodec.smoothedADC[i] = LEAF_clip(0.0f, tExpSmooth_tick(vocodec.adc[i]), 1.0f);
 				for (int i = 0; i < KNOB_PAGE_SIZE; i++)
 				{
 					vocodec.presetKnobValues[vocodec.currentPreset][i + (vocodec.knobPage * KNOB_PAGE_SIZE)] = vocodec.smoothedADC[i];
