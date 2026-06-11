@@ -59,11 +59,11 @@ namespace vocodec
             //============================================//
 
             vcd->vocoderParams.numVoices = NUM_VOC_VOICES;
-            vcd->vocoderParams.internalExternal = 1;
+            vcd->vocoderParams.internalExternal = 0;
             vcd->vocoderParams.freeze = 0;
 
             vcd->vocoderChParams.numVoices = NUM_VOC_VOICES;
-            vcd->vocoderChParams.internalExternal = 1;
+            vcd->vocoderChParams.internalExternal = 0;
             vcd->vocoderChParams.freeze = 0;
 
             vcd->pitchShiftParams._ = 0;
