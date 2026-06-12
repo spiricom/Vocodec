@@ -33,16 +33,27 @@
 #include "leaf.h"
 #include "main.h"
 
-#define AUDIO_FRAME_SIZE      128
+
+#define AUDIO_FRAME_SIZE      64
 #define HALF_BUFFER_SIZE      AUDIO_FRAME_SIZE * 2 //number of samples per half of the "double-buffer" (twice the audio frame size because there are interleaved samples for both left and right channels)
 #define AUDIO_BUFFER_SIZE     AUDIO_FRAME_SIZE * 4 //number of samples in the whole data structure (four times the audio frame size because of stereo and also double-buffering/ping-ponging)
-
+#define SMALL_MEM_SIZE 60000
+#define MED_MEM_SIZE 262144//180000
+#define LARGE_MEM_SIZE 31457280//67108864 would be 64 MBytes - size of SDRAM IC, but we are using 2MB each for firmware buffers = 2097152*2 =   4194304, so 67108864-4194304=62914560
+#define MTOF_TABLE_SIZE	32768
+#define MTOF_TABLE_SIZE_MINUS_ONE 32767
+#define MTOF_TABLE_SIZE_DIV_TWO	16384
+#define ATODB_TABLE_SIZE 16384
+#define DBTOA_TABLE_SIZE 16384
+#define ATODB_TABLE_SIZE_MINUS_ONE 16383
+#define DBTOA_TABLE_SIZE_MINUS_ONE 16383
 
 extern int32_t audioOutBuffer[AUDIO_BUFFER_SIZE];
 extern int32_t audioInBuffer[AUDIO_BUFFER_SIZE];
 extern uint32_t codecReady;
 //extern float audioDisplayBuffer[128];
 extern uint32_t displayBufferIndex;
+extern char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
 /* Exported types ------------------------------------------------------------*/
 typedef enum
 {
@@ -56,6 +67,8 @@ typedef enum
 #else
 #define SAMPLE_RATE 48000.f
 #endif
+
+extern LEAF leaf;
 
 typedef enum BOOL {
 	FALSE = 0,
@@ -77,6 +90,15 @@ void audioFrame(uint16_t buffer_offset);
 
 void DMA1_TransferCpltCallback(DMA_HandleTypeDef *hdma);
 void DMA1_HalfTransferCpltCallback(DMA_HandleTypeDef *hdma);
+
+void noteOn(int key, int velocity);
+void noteOff(int key, int velocity);
+void pitchBend(int data);
+void sustainOn();
+void sustainOff();
+void toggleBypass();
+void toggleSustain();
+void ctrlInput(int ctrl, int value);
 
 #endif /* __AUDIOSTREAM_H */
 

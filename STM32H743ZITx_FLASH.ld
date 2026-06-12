@@ -34,17 +34,21 @@ ENTRY(Reset_Handler)
 /* Highest address of the user mode stack */
 _estack = 0x20020000;    /* end of RAM */
 
-_Min_Heap_Size = 0x2000;	/* required amount of heap  */
-_Min_Stack_Size = 0x2000;	/* required amount of stack */
+_Min_Heap_Size = 0x3000;	/* required amount of heap  */
+_Min_Stack_Size = 0x3000;	/* required amount of stack */
 
 /* Memories definition */
 MEMORY
 {
   DTCMRAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 128K
-  ITCMRAM    (xrw)    : ORIGIN = 0x00000400,   LENGTH = 63K
-  RAM_D1    (xrw)    : ORIGIN = 0x24000000,   LENGTH = 512K
-  RAM_D2    (xrw)    : ORIGIN = 0x30000000,   LENGTH = 288K
-  RAM_D3    (xrw)    : ORIGIN = 0x38000000,   LENGTH = 64K
+	ITCMRAM (RWX) : ORIGIN = 0x00000000, LENGTH = 1K
+	ITCMRAMFUNC (RWX) : ORIGIN = 0x00000400, LENGTH = 63K
+	SRAM (RWX)    : ORIGIN =      0x24000000, LENGTH = 256K
+	RAM_D1 (RWX)    : ORIGIN =    0x24040000, LENGTH = 256K
+	RAM_D2_DMA (RWX) : ORIGIN =   0x30000000, LENGTH = 8K
+	RAM_D2 (RWX)  : ORIGIN =      0x30002000, LENGTH = 280K
+	RAM_D3 (RWX)  : ORIGIN =      0x38000000, LENGTH = 64K
+	BACKUP_SRAM (RWX)  : ORIGIN = 0x38800000, LENGTH = 4K
   FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 1792K
   FIXED_DATA(rw)  : ORIGIN = 0x81E0000, LENGTH = 256K
   SDRAM (rx)      : ORIGIN = 0x60000000, LENGTH = 32M
@@ -162,56 +166,132 @@ SECTIONS
     __bss_end__ = _ebss;
   } >DTCMRAM
 
-  /* User_heap_stack section, used to check that there is enough "RAM_D1" Ram  type memory left */
-  ._user_heap_stack :
-  {
-    . = ALIGN(4);
-    PROVIDE ( end = . );
-    PROVIDE ( _end = . );
-    . = . + _Min_Heap_Size;
-    . = . + _Min_Stack_Size;
-    . = ALIGN(4);
-  } >DTCMRAM
-	  .RAM_D1 (NOLOAD) :
-  {
-        KEEP(*(.RAM_D1)) 
-  } >RAM_D1
-  
-/*from https://community.st.com/message/171291-re-stm32h7stm32h743-adc-with-dma?commentID=171291#comment-171291*/
-	  .RAM_D2 (NOLOAD) :
-  {
-        KEEP(*(.RAM_D2)) 
-  } >RAM_D2
+	.sram1_bss (NOLOAD) :
+	{
+		. = ALIGN(4);
+		_ssram1_bss = .;
+
+		PROVIDE(__sram1_bss_start__ = _sram1_bss);
+		*(.sram1_bss)
+		*(.sram1_bss*)
+		. = ALIGN(4);
+		_esram1_bss = .;
+
+		PROVIDE(__sram1_bss_end__ = _esram1_bss);
+	} > RAM_D1
 
 
- /* AHB SRAM (D3 domain): AHB SRAM4 */
+	.sram2_dma_bss (NOLOAD) :
+	{
+		. = ALIGN(4);
+		_ssram2_dma_bss = .;
 
- .RAM_D3 (NOLOAD) :
-  {
-        KEEP(*(.RAM_D3)) /* ORIGIN = 0x38000000, LENGTH = 64K */
-  } >RAM_D3
+		PROVIDE(__sram2_dma_bss_start__ = _sram2_dma_bss);
+		*(.sram2_dma_bss)
+		*(.sram2_dma_bss*)
+		. = ALIGN(4);
+		_esram2_dma_bss = .;
 
-   /* EXTERNAL SDRAM */
+		PROVIDE(__sram2_dma_bss_end__ = _esram2_dma_bss);
+	} > RAM_D2_DMA
 
- .SDRAM (NOLOAD) :
-  {
-        . = ALIGN(4); 
-        KEEP(*(.SDRAM)) /* ORIGIN = 0x60000000, LENGTH = 32M */
-        . = ALIGN(4); 
-  } >SDRAM
-  
-/*from https://electronics.stackexchange.com/questions/370175/creating-programmable-look-up-table-on-stm32 */
- .FIXED_DATA (NOLOAD):
-  {
-    *(STATIC_DATA);
-  } >FIXED_DATA 
-  /* Remove information from the compiler libraries */
-  /DISCARD/ :
-  {
-    libc.a ( * )
-    libm.a ( * )
-    libgcc.a ( * )
-  }
 
-  .ARM.attributes 0 : { *(.ARM.attributes) }
+	.sram2_bss (NOLOAD) :
+	{
+		. = ALIGN(4);
+		_ssram2_bss = .;
+
+		PROVIDE(__sram2_bss_start__ = _sram2_bss);
+		*(.sram2_bss)
+		*(.sram2_bss*)
+		. = ALIGN(4);
+		_esram2_bss = .;
+
+		PROVIDE(__sram2_bss_end__ = _esram2_bss);
+	} > RAM_D2
+	
+	.sram3_bss (NOLOAD) :
+	{
+		. = ALIGN(4);
+		_ssram3_bss = .;
+
+		PROVIDE(__sram3_bss_start__ = _sram3_bss);
+		*(.sram3_bss)
+		*(.sram3_bss*)
+		. = ALIGN(4);
+		_esram3_bss = .;
+
+		PROVIDE(__sram3_bss_end__ = _esram3_bss);
+	} > RAM_D3
+	
+	.userflash (NOLOAD) :
+	{    
+        . = ALIGN(4);
+        KEEP(*(.userflash))
+        . = ALIGN(4);
+	} > BACKUP_SRAM
+
+
+	 .itcmram :
+	  {
+	   
+
+	    . = ALIGN(4);
+		_sitcmram = .;
+		 PROVIDE(__itcmram_start__ = _sitcmram);
+	    *(.itcmram)         /* .section_name section */
+	    *(.itcmram*)        /* .section_name* sub-sections if any */
+	    . = ALIGN(4);
+	    _eitcmram = .;
+	    PROVIDE(__itcmram_end__ = _eitcmram);
+	  } >ITCMRAMFUNC AT> FLASH
+	  
+	  _siitcmram = LOADADDR(.itcmram);
+
+	.sdram_bss (NOLOAD) :
+	{
+		. = ALIGN(4);
+		_ssdram_bss = .;
+
+		PROVIDE(__sdram_bss_start = _ssdram_bss);
+		*(.sdram_bss)
+		*(.sdram_bss*)
+		. = ALIGN(4);
+		_esdram_bss = .;
+
+		PROVIDE(__sdram_bss_end = _esdram_bss);
+	} > SDRAM
+
+
+
+
+	.heap (NOLOAD) :
+	{
+		. = ALIGN(4);
+		PROVIDE(__heap_start__ = .);
+		KEEP(*(.heap))
+		. = ALIGN(4);
+		PROVIDE(__heap_end__ = .);
+	} > DTCMRAM
+
+
+	.reserved_for_stack (NOLOAD) :
+	{
+		. = ALIGN(4);
+		PROVIDE(__reserved_for_stack_start__ = .);
+		KEEP(*(.reserved_for_stack))
+		. = ALIGN(4);
+		PROVIDE(__reserved_for_stack_end__ = .);
+	} > DTCMRAM
+
+
+	PROVIDE(end = .);
+	
+    DISCARD :
+    {
+        libc.a ( * )
+        libm.a ( * )
+        libgcc.a ( * )
+    }
+
 }

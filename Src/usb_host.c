@@ -31,7 +31,7 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-USBH_HandleTypeDef hUsbHostFS __ATTR_RAM_D2;
+USBH_HandleTypeDef hUsbHostFS __ATTR_RAM_D2_DMA;
 
 /* USER CODE END PV */
 

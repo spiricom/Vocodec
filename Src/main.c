@@ -35,7 +35,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ui.h"
-#include "oled.h"
 #include "leaf.h"
 #include "audiostream.h"
 #include "eeprom.h"
@@ -74,7 +73,8 @@ volatile int64_t cycleCountValsAverager[4][NUM_COUNTER_CYCLES_TO_AVERAGE];
 volatile uint16_t cycleCountAveragerCounter[4] = {0,0,0,0};
 float cycleCountAverages[4][3];
 
-
+volatile uint32_t loadingPreset = 0;
+volatile uint32_t currentPreset = 0;
 
 /* USER CODE END PV */
 
@@ -90,7 +90,6 @@ void SDRAM_Initialization_sequence(void);
 static void CycleCounterInit( void );
 
 
-void emptyFunction(Vocodec* vcd);
 
 #define testDataSize 32
 volatile uint8_t testData[testDataSize];
@@ -101,6 +100,8 @@ volatile uint8_t errorTime2 = 0;
 volatile uint8_t errorTime3 = 0;
 volatile uint8_t errorTime4 = 0;
 volatile uint8_t testInt = 0;
+
+volatile uint16_t ADC_values[6] __ATTR_RAM_D2_DMA;
 
 void errorFunction(int i)
 {
@@ -140,10 +141,7 @@ void SDRAM_test()
 
 
 
-void emptyFunction(Vocodec* vcd)
-{
-	;
-}
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -269,20 +267,20 @@ int main(void)
 
   HAL_Delay(10);
   //SDRAM_test();
-  SFX_init(&vocodec, &ADC_values, emptyFunction);
+  //SFX_init(&vocodec, &ADC_values, emptyFunction);
 
-  if (VarDataTab < PresetNil) //make sure the stored data is a number not past the number of available presets
+  if (VarDataTab < 99) //make sure the stored data is a number not past the number of available presets
   {
-  	  vocodec.currentPreset = VarDataTab; //if it's good, start at that remembered preset number
+  	  currentPreset = VarDataTab; //if it's good, start at that remembered preset number
   }
   else
   {
-  	  vocodec.currentPreset = 0; //if the data is messed up for some reason, just initialize at the first preset (preset 0)
+  	  currentPreset = 0; //if the data is messed up for some reason, just initialize at the first preset (preset 0)
   }
 
-  OLED_init(&vocodec, &hi2c4);
+  //OLED_init(&vocodec, &hi2c4);
 
-  OLED_writePreset(&vocodec);
+  //OLED_writePreset(&vocodec);
 
   audioInit(&hi2c2, &hsai_BlockA1, &hsai_BlockB1);
 
@@ -292,16 +290,20 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  HAL_Delay(10);
+
 	MIDI_Application();
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
 
     /* USER CODE BEGIN 3 */
-    OLED_process(&vocodec);
+    //OLED_process(&vocodec);
+    /*
  	if (hi2c4.State == HAL_I2C_STATE_READY)
 	{
 	  OLED_draw(&vocodec);
 	}
+	*/
 
   }
   /* USER CODE END 3 */
@@ -776,16 +778,16 @@ void MPU_Config(void)
   MPU_InitStruct.SubRegionDisable = 0x0;
   MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
   MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
-  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
   /** Initializes and configures the Region and the memory to be protected
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER2;
-  MPU_InitStruct.BaseAddress = 0x38000000;
+  MPU_InitStruct.BaseAddress = 0xc0000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_64KB;
+  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
@@ -794,17 +796,14 @@ void MPU_Config(void)
   MPU_InitStruct.Number = MPU_REGION_NUMBER3;
   MPU_InitStruct.BaseAddress = 0x60000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_32MB;
-  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
-  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
-  MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
   /* Enables the MPU */
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 
 }
+uint32_t adc_error = 0;
 
 /**
   * @brief  This function is executed in case of error occurrence.

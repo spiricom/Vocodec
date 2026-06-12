@@ -1809,7 +1809,7 @@ USBH_StatusTypeDef USBH_AUDIO_SetFrequency(USBH_HandleTypeDef *phost,
   USBH_StatusTypeDef Status = USBH_BUSY;
   AUDIO_HandleTypeDef *AUDIO_Handle;
   uint8_t              index;
-  uint8_t              change_freq = FALSE;
+  uint8_t              change_freq = 0;
   uint32_t             freq_min, freq_max;
   uint8_t              num_supported_freq;
 
@@ -1826,7 +1826,7 @@ USBH_StatusTypeDef USBH_AUDIO_SetFrequency(USBH_HandleTypeDef *phost,
 
         if ((SampleRate >= freq_min) && (SampleRate <= freq_max))
         {
-          change_freq = TRUE;
+          change_freq = 1;
         }
       }
       else
@@ -1838,13 +1838,13 @@ USBH_StatusTypeDef USBH_AUDIO_SetFrequency(USBH_HandleTypeDef *phost,
           if (SampleRate == LE24(
                 AUDIO_Handle->class_desc.as_desc[AUDIO_Handle->headphone.asociated_as].FormatTypeDesc->tSamFreq[index]))
           {
-            change_freq = TRUE;
+            change_freq = 1;
             break;
           }
         }
       }
 
-      if (change_freq == TRUE)
+      if (change_freq == 1)
       {
         AUDIO_Handle->headphone.frequency = SampleRate;
         AUDIO_Handle->headphone.frame_length = (SampleRate * BitPerSample * NbrChannels) / 8000U;

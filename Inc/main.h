@@ -47,10 +47,16 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-#define __ATTR_RAM_D1	__attribute__ ((section(".RAM_D1"))) __attribute__ ((aligned (32)))
-#define __ATTR_RAM_D2	__attribute__ ((section(".RAM_D2"))) __attribute__ ((aligned (32)))
-#define __ATTR_RAM_D3	__attribute__ ((section(".RAM_D3"))) __attribute__ ((aligned (32)))
-#define __ATTR_SDRAM	__attribute__ ((section(".SDRAM"))) __attribute__ ((aligned (32)))
+#define __ATTR_RAM_D1	__attribute__ ((section(".sram1_bss"))) __attribute__ ((aligned (32)))
+#define __ATTR_RAM_D2_DMA	__attribute__ ((section(".sram2_dma_bss"))) __attribute__ ((aligned (32)))
+#define __ATTR_RAM_D2	__attribute__ ((section(".sram2_bss"))) __attribute__ ((aligned (32)))
+#define __ATTR_RAM_D3	__attribute__ ((section(".sram3_bss"))) __attribute__ ((aligned (32)))
+#define __ATTR_USER_FLASH	__attribute__ ((section(".userflash"))) __attribute__ ((aligned (32)))
+#define __ATTR_SDRAM	__attribute__ ((section(".sdram_bss"))) __attribute__ ((aligned (32)))
+#define __ATTR_ITCMRAM	__attribute__ ((section(".itcmram"))) __attribute__ ((aligned (32)))
+
+
+#define NUM_ADC_CHANNELS 6
 
 #define STM32 // define this so that LEAF knows you are building for STM32
 #ifndef TRUE
@@ -70,8 +76,8 @@ void Error_Handler(void);
 
 extern  volatile int64_t cycleCountVals[4][3];
 
-
-
+extern volatile uint32_t loadingPreset;
+extern volatile uint32_t currentPreset;
 
 //simple cycle counter - writes to cycleCountVals: fills one of 16 slots with two numbers - the start count [0] and the time between start and end count [1].
 #define CYCLE_COUNT_START0 {cycleCountVals[0][2] = 0; cycleCountVals[0][0] = DWT->CYCCNT;}
@@ -102,7 +108,7 @@ void CycleCounterAverage( int );
 /* Private defines -----------------------------------------------------------*/
 
 /* USER CODE BEGIN Private defines */
-
+extern volatile uint16_t ADC_values[6] __ATTR_RAM_D2_DMA;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

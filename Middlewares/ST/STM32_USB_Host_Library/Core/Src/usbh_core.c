@@ -410,7 +410,7 @@ USBH_StatusTypeDef USBH_Start(USBH_HandleTypeDef *phost)
   (void)USBH_LL_Start(phost);
 
   /* Activate VBUS on the port */
-  (void)USBH_LL_DriverVBUS(phost, TRUE);
+  (void)USBH_LL_DriverVBUS(phost, 1);
 
   return USBH_OK;
 }
@@ -425,7 +425,7 @@ USBH_StatusTypeDef USBH_Start(USBH_HandleTypeDef *phost)
 USBH_StatusTypeDef USBH_Stop(USBH_HandleTypeDef *phost)
 {
   /* DeActivate VBUS on the port */
-  (void)USBH_LL_DriverVBUS(phost, FALSE);
+  (void)USBH_LL_DriverVBUS(phost, 0);
 
   /* Stop and cleanup the low level driver  */
   (void)USBH_LL_Stop(phost);

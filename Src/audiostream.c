@@ -12,52 +12,62 @@
 #include "leaf.h"
 #include "codec.h"
 #include "ui.h"
-#include "oled.h"
+
 #include "tunings.h"
 #include "i2c.h"
 #include "gpio.h"
-#include "sfx.h"
+
 #include "tim.h"
 #include "usbh_MIDI.h"
 #include "MIDI_application.h"
+#include "synth.h"
 
 //the audio buffers are put in the D2 RAM area because that is a memory location that the DMA has access to.
-int32_t audioOutBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
-int32_t audioInBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2;
+int32_t audioOutBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2_DMA;
+int32_t audioInBuffer[AUDIO_BUFFER_SIZE] __ATTR_RAM_D2_DMA;
 
-//#define DISPLAY_BLOCK_SIZE 512
-//float audioDisplayBuffer[128];
-//uint8_t displayBufferIndex = 0;
-//float displayBlockVal = 0.0f;
-//uint32_t displayBlockCount = 0;
+char small_memory[SMALL_MEM_SIZE];
+char medium_memory[MED_MEM_SIZE] __ATTR_RAM_D1;
+char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
+tMempool mediumPool;
+tMempool largePool;
 
-void audioFrame(uint16_t buffer_offset);
-uint32_t audioTick(float* samples);
 
 HAL_StatusTypeDef transmit_status;
 HAL_StatusTypeDef receive_status;
+
 
 uint32_t codecReady = 0;
 
 uint32_t frameCounter = 0;
 
-tNoise myNoise;
-tCycle mySine[2];
-tEnvelopeFollower LED_envelope[4];
+volatile uint32_t newPluck = 0 ;
+
+tOversampler downSampler;
+
+BOOL bufferCleared = TRUE;
+
+float masterVolFromBrainForSynth = 0.25f;
+
+
+float mtofTable[MTOF_TABLE_SIZE]__ATTR_RAM_D2;
+
+float atoDbTable[ATODB_TABLE_SIZE]__ATTR_RAM_D2;
+float dbtoATable[DBTOA_TABLE_SIZE]__ATTR_RAM_D2;
+
+void audioFrame(uint16_t buffer_offset);
+uint32_t audioTick(float* samples);
+
 
 uint32_t clipCounter[4] = {0,0,0,0};
 uint32_t clipped[4] = {0,0,0,0};
 uint32_t clipHappened[4] = {0,0,0,0};
 
+uint8_t currentMIDINote = 60;
 
-BOOL bufferCleared = TRUE;
 
-int numBuffersToClearOnLoad = 2;
-int numBuffersCleared = 0;
-
-#define ATODB_TABLE_SIZE 512
-#define ATODB_TABLE_SIZE_MINUS_ONE 511
-float atodbTable[ATODB_TABLE_SIZE];
+LEAF leaf;
+tExpSmooth adc[6];
 float frameMult = 1.0f / (AUDIO_FRAME_SIZE * 10000.0f);
 /**********************************************/
 
@@ -72,32 +82,25 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 {
 	// Initialize LEAF.
 
-	LEAF_init(&vocodec.leaf, SAMPLE_RATE, small_memory, SMALL_MEM_SIZE, &randomNumber);
+	LEAF_init(&leaf, SAMPLE_RATE, small_memory, SMALL_MEM_SIZE, &randomNumber);
 
-	LEAF_setErrorCallback(&vocodec.leaf, LEAF_myError);
+	LEAF_setErrorCallback(&leaf, LEAF_myError);
 
-	tMempool_init (&vocodec.largePool, large_memory, LARGE_MEM_SIZE, &vocodec.leaf);
+	tMempool_init (&mediumPool, medium_memory, MED_MEM_SIZE, &leaf);
 
-	tMempool_init (&vocodec.mediumPool, medium_memory, MED_MEM_SIZE, &vocodec.leaf);
+	tMempool_init (&largePool, large_memory, LARGE_MEM_SIZE, &leaf);
 
-
-	initFunctionPointers(&vocodec);
+	synthInit();
 
 	//ramps to smooth the knobs
+
 	for (int i = 0; i < 6; i++)
 	{
-		tExpSmooth_init(&vocodec.adc[i],0.0f, 0.3f,&vocodec.leaf);
+		tExpSmooth_init(&adc[i],0.0f, 0.3f,&leaf);
 	}
 
-	for (int i = 0; i < 4; i++)
-	{
-		tEnvelopeFollower_init(&LED_envelope[i], 0.0001f, .9995f, &vocodec.leaf);
-	}
-	LEAF_generate_atodbPositiveClipped(atodbTable, -120.0f, 380.f, ATODB_TABLE_SIZE);
-	initGlobalSFXObjects(&vocodec);
 
-	vocodec.loadingPreset = 1;
-	vocodec.previousPreset = PresetNil;
+	LEAF_generate_atodbPositiveClipped(atoDbTable, -120.0f, 380.f, ATODB_TABLE_SIZE);
 
 	HAL_Delay(10);
 
@@ -121,15 +124,15 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 
 
 	//now reconfigue so buttons C and E can be used (they were also connected to I2C for codec setup)
-	HAL_I2C_MspDeInit(hi2c);
+	//HAL_I2C_MspDeInit(hi2c);
 
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	//GPIO_InitTypeDef GPIO_InitStruct = {0};
 
     //PB10, PB11     ------> buttons C and E
-    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    //GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
+    //GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    //GPIO_InitStruct.Pull = GPIO_PULLUP;
+    //HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
 volatile int frameCount = 0;
@@ -155,9 +158,8 @@ void audioFrame(uint16_t buffer_offset)
 
 		//tempCount5 = DWT->CYCCNT;
 
-		buttonCheck(&vocodec);
 
-		adcCheck(&vocodec);
+		//adcCheck(&vocodec);
 
 		// if the USB write pointer has advanced (indicating unread data is in the buffer),
 		// or the overflow bit is set, meaning that the write pointer wrapped around and the read pointer hasn't caught up to it yet
@@ -166,7 +168,7 @@ void audioFrame(uint16_t buffer_offset)
 		{
 			ProcessReceivedMidiDatas();
 		}
-
+#if 0
 
 		if (!vocodec.loadingPreset)
 		{
@@ -174,19 +176,8 @@ void audioFrame(uint16_t buffer_offset)
 			for (int i = 0; i < NUM_ADC_CHANNELS; i++)
 			{
 				vocodec.smoothedADC[i] = LEAF_clip(0.0f, tExpSmooth_tick(vocodec.adc[i]), 1.0f);
-				for (int i = 0; i < KNOB_PAGE_SIZE; i++)
-				{
-					vocodec.presetKnobValues[vocodec.currentPreset][i + (vocodec.knobPage * KNOB_PAGE_SIZE)] = vocodec.smoothedADC[i];
-				}
 			}
 
-
-			if (vocodec.cvAddParam[vocodec.currentPreset] >= 0)
-			{
-				vocodec.presetKnobValues[vocodec.currentPreset][vocodec.cvAddParam[vocodec.currentPreset]] = vocodec.smoothedADC[5];
-			}
-
-			vocodec.frameFunctions[vocodec.currentPreset](&vocodec);
 		}
 
 		//if the codec isn't ready, keep the buffer as all zeros
@@ -195,7 +186,7 @@ void audioFrame(uint16_t buffer_offset)
 		bufferCleared = TRUE;
 
 
-
+#endif
 		for (i = 0; i < (HALF_BUFFER_SIZE); i += 2)
 		{
 			float theSamples[2];
@@ -206,6 +197,7 @@ void audioFrame(uint16_t buffer_offset)
 			audioOutBuffer[buffer_offset + i] = (int32_t)(theSamples[1] * TWO_TO_23);
 			audioOutBuffer[buffer_offset + i + 1] = (int32_t)(theSamples[0] * TWO_TO_23);
 		}
+#if 0
 		if (!vocodec.loadingPreset)
 		{
 			bufferCleared = 0;
@@ -215,35 +207,9 @@ void audioFrame(uint16_t buffer_offset)
 
 		if (bufferCleared)
 		{
-			numBuffersCleared++;
-			if (numBuffersCleared >= numBuffersToClearOnLoad)
-			{
-				numBuffersCleared = numBuffersToClearOnLoad;
-				if (vocodec.loadingPreset)
-				{
-
-					if (vocodec.previousPreset != PresetNil)
-					{
-						vocodec.freeFunctions[vocodec.previousPreset](&vocodec);
-
-					}
-					setLED_A(&vocodec, 0);
-					setLED_B(&vocodec, 0);
-					setLED_C(&vocodec, 0);
-					setLED_Edit(&vocodec, 0);
-					setLED_1(&vocodec, 0);
-					vocodec.knobPage = 0;
-					resetKnobValues(&vocodec);
-					vocodec.leaf.clearOnAllocation = 0;
-					vocodec.allocFunctions[vocodec.currentPreset](&vocodec);
-					vocodec.previousPreset = vocodec.currentPreset;
-					vocodec.loadingPreset = 0;
-					setFrameMax = 1;
-					freeCheck = vocodec.leaf.allocCount - vocodec.leaf.freeCount;
-				}
-			}
+			//
 		}
-		else numBuffersCleared = 0;
+
 
 		for (int i = 0; i < 4; i++)
 		{
@@ -311,6 +277,7 @@ void audioFrame(uint16_t buffer_offset)
 			frameMax = 0.0f;
 			setFrameMax = 0;
 		}
+#endif
 	}
 /*
 	tempCount6 = DWT->CYCCNT;
@@ -325,6 +292,7 @@ void audioFrame(uint16_t buffer_offset)
 	}
 	CycleCounterTrackMinAndMax(0);
 	*/
+
 }
 
 
@@ -347,7 +315,7 @@ void audioFrame(uint16_t buffer_offset)
 uint32_t audioTick(float* samples)
 {
 	uint32_t clips = 0;
-	if (vocodec.loadingPreset)
+	if (loadingPreset)
 	{
 		samples[0] = 0.0f;
 		samples[1] = 0.0f;
@@ -369,27 +337,30 @@ uint32_t audioTick(float* samples)
 	}
 
 
-	uint16_t current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(LED_envelope[0], LEAF_clip(-1.0f, samples[1], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
-	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, current_env);
-	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(LED_envelope[2], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, current_env);
+	//uint16_t current_env = atoDbTable[(uint32_t)(tEnvelopeFollower_tick(vocodec.LED_envelope[0], LEAF_clip(-1.0f, samples[1], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
+	//__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, current_env);
+	//current_env = atoDbTable[(uint32_t)(tEnvelopeFollower_tick(vocodec.LED_envelope[2], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
+	//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, current_env);
 
-	vocodec.tickFunctions[vocodec.currentPreset](&vocodec, samples);
+	synthSetFreq(mtof(currentMIDINote));
+	samples[0] = synthTick();
+
+	samples[1] = samples[0];
 
 	//now the samples array is output
-	if ((samples[1] >= 0.999999f) || (samples[1] <= -0.999999f))
+	if ((samples[1] > 1.0f) || (samples[1] < -1.0f))
 	{
 		clips |= 4;
 	}
 
-	if ((samples[0] >= 0.999999f) || (samples[0] <= -0.999999f))
+	if ((samples[0] > 1.0f) || (samples[0] < -1.0f))
 	{
 		clips |= 8;
 	}
-	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(LED_envelope[1], LEAF_clip(-1.0f, samples[1], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, current_env);
-	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(LED_envelope[3], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, current_env);
+	//current_env = atoDbTable[(uint32_t)(tEnvelopeFollower_tick(vocodec.LED_envelope[1], LEAF_clip(-1.0f, samples[1], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
+	//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, current_env);
+	//current_env = atoDbTable[(uint32_t)(tEnvelopeFollower_tick(vocodec.LED_envelope[3], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
+	//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, current_env);
 
 	//uint32_t tempCount6 = DWT->CYCCNT;
 	//cycleCountVals[1][1] = tempCount6-tempCount5;
@@ -397,87 +368,46 @@ uint32_t audioTick(float* samples)
 	return clips;
 }
 
-/*
-float audioTickL(float audioIn)
+
+void noteOn(int key, int velocity)
 {
-	float sample = 0.0f;
+	currentMIDINote = key;
+}
+void noteOff(int key, int velocity)
+{
+	;
+}
+void pitchBend( int data)
+{
+	;
+}
+void sustainOn()
 
-	if (loadingPreset) return sample;
-
-	bufferCleared = 0;
-
-
-	if ((audioIn >= 0.999999f) || (audioIn <= -0.999999f))
-	{
-		clipHappened[0] = 1;
-	}
-
-
-	tickFunctions[currentPreset](audioIn);
-	sample = leftOut;
-
-	if ((sample >= 0.999999f) || (sample <= -0.999999f))
-	{
-		clipHappened[2] = 1;
-	}
-
-
-	float current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[2], audioIn)* ATODB_TABLE_SIZE)];
-	 __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, (uint32_t)current_env);
-
-	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[3], leftOut)* ATODB_TABLE_SIZE)];
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, (uint32_t)current_env);
-
-	return sample;
+{
+	;
 }
 
-
-
-float audioTickR(float audioIn)
+void sustainOff()
 {
-	rightIn = audioIn;
-	uint32_t tempCount1, tempCount2;
-
-
-
-
-
-
-	if ((rightIn >= 0.999999f) || (rightIn <= -0.999999f))
-	{
-		clipHappened[1] = 1;
-	}
-
-
-
-	if ((rightOut >= 0.999999f) || (rightOut <= -0.999999f))
-	{
-		clipHappened[3] = 1;
-	}
-
-
-	float current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[2], rightIn)* ATODB_TABLE_SIZE)];
-	 __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, (uint32_t)current_env);
-
-
-		cycleCountVals[3][2] = 0;
-		tempCount1 = DWT->CYCCNT;
-
-
-	current_env = atodbTable[(uint32_t)(tEnvelopeFollower_tick(&LED_envelope[3], rightOut)* ATODB_TABLE_SIZE)];
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, (uint32_t)current_env);
-
-	tempCount2 = DWT->CYCCNT;
-	cycleCountVals[3][1] = tempCount2-tempCount1;
-	CycleCounterTrackMinAndMax(3);
-	return rightOut;
+	;
 }
+void toggleBypass()
+{
+	;
+}
+void toggleSustain()
+{
+	;
+}
+void ctrlInput(int ctrl, int value)
+{
+	;
 
-*/
+}
 
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai)
 {
-	setLED_Edit(&vocodec, 1);
+	//setLED_Edit(&vocodec, 1);
 }
 
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
