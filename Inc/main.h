@@ -90,7 +90,7 @@ extern volatile uint32_t currentPreset;
 #define CYCLE_COUNT_END2 cycleCountVals[2][1] = DWT->CYCCNT - cycleCountVals[2][0];
 #define CYCLE_COUNT_END3 {if (!cycleCountVals[3][2]){cycleCountVals[3][1] = DWT->CYCCNT - cycleCountVals[3][0];} else {cycleCountVals[3][1] = -1;}}
 
-
+#define MAX_NUM_PRESETS 50
 
 
 float randomNumber(void);

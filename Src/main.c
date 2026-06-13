@@ -75,6 +75,37 @@ float cycleCountAverages[4][3];
 
 volatile uint32_t loadingPreset = 0;
 volatile uint32_t currentPreset = 0;
+volatile uint32_t prevPreset = 0;
+volatile uint32_t diskBusy = 1;
+
+volatile uint32_t loadFailed = 0;
+
+FILINFO fno;
+FIL fdst;
+DIR dir;
+uint8_t buffer[4096] __ATTR_RAM_D2;
+volatile uint16_t bufferPos = 0;
+FRESULT res;
+const TCHAR path = 0;
+volatile uint8_t currentActivePreset = 127;//
+volatile uint8_t presetName[14];
+volatile uint8_t presetNamesArray[MAX_NUM_PRESETS][14]__ATTR_RAM_D2;
+volatile uint8_t presetNumberToLoad = 0;
+volatile uint32_t presetWaitingToParse = 0;
+volatile uint32_t presetWaitingToWrite = 0;
+volatile uint32_t presetWaitingToLoad = 0;
+
+
+volatile uint8_t macroNamesArray[MAX_NUM_PRESETS][20][10]__ATTR_RAM_D2;
+uint8_t whichMacroToSendName = 0;
+
+
+
+#define SCALE_TABLE_SIZE 2048
+float resTable[SCALE_TABLE_SIZE];
+float envTimeTable[SCALE_TABLE_SIZE];
+float lfoRateTable[SCALE_TABLE_SIZE];
+
 
 /* USER CODE END PV */
 
@@ -88,7 +119,7 @@ void MX_USB_HOST_Process(void);
 void MPU_Conf(void);
 void SDRAM_Initialization_sequence(void);
 static void CycleCounterInit( void );
-
+void getPresetNamesFromSDCard(void);
 
 
 #define testDataSize 32
@@ -277,7 +308,7 @@ int main(void)
   {
   	  currentPreset = 0; //if the data is messed up for some reason, just initialize at the first preset (preset 0)
   }
-
+  getPresetNamesFromSDCard();
   //OLED_init(&vocodec, &hi2c4);
 
   //OLED_writePreset(&vocodec);
@@ -295,15 +326,6 @@ int main(void)
 	MIDI_Application();
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
-
-    /* USER CODE BEGIN 3 */
-    //OLED_process(&vocodec);
-    /*
- 	if (hi2c4.State == HAL_I2C_STATE_READY)
-	{
-	  OLED_draw(&vocodec);
-	}
-	*/
 
   }
   /* USER CODE END 3 */
@@ -568,16 +590,26 @@ void SDRAM_Initialization_sequence(void)
 
 }
 
+// Simple LCG random number generator — no stdlib dependency.
+// Returns a value in [0, 1).
+static uint32_t _leaf_lcg_state = 1664525u;
 float randomNumber(void) {
-
-	uint32_t rand;
-	HAL_RNG_GenerateRandomNumber(&hrng, &rand);
-	float num = (float)rand * INV_TWO_TO_32;
-	return num;
+    _leaf_lcg_state = _leaf_lcg_state * 1664525u + 1013904223u;
+    return (_leaf_lcg_state >> 8) * (1.0f / 16777216.0f);
 }
 
 
+uint8_t BSP_SD_IsDetected(void)
+{
+  __IO uint8_t status = SD_PRESENT;
 
+  //if (BSP_PlatformIsDetected() == 0x0)
+  //{
+  //  status = SD_NOT_PRESENT;
+  //}
+
+  return status;
+}
 
 volatile uint32_t r0;
 volatile uint32_t r1;
@@ -741,6 +773,173 @@ void CycleCounterAverage( int whichCount)
 
 }
 
+void getPresetNamesFromSDCard(void)
+{
+	if(BSP_SD_IsDetected())
+	{
+		for (int i = 0; i < AUDIO_BUFFER_SIZE; i+=2)
+		{
+			audioOutBuffer[i] = 0;
+			audioOutBuffer[i + 1] = 0;
+		}
+		diskBusy = 1;
+
+		loadFailed = 0;
+		//HAL_Delay(300);
+
+		disk_initialize(0);
+
+	    disk_status(0);
+
+		if(f_mount(&SDFatFS,  SDPath, 1) == FR_OK)
+		{
+
+			FRESULT res;
+			/* Start to search for preset files */
+
+
+			//turn the integer value into a 2 digit string
+			char charBuf[10];
+			char finalString[10];
+
+			for(int i = 0; i < MAX_NUM_PRESETS; i++)
+			{
+				itoa(i, charBuf, 10);
+				int len = ((strlen(charBuf)));
+				if (len == 1)
+				{
+					finalString[2] = charBuf[1];
+					finalString[1] = charBuf[0];
+					finalString[0] = '0';
+					strcat(finalString, "*.ebp");
+				}
+
+				else
+				{
+					strcat(charBuf, "*.ebp");
+					strcpy(finalString, charBuf);
+				}
+
+
+				res = f_findfirst(&dir, &fno, SDPath, finalString);
+				unsigned int bytesRead;
+				if(res == FR_OK)
+				{
+					if(f_open(&SDFile, fno.fname, FA_OPEN_ALWAYS | FA_READ) == FR_OK)
+					{
+						f_read(&SDFile, &buffer, f_size(&SDFile), &bytesRead);
+						f_close(&SDFile);
+						uint16_t bufferIndex = 0;
+						//skip the first 4 bytes if there is a version number stored in the preset
+						if (buffer[bufferIndex] == 17)
+						{
+							bufferIndex = 4;
+						}
+						//14-byte name
+						for (int j = 0; j < 14; j++)
+						{
+							presetNamesArray[i][j] = buffer[bufferIndex];
+							bufferIndex++;
+						}
+						//9-byte macros
+						for (int j = 0; j < 8; j++)
+						{
+							for (int k = 0; k < 9; k++)
+							{
+								macroNamesArray[i][j][k] = buffer[bufferIndex];
+								bufferIndex++;
+							}
+						}
+						//10-byte macros
+						for (int j = 0; j < 4; j++)
+						{
+							for (int k = 0; k < 10; k++)
+							{
+								macroNamesArray[i][j+8][k] = buffer[bufferIndex];
+								bufferIndex++;
+							}
+						}
+					}
+				}
+			}
+
+		}
+
+	}
+	diskBusy = 0;
+	return;
+}
+
+static int checkForSDCardPreset(uint8_t numberToLoad)
+{
+	int found = 0;
+	prevPreset = numberToLoad;
+	currentPreset = numberToLoad;
+	//HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
+	if(BSP_SD_IsDetected())
+	{
+		for (int i = 0; i < AUDIO_BUFFER_SIZE; i+=2)
+		{
+			audioOutBuffer[i] = 0;
+			audioOutBuffer[i + 1] = 0;
+		}
+		diskBusy = 1;
+		loadFailed = 0;
+		//HAL_Delay(300);
+		presetWaitingToLoad = 0;
+		disk_initialize(0);
+
+	    disk_status(0);
+
+		if(f_mount(&SDFatFS,  SDPath, 1) == FR_OK)
+		{
+
+			FRESULT res;
+			/* Start to search for preset files */
+			char charBuf[10];
+			char finalString[10];
+
+			//turn the integer value into a 2 digit string
+
+			itoa(numberToLoad, charBuf, 10);
+			int len = ((strlen(charBuf)));
+			if (len == 1)
+			{
+				finalString[2] = charBuf[1];
+				finalString[1] = charBuf[0];
+				finalString[0] = '0';
+				strcat(finalString, "*.ebp");
+			}
+
+			else
+			{
+				strcat(charBuf, "*.ebp");
+				strcpy(finalString, charBuf);
+			}
+
+			res = f_findfirst(&dir, &fno, SDPath, finalString);
+			unsigned int  bytesRead;
+			if(res == FR_OK)
+			{
+				if(f_open(&SDFile, fno.fname, FA_OPEN_ALWAYS | FA_READ) == FR_OK)
+				{
+					f_read(&SDFile, &buffer, f_size(&SDFile), &bytesRead);
+					presetWaitingToParse = bytesRead;
+					f_close(&SDFile);
+					found = 1;
+				}
+			}
+		}
+	}
+	if (!found)
+	{
+		loadFailed = 1;
+	}
+
+	diskBusy = 0;
+	//HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
+	return found;
+}
 
 
 /* USER CODE END 4 */
@@ -803,7 +1002,6 @@ void MPU_Config(void)
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 
 }
-uint32_t adc_error = 0;
 
 /**
   * @brief  This function is executed in case of error occurrence.
