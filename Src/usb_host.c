@@ -32,7 +32,7 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 USBH_HandleTypeDef hUsbHostFS __ATTR_RAM_D2_DMA;
-
+ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 /* USER CODE END PV */
 
 /* USER CODE BEGIN PFP */
@@ -41,8 +41,7 @@ USBH_HandleTypeDef hUsbHostFS __ATTR_RAM_D2_DMA;
 /* USER CODE END PFP */
 
 /* USB Host core handle declaration */
-//USBH_HandleTypeDef hUsbHostFS;
-ApplicationTypeDef Appli_state = APPLICATION_IDLE;
+
 
 /*
  * -- Insert your variables declaration here --
@@ -78,7 +77,7 @@ void MX_USB_HOST_Init(void)
   {
     Error_Handler();
   }
-  if (USBH_RegisterClass(&hUsbHostFS, USBH_MIDI_CLASS) != USBH_OK)
+  if (USBH_RegisterClass(&hUsbHostFS, USBH_AUDIO_CLASS) != USBH_OK)
   {
     Error_Handler();
   }

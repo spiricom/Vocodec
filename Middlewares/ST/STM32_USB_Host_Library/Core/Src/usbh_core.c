@@ -410,7 +410,7 @@ USBH_StatusTypeDef USBH_Start(USBH_HandleTypeDef *phost)
   (void)USBH_LL_Start(phost);
 
   /* Activate VBUS on the port */
-  (void)USBH_LL_DriverVBUS(phost, 1);
+  (void)USBH_LL_DriverVBUS(phost, 0);
 
   return USBH_OK;
 }
@@ -682,7 +682,6 @@ USBH_StatusTypeDef USBH_Process(USBH_HandleTypeDef *phost)
 			  }
           }
         }
-
         if (phost->pActiveClass != NULL)
         {
           if (phost->pActiveClass->Init(phost) == USBH_OK)
