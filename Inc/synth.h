@@ -31,6 +31,7 @@ extern uint8_t oscToTick;
 extern uint8_t filterToTick;
 extern uint32_t overSampled;
 extern uint8_t numEffectToTick;
+extern volatile uint16_t stringInputs[NUM_STRINGS];
 void audioFrameSynth(uint16_t buffer_offset);
 float audioTickSynth();
 void audioInitSynth();

@@ -180,14 +180,36 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 		tExpSmooth_init(&adc[i],0.0f, 0.3f,&leaf);
 	}
 
+	for (int i = 0; i < 20; i++)
+		{
+			tExpSmooth_init(&knobSmoothers[i],0.0f,0.001f, &leaf);
+		}
+		for (int i = 0; i < 10; i++)
+		{
+			//tExpSmooth_init(&pedalSmoothers[i],0.0f,0.001f,&leaf);
+		}
 
-	LEAF_generate_atodbPositiveClipped(atoDbTable, -120.0f, 380.f, ATODB_TABLE_SIZE);
+	LEAF_generate_exp(decayExpBuffer, 0.001f, 0.0f, 1.0f, -0.0008f, DECAY_EXP_BUFFER_SIZE); // exponential decay buffer falling from 1 to 0
+		decayExpBufferSizeMinusOne = DECAY_EXP_BUFFER_SIZE - 1;
 
+		LEAF_generate_atodb(atoDbTable, ATODB_TABLE_SIZE, 0.00001f, 1.0f);
+		LEAF_generate_dbtoa(dbtoATable, DBTOA_TABLE_SIZE, -90.0f, 50.0f);
+
+		atodbTableScalar = ATODB_TABLE_SIZE_MINUS_ONE/(1.0f-0.00001f);
+		atodbTableOffset = 0.00001f * atodbTableScalar;
+		dbtoaTableScalar = DBTOA_TABLE_SIZE_MINUS_ONE/(50.0f+90.0f);
+		dbtoaTableOffset = -90.0f * dbtoaTableScalar;
+
+		LEAF_generate_mtof(mtofTable, -163.8375f, 163.8375f,  MTOF_TABLE_SIZE); //mtof table for fast calc
 	HAL_Delay(10);
+
+
+
 
 	for (int i = 0; i < AUDIO_BUFFER_SIZE; i++)
 	{
-		audioOutBuffer[i] = 0;
+
+			audioOutBuffer[ i] = (int32_t)(0.0f * TWO_TO_23);
 	}
 	audioInitSynth();
 	audioSwitchToSynth();
@@ -461,10 +483,14 @@ uint32_t audioTick(float* samples)
 void noteOn(int key, int velocity)
 {
 	currentMIDINote = key;
+	stringInputs[0] = velocity * 512;
+	stringMIDIPitches[0] = key;
+	newPluck = 1;
 }
 void noteOff(int key, int velocity)
 {
-	;
+	stringInputs[0] = 0;
+	newPluck = 1;
 }
 void pitchBend( int data)
 {
