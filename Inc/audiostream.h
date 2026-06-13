@@ -30,6 +30,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7xx_hal.h"
+#include "parameters.h"
 #include "leaf.h"
 #include "main.h"
 
@@ -81,7 +82,8 @@ typedef enum BOOL {
 #define SAMPLE_RATE_DIV_PARAMS SAMPLE_RATE / 3
 #define SAMPLE_RATE_DIV_PARAMS_MS (SAMPLE_RATE_DIV_PARAMS / 1000.f)
 #define INV_SR_DIV_PARAMS_MS 1.f/SAMPLE_RATE_DIV_PARAMS_MS
-
+#define EXP_BUFFER_SIZE 2048
+#define DECAY_EXP_BUFFER_SIZE 4096
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn);
@@ -99,6 +101,38 @@ void sustainOff();
 void toggleBypass();
 void toggleSustain();
 void ctrlInput(int ctrl, int value);
+float mtofTableLookup(float tempMIDI);
+float dbToATableLookup(float in);
+
+extern float decayExpBuffer[DECAY_EXP_BUFFER_SIZE];
+extern float decayExpBufferSizeMinusOne;
+extern volatile uint8_t knobFrozen[20];
+extern tExpSmooth knobSmoothers[20];
+extern uint32_t resetStringInputs;
+
+extern float sourceValues[NUM_SOURCES][NUM_STRINGS_PER_BOARD];
+extern uint8_t lfoOn[NUM_LFOS];
+extern uint8_t envOn[NUM_ENV];
+extern uint8_t oscOn[NUM_OSC];
+extern uint8_t noiseOn;
+extern float oscAmpMult;
+extern float oscAmpMultArray[4];
+extern float frameLoadPercentage;
+extern float frameMult;
+extern uint32_t frameLoadOverCount;
+extern float masterVolFromBrain;
+extern float masterVolFromBrainForSynth;
+extern float volumePedal;
+extern volatile float stringMIDIPitches[NUM_STRINGS_PER_BOARD];
+extern float knobScaled[20];
+extern volatile uint8_t knobFrozen[20];
+extern float pedalScaled[10];
+extern volatile uint32_t newPluck;
+
+extern float mtofTable[MTOF_TABLE_SIZE]__ATTR_RAM_D2;
+
+extern float atoDbTable[ATODB_TABLE_SIZE]__ATTR_RAM_D2;
+extern float dbtoATable[DBTOA_TABLE_SIZE]__ATTR_RAM_D2;
 
 #endif /* __AUDIOSTREAM_H */
 

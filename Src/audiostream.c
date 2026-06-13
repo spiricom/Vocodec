@@ -47,13 +47,24 @@ tOversampler downSampler;
 
 BOOL bufferCleared = TRUE;
 
-float masterVolFromBrainForSynth = 0.25f;
 
 
 float mtofTable[MTOF_TABLE_SIZE]__ATTR_RAM_D2;
 
 float atoDbTable[ATODB_TABLE_SIZE]__ATTR_RAM_D2;
 float dbtoATable[DBTOA_TABLE_SIZE]__ATTR_RAM_D2;
+
+
+float atodbTableScalar;
+float atodbTableOffset;
+float dbtoaTableScalar;
+float dbtoaTableOffset;
+
+
+volatile uint8_t knobFrozen[20];
+tExpSmooth knobSmoothers[20];
+uint32_t resetStringInputs = 0;
+
 
 void audioFrame(uint16_t buffer_offset);
 uint32_t audioTick(float* samples);
@@ -65,10 +76,31 @@ uint32_t clipHappened[4] = {0,0,0,0};
 
 uint8_t currentMIDINote = 60;
 
+union breakFloat{
+	float f;
+	uint8_t b[4];
+};
+//envelope tables
+float decayExpBuffer[DECAY_EXP_BUFFER_SIZE];
+float decayExpBufferSizeMinusOne;
+
 
 LEAF leaf;
 tExpSmooth adc[6];
+float frameLoadPercentage = 0.0f;
 float frameMult = 1.0f / (AUDIO_FRAME_SIZE * 10000.0f);
+uint32_t frameLoadOverCount = 0;
+
+
+float volumePedal  = 0.0f;
+float masterVolFromBrain = 0.5f;
+float masterVolFromBrainForSynth = 0.25f;
+
+volatile float stringMIDIPitches[NUM_STRINGS_PER_BOARD];
+float knobScaled[20];
+volatile uint8_t knobFrozen[20];
+float pedalScaled[10];
+
 /**********************************************/
 
 LEAFErrorType errorTypes = 0;
@@ -76,6 +108,55 @@ LEAFErrorType errorTypes = 0;
 void LEAF_myError(LEAF* const, LEAFErrorType theError)
 {
 	errorTypes = theError;
+}static float FORCE_INLINE aToDbTableLookup(float in)
+{
+    in = fastabsf(in);
+    float floatIndex = LEAF_clip (0, (in * atodbTableScalar) - atodbTableOffset, ATODB_TABLE_SIZE_MINUS_ONE);
+    uint32_t inAmpIndex = (uint32_t) floatIndex;
+    uint32_t inAmpIndexPlusOne = inAmpIndex + 1;
+    if (inAmpIndexPlusOne > ATODB_TABLE_SIZE_MINUS_ONE)
+    {
+    	inAmpIndexPlusOne = ATODB_TABLE_SIZE_MINUS_ONE;
+    }
+    float alpha = floatIndex - (float)inAmpIndex;
+    return ((atoDbTable[inAmpIndex] * (1.0f - alpha)) + (atoDbTable[inAmpIndexPlusOne] * alpha));
+}
+
+static float FORCE_INLINE aToDbTableLookupFast(float in)
+{
+    in = fastabsf(in);
+    uint32_t inAmpIndex = LEAF_clip (0, (in * atodbTableScalar) - atodbTableOffset, ATODB_TABLE_SIZE_MINUS_ONE);
+    return atoDbTable[inAmpIndex];
+}
+
+float FORCE_INLINE dbToATableLookup(float in)
+{
+    float floatIndex = LEAF_clip (0, (in * dbtoaTableScalar) - dbtoaTableOffset, DBTOA_TABLE_SIZE_MINUS_ONE);
+    uint32_t inDBIndex = (uint32_t) floatIndex;
+    uint32_t inDBIndexPlusOne = inDBIndex + 1;
+    if (inDBIndexPlusOne > DBTOA_TABLE_SIZE_MINUS_ONE)
+    {
+    	inDBIndexPlusOne = DBTOA_TABLE_SIZE_MINUS_ONE;
+    }
+    float alpha = floatIndex - (float)inDBIndex;
+    return ((dbtoATable[inDBIndex] * (1.0f - alpha)) + (dbtoATable[inDBIndexPlusOne] * alpha));
+}
+
+static float FORCE_INLINE dbToATableLookupFast(float in)
+{
+    uint32_t inDBIndex = LEAF_clip (0, (in * dbtoaTableScalar) - dbtoaTableOffset, DBTOA_TABLE_SIZE_MINUS_ONE);
+    return dbtoATable[inDBIndex];
+}
+
+
+float FORCE_INLINE mtofTableLookup(float tempMIDI)
+{
+	float tempIndexF = ((LEAF_clip(-163.0f, tempMIDI, 163.0f) * 100.0f) + 16384.0f);
+	int tempIndexI = (int)tempIndexF;
+	tempIndexF = tempIndexF -tempIndexI;
+	float freqToSmooth1 = mtofTable[tempIndexI & 32767];
+	float freqToSmooth2 = mtofTable[(tempIndexI + 1) & 32767];
+	return ((freqToSmooth1 * (1.0f - tempIndexF)) + (freqToSmooth2 * tempIndexF));
 }
 
 void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn)
@@ -90,7 +171,7 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 
 	tMempool_init (&largePool, large_memory, LARGE_MEM_SIZE, &leaf);
 
-	synthInit();
+	//synthInit();
 
 	//ramps to smooth the knobs
 
@@ -108,7 +189,8 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 	{
 		audioOutBuffer[i] = 0;
 	}
-
+	audioInitSynth();
+	audioSwitchToSynth();
 	HAL_Delay(1);
 
 	// set up the I2S driver to send audio data to the codec (and retrieve input as well)
@@ -168,6 +250,11 @@ void audioFrame(uint16_t buffer_offset)
 		{
 			ProcessReceivedMidiDatas();
 		}
+		if (presetReady)
+		{
+			audioFrameSynth(buffer_offset);
+		}
+
 #if 0
 
 		if (!vocodec.loadingPreset)
@@ -186,7 +273,7 @@ void audioFrame(uint16_t buffer_offset)
 		bufferCleared = TRUE;
 
 
-#endif
+
 		for (i = 0; i < (HALF_BUFFER_SIZE); i += 2)
 		{
 			float theSamples[2];
@@ -197,7 +284,7 @@ void audioFrame(uint16_t buffer_offset)
 			audioOutBuffer[buffer_offset + i] = (int32_t)(theSamples[1] * TWO_TO_23);
 			audioOutBuffer[buffer_offset + i + 1] = (int32_t)(theSamples[0] * TWO_TO_23);
 		}
-#if 0
+
 		if (!vocodec.loadingPreset)
 		{
 			bufferCleared = 0;
@@ -278,6 +365,8 @@ void audioFrame(uint16_t buffer_offset)
 			setFrameMax = 0;
 		}
 #endif
+
+
 	}
 /*
 	tempCount6 = DWT->CYCCNT;
@@ -342,8 +431,8 @@ uint32_t audioTick(float* samples)
 	//current_env = atoDbTable[(uint32_t)(tEnvelopeFollower_tick(vocodec.LED_envelope[2], LEAF_clip(-1.0f, samples[0], 1.0f)) * ATODB_TABLE_SIZE_MINUS_ONE)];
 	//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, current_env);
 
-	synthSetFreq(mtof(currentMIDINote));
-	samples[0] = synthTick();
+	//synthSetFreq(mtof(currentMIDINote));
+	//samples[0] = synthTick();
 
 	samples[1] = samples[0];
 

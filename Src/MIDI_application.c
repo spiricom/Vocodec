@@ -38,7 +38,7 @@ int USB_message[4];
  */
 void MIDI_Application(void)
 {
-	if(Appli_state == APPLICATION_READY)
+	if (Appli_state == APPLICATION_READY)
 	{
 		USBH_MIDI_Receive(&hUsbHostFS, MIDI_RX_Buffer[MIDI_write_buffer], RX_BUFF_SIZE); // just once at the beginning, start the first reception
 		Appli_state = APPLICATION_RUNNING;

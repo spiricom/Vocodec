@@ -29,6 +29,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7xx_hal.h"
+#include "parameters.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -53,8 +54,9 @@ extern "C" {
 #define __ATTR_RAM_D3	__attribute__ ((section(".sram3_bss"))) __attribute__ ((aligned (32)))
 #define __ATTR_USER_FLASH	__attribute__ ((section(".userflash"))) __attribute__ ((aligned (32)))
 #define __ATTR_SDRAM	__attribute__ ((section(".sdram_bss"))) __attribute__ ((aligned (32)))
-#define __ATTR_ITCMRAM	__attribute__ ((section(".itcmram"))) __attribute__ ((aligned (32)))
-
+//#define __ATTR_ITCMRAM	__attribute__ ((section(".itcmram"))) __attribute__ ((aligned (32)))
+#define __ATTR_ITCMRAM
+# define FORCE_INLINE __attribute__((always_inline)) inline
 
 #define NUM_ADC_CHANNELS 6
 
@@ -90,9 +92,21 @@ extern volatile uint32_t currentPreset;
 #define CYCLE_COUNT_END2 cycleCountVals[2][1] = DWT->CYCCNT - cycleCountVals[2][0];
 #define CYCLE_COUNT_END3 {if (!cycleCountVals[3][2]){cycleCountVals[3][1] = DWT->CYCCNT - cycleCountVals[3][0];} else {cycleCountVals[3][1] = -1;}}
 
-#define MAX_NUM_PRESETS 50
-
-
+#define MAX_NUM_PRESETS 64
+extern float midiKeyDivisor;
+extern float midiKeySubtractor;
+extern uint8_t effectsActive[4];
+extern volatile uint8_t currentActivePreset;
+#define NUM_PARAMS numParams
+#define MAX_NUM_MAPPINGS 32
+extern param params[NUM_PARAMS];
+extern uint_fast8_t knobTicked[12];
+extern uint_fast8_t pedalTicked[10];
+extern uint8_t fxPre;
+extern volatile float audioMasterLevel;
+extern uint8_t numMappings;
+extern mapping mappings[MAX_NUM_MAPPINGS];
+extern volatile uint32_t presetReady;
 float randomNumber(void);
 static void HardFault_Handler( void ) __attribute__( ( naked ) );
 void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress );
