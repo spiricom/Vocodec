@@ -209,7 +209,7 @@ void audioInitSynth()
 		}
 
 
-		tExpSmooth_init(&pitchSmoother, 0.0f, 0.001f, &leaf);
+		tExpSmooth_init(&pitchSmoother, 0.0f, 0.01f, &leaf);
 		tExpSmooth_setValAndDest(pitchSmoother, 0.5f);
 		tExpSmooth_init(&volumeSmoother, 0.0f, 0.001f, &leaf);
 		tExpSmooth_setValAndDest(volumeSmoother, 1.0f);
@@ -356,10 +356,11 @@ void __ATTR_ITCMRAM audioFrameSynth(uint16_t buffer_offset)
 	{
 		for (int i = 0; i < numStringsThisBoard; i++)
 		{
-			if ((previousStringInputs[i] == 0) && (stringInputs[i] > 0))
+			if (((previousStringInputs[i] == 0) && (stringInputs[i] > 0)) || retrigMode)
 			{
 				float amplitz = stringInputs[i] * 0.000015259021897f;
 				stringOctave[i] = octave;
+				retrigHappened = 1;
 				//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET);
 
 				for (int v = 0; v < NUM_ENV; v++)
@@ -738,9 +739,11 @@ void __ATTR_ITCMRAM oscillator_tick(float note, int string)
 		oscOuts[1][i][string] = 0.0f;
 	}
 	//to avoid big glissandos when intentionally jumping like an octave switch
-	if ((note > prevNote + 3.0f) || (note < prevNote - 3.0f))
+	//if ((note > prevNote + 3.0f) || (note < prevNote - 3.0f))
+	if (retrigHappened)
 	{
 		tExpSmooth_setValAndDest(pitchSmoother, note);
+		retrigHappened = 0;
 	}
 	else
 	{

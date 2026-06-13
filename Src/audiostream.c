@@ -47,7 +47,8 @@ tOversampler downSampler;
 
 BOOL bufferCleared = TRUE;
 
-
+uint32_t retrigMode = 0;
+uint32_t retrigHappened = 0;
 
 float mtofTable[MTOF_TABLE_SIZE]__ATTR_RAM_D2;
 
@@ -60,7 +61,7 @@ float atodbTableOffset;
 float dbtoaTableScalar;
 float dbtoaTableOffset;
 
-
+uint32_t ccIn[8];
 volatile uint8_t knobFrozen[20];
 tExpSmooth knobSmoothers[20];
 uint32_t resetStringInputs = 0;
@@ -100,6 +101,8 @@ volatile float stringMIDIPitches[NUM_STRINGS_PER_BOARD];
 float knobScaled[20];
 volatile uint8_t knobFrozen[20];
 float pedalScaled[10];
+
+tSimplePoly myPoly;
 
 /**********************************************/
 
@@ -159,6 +162,58 @@ float FORCE_INLINE mtofTableLookup(float tempMIDI)
 	return ((freqToSmooth1 * (1.0f - tempIndexF)) + (freqToSmooth2 * tempIndexF));
 }
 
+void processKnobs()
+{
+	for (int i = 0; i < 8; i++)
+	{
+		int32_t newByte = ccIn[i] << 1;
+
+		if (prevKnobByte[i] == 256)
+		{
+			prevKnobByte[i] = newByte;
+		}
+		else if (knobFrozen[i])
+		{
+			if ((newByte > (prevKnobByte[i] + 3)) || (newByte < (prevKnobByte[i] - 3)))
+			{
+				knobFrozen[i] = 0;
+				prevKnobByte[i] = newByte;
+			}
+		}
+		else
+		{
+			tExpSmooth_setDest(knobSmoothers[i], (newByte * 0.003921568627451f)); //scaled 0.0 to 1.0
+			prevKnobByte[i] = newByte;
+		}
+
+	}
+
+	for (int i = 8; i < 12; i++)
+	{
+		int32_t newByte = ADC_values[i-8] >> 8;
+		if (prevKnobByte[i] == 256)
+		{
+			prevKnobByte[i] = newByte;
+		}
+		else if (knobFrozen[i])
+		{
+			if ((newByte > (prevKnobByte[i] + 3)) || (newByte < (prevKnobByte[i] - 3)))
+			{
+				knobFrozen[i] = 0;
+				prevKnobByte[i] = newByte;
+			}
+
+		}
+		else
+		{
+			tExpSmooth_setDest(knobSmoothers[i], (newByte * 0.003921568627451f)); //scaled 0.0 to 1.0
+			prevKnobByte[i] = newByte;
+		}
+
+	}
+
+}
+
 void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn)
 {
 	// Initialize LEAF.
@@ -188,7 +243,7 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 		{
 			//tExpSmooth_init(&pedalSmoothers[i],0.0f,0.001f,&leaf);
 		}
-
+		tSimplePoly_init(&myPoly, 1, &leaf);
 	LEAF_generate_exp(decayExpBuffer, 0.001f, 0.0f, 1.0f, -0.0008f, DECAY_EXP_BUFFER_SIZE); // exponential decay buffer falling from 1 to 0
 		decayExpBufferSizeMinusOne = DECAY_EXP_BUFFER_SIZE - 1;
 
@@ -274,6 +329,8 @@ void audioFrame(uint16_t buffer_offset)
 		}
 		if (presetReady)
 		{
+			//cycleCountVals[1][2] = 0;
+			processKnobs();
 			audioFrameSynth(buffer_offset);
 		}
 
@@ -434,7 +491,6 @@ uint32_t audioTick(float* samples)
 	}
 	//uint32_t tempCount5 = DWT->CYCCNT;
 
-	//cycleCountVals[1][2] = 0;
 
 
 	if ((samples[1] >= 0.999999f) || (samples[1] <= -0.999999f))
@@ -483,13 +539,29 @@ uint32_t audioTick(float* samples)
 void noteOn(int key, int velocity)
 {
 	currentMIDINote = key;
-	stringInputs[0] = velocity * 512;
-	stringMIDIPitches[0] = key;
+	if (velocity > 0)
+	{
+		tSimplePoly_noteOn(myPoly, key, velocity);
+	}
+	else
+	{
+		tSimplePoly_noteOff(myPoly, key);
+	}
+
+
+
+	stringInputs[0] = tSimplePoly_getVelocity(myPoly, 0) * 512;
+	stringMIDIPitches[0] = tSimplePoly_getPitch(myPoly, 0);
 	newPluck = 1;
 }
 void noteOff(int key, int velocity)
 {
-	stringInputs[0] = 0;
+
+	tSimplePoly_noteOff(myPoly, key);
+
+
+	stringInputs[0] = tSimplePoly_getVelocity(myPoly, 0) * 512;
+	stringMIDIPitches[0] = tSimplePoly_getPitch(myPoly, 0);
 	newPluck = 1;
 }
 void pitchBend( int data)
@@ -514,9 +586,37 @@ void toggleSustain()
 {
 	;
 }
+
 void ctrlInput(int ctrl, int value)
 {
-	;
+	switch(ctrl)
+	{
+		case 74:
+			ccIn[0] = value;
+			break;
+		case 71:
+			ccIn[1] = value;
+			break;
+		case 5:
+			ccIn[2] = value;
+			break;
+		case 84:
+			ccIn[3] = value;
+			break;
+		case 78:
+			ccIn[4] = value;
+			break;
+		case 76:
+			ccIn[5] = value;
+			break;
+		case 77:
+			ccIn[6] = value;
+			break;
+		case 10:
+			ccIn[7] = value;
+			break;
+
+	}
 
 }
 

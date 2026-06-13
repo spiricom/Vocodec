@@ -35,7 +35,7 @@
 #include "main.h"
 
 
-#define AUDIO_FRAME_SIZE      64
+#define AUDIO_FRAME_SIZE      32
 #define HALF_BUFFER_SIZE      AUDIO_FRAME_SIZE * 2 //number of samples per half of the "double-buffer" (twice the audio frame size because there are interleaved samples for both left and right channels)
 #define AUDIO_BUFFER_SIZE     AUDIO_FRAME_SIZE * 4 //number of samples in the whole data structure (four times the audio frame size because of stereo and also double-buffering/ping-ponging)
 #define SMALL_MEM_SIZE 60000
@@ -54,6 +54,8 @@ extern int32_t audioInBuffer[AUDIO_BUFFER_SIZE];
 extern uint32_t codecReady;
 //extern float audioDisplayBuffer[128];
 extern uint32_t displayBufferIndex;
+extern uint32_t retrigMode;
+extern uint32_t retrigHappened;
 extern char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
 /* Exported types ------------------------------------------------------------*/
 typedef enum

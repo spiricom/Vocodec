@@ -107,6 +107,7 @@ extern volatile float audioMasterLevel;
 extern uint8_t numMappings;
 extern mapping mappings[MAX_NUM_MAPPINGS];
 extern volatile uint32_t presetReady;
+extern int32_t volatile prevKnobByte[20];
 float randomNumber(void);
 static void HardFault_Handler( void ) __attribute__( ( naked ) );
 void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress );
