@@ -921,6 +921,7 @@ void getPresetNamesFromSDCard(void)
 
 static int checkForSDCardPreset(uint8_t numberToLoad)
 {
+
 	int found = 0;
 	prevPreset = numberToLoad;
 	currentPreset = numberToLoad;
@@ -932,6 +933,7 @@ static int checkForSDCardPreset(uint8_t numberToLoad)
 			audioOutBuffer[i] = 0;
 			audioOutBuffer[i + 1] = 0;
 		}
+		__disable_irq();
 		diskBusy = 1;
 		loadFailed = 0;
 		//HAL_Delay(300);
@@ -986,6 +988,7 @@ static int checkForSDCardPreset(uint8_t numberToLoad)
 	}
 
 	diskBusy = 0;
+	__enable_irq();
 	//HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
 	return found;
 }
@@ -2222,7 +2225,7 @@ void  parsePreset(int size, int presetNumber)
 			}
 		}
 	}
-	audioSwitchToSynth();
+
 	presetWaitingToParse = 0;
 	currentActivePreset = presetNumber;
 	audioMasterLevel = 1.0f;

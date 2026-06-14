@@ -16,6 +16,7 @@
 
 #include "main.h"
 #include "audiostream.h"
+#include "ui.h"
 uint8_t MIDI_RX_Buffer[2][RX_BUFF_SIZE] __ATTR_RAM_D2_DMA; // MIDI reception buffer
 int MIDI_read_buffer = 0;
 int MIDI_write_buffer = 1;
@@ -42,7 +43,7 @@ void MIDI_Application(void)
 	{
 		USBH_MIDI_Receive(&hUsbHostFS, MIDI_RX_Buffer[MIDI_write_buffer], RX_BUFF_SIZE); // just once at the beginning, start the first reception
 		Appli_state = APPLICATION_RUNNING;
-		//setLED_USB(&vocodec, 1);
+		setLED_USB(1);
 
 	}
 	if(Appli_state == APPLICATION_RUNNING)
@@ -53,7 +54,7 @@ void MIDI_Application(void)
 	if(Appli_state == APPLICATION_DISCONNECT)
 	{
 		Appli_state = APPLICATION_IDLE;
-		//setLED_USB(&vocodec, 0);
+		setLED_USB(0);
 		USBH_MIDI_Stop(&hUsbHostFS);
 		HAL_Delay(10);
 

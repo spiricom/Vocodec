@@ -98,6 +98,7 @@ float masterVolFromBrain = 0.5f;
 float masterVolFromBrainForSynth = 0.25f;
 
 volatile float stringMIDIPitches[NUM_STRINGS_PER_BOARD];
+volatile float prevStringMIDIPitches[NUM_STRINGS_PER_BOARD];
 float knobScaled[20];
 volatile uint8_t knobFrozen[20];
 float pedalScaled[10];
@@ -213,6 +214,8 @@ void processKnobs()
 	}
 
 }
+
+
 
 void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTypeDef* hsaiIn)
 {
@@ -331,6 +334,7 @@ void audioFrame(uint16_t buffer_offset)
 		{
 			//cycleCountVals[1][2] = 0;
 			processKnobs();
+			processButtons();
 			audioFrameSynth(buffer_offset);
 		}
 
@@ -553,6 +557,7 @@ void noteOn(int key, int velocity)
 	stringInputs[0] = tSimplePoly_getVelocity(myPoly, 0) * 512;
 	stringMIDIPitches[0] = tSimplePoly_getPitch(myPoly, 0);
 	newPluck = 1;
+	prevStringMIDIPitches[0] = stringMIDIPitches[0];
 }
 void noteOff(int key, int velocity)
 {
@@ -562,7 +567,11 @@ void noteOff(int key, int velocity)
 
 	stringInputs[0] = tSimplePoly_getVelocity(myPoly, 0) * 512;
 	stringMIDIPitches[0] = tSimplePoly_getPitch(myPoly, 0);
-	newPluck = 1;
+	if ((prevStringMIDIPitches[0] != stringMIDIPitches[0]) || (stringInputs[0] == 0))
+	{
+		newPluck = 1;
+	}
+	prevStringMIDIPitches[0] = stringMIDIPitches[0];
 }
 void pitchBend( int data)
 {

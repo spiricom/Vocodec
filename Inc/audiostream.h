@@ -131,6 +131,9 @@ extern volatile uint8_t knobFrozen[20];
 extern float pedalScaled[10];
 extern volatile uint32_t newPluck;
 
+extern tMempool mediumPool;
+extern tMempool largePool;
+
 extern float mtofTable[MTOF_TABLE_SIZE]__ATTR_RAM_D2;
 
 extern float atoDbTable[ATODB_TABLE_SIZE]__ATTR_RAM_D2;

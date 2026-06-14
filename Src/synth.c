@@ -9,7 +9,7 @@
 #include "audiostream.h"
 
 
-#define OVERSAMPLE 2
+#define OVERSAMPLE 4
 float inv_oversample = 1.0f / OVERSAMPLE;
 volatile float antiClickFade = 0.0f;
 volatile uint32_t nanHappened = 0;
@@ -177,6 +177,7 @@ float oscAmpMult = 1.0f;
 
  tExpSmooth volumeSmoother;
 
+
 void audioInitSynth()
 {
 	for (int i = 0; i < OVERSAMPLE; i++)
@@ -327,6 +328,18 @@ void  audioSwitchToSynth()
 		tExpSmooth_setFactor(knobSmoothers[i], 0.001f);
 		//tExpSmooth_setValAndDest(knobSmoothers[i], string2Defaults[i]);
 		knobFrozen[i] = 1;
+	}
+
+	for (int v = 0; v < NUM_STRINGS_PER_BOARD; v++)
+	{
+		//for (int i = 0; i < NUM_EFFECT; i++)
+		{
+
+			tLinearDelay_initToPool(&delay1[v], 4000.0f*OVERSAMPLE, 4096*OVERSAMPLE, &mediumPool);
+			tLinearDelay_initToPool(&delay2[v], 4000.0f*OVERSAMPLE, 4096*OVERSAMPLE, &mediumPool);
+			leaf.clearOnAllocation = 1;
+			tTapeDelay_initToPool(&tapeDelay[v], 15000.0f*OVERSAMPLE, 20000*OVERSAMPLE, &largePool);
+		}
 	}
 	antiClickFade = 0.0f;
 
@@ -573,20 +586,11 @@ float __ATTR_ITCMRAM audioTickSynth(void)
 
 					}
 				}
-				for (int j = 0; j < OVERSAMPLE; j++)
-				{
-					if (oversamplerArray[j] > 0.999999f)
-					{
-						oversamplerArray[j] = 0.999999f;
-					}
-					else if (oversamplerArray[j] < -0.999999f)
-					{
-						oversamplerArray[j] = -0.999999f;
-					}
-				}
 			}
 			for (int j = 0; j < OVERSAMPLE; j++)
 			{
+				oversamplerArray[j] = tanhf(oversamplerArray[j]);
+#if 0
 				if (oversamplerArray[j] > 0.999999f)
 				{
 					oversamplerArray[j] = 0.999999f;
@@ -595,6 +599,7 @@ float __ATTR_ITCMRAM audioTickSynth(void)
 				{
 					oversamplerArray[j] = -0.999999f;
 				}
+#endif
 			}
 			//downsample to get back to normal sample rate
 			//arm_fir_decimate_f32(&osD[v], (float*)&oversamplerArray, &sample, 2);
@@ -1082,7 +1087,7 @@ void __ATTR_ITCMRAM envelope_tick(int string)
 	{
 		if (envOn[v])
 		{
-			sourceValues[ENV_SOURCE_OFFSET + v][string] = tADSRT_tickNoInterp(envs[v][string]);
+			sourceValues[ENV_SOURCE_OFFSET + v][string] = tADSRT_tick(envs[v][string]);
 		}
 	}
 }
