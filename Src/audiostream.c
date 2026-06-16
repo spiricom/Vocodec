@@ -32,7 +32,9 @@ char large_memory[LARGE_MEM_SIZE] __ATTR_SDRAM;
 tMempool mediumPool;
 tMempool largePool;
 
-
+int32_t writeKnobFlag = 0;
+int32_t writeButtonFlag = 0;
+int32_t writeActionFlag = 0;
 HAL_StatusTypeDef transmit_status;
 HAL_StatusTypeDef receive_status;
 
@@ -40,6 +42,8 @@ HAL_StatusTypeDef receive_status;
 uint32_t codecReady = 0;
 
 uint32_t frameCounter = 0;
+uint32_t bendData = 8192;
+
 
 volatile uint32_t newPluck = 0 ;
 
@@ -47,7 +51,7 @@ tOversampler downSampler;
 
 BOOL bufferCleared = TRUE;
 
-uint32_t retrigMode = 0;
+uint32_t retrigMode = 1;
 uint32_t retrigHappened = 0;
 
 float mtofTable[MTOF_TABLE_SIZE]__ATTR_RAM_D2;
@@ -168,11 +172,16 @@ void processKnobs()
 	for (int i = 0; i < 8; i++)
 	{
 		int32_t newByte = ccIn[i] << 1;
-
+		//write the name of the knob
+		if ((newByte > (prevKnobByte[i] + 1)) || (newByte < (prevKnobByte[i] - 1)))
+		{
+			writeKnobFlag = i;
+		}
 		if (prevKnobByte[i] == 256)
 		{
 			prevKnobByte[i] = newByte;
 		}
+
 		else if (knobFrozen[i])
 		{
 			if ((newByte > (prevKnobByte[i] + 3)) || (newByte < (prevKnobByte[i] - 3)))
@@ -187,11 +196,17 @@ void processKnobs()
 			prevKnobByte[i] = newByte;
 		}
 
+
 	}
 
 	for (int i = 8; i < 12; i++)
 	{
 		int32_t newByte = ADC_values[i-8] >> 8;
+
+		if ((newByte > (prevKnobByte[i] + 1)) || (newByte < (prevKnobByte[i] - 1)))
+		{
+			writeKnobFlag = i;
+		}
 		if (prevKnobByte[i] == 256)
 		{
 			prevKnobByte[i] = newByte;
@@ -284,6 +299,7 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 	AudioCodec_init(hi2c);
 	HAL_Delay(1);
 
+	setLED_B(1); //to show that retrig defaults to "on" state
 
 	//now reconfigue so buttons C and E can be used (they were also connected to I2C for codec setup)
 	//HAL_I2C_MspDeInit(hi2c);
@@ -558,6 +574,14 @@ void noteOn(int key, int velocity)
 	stringMIDIPitches[0] = tSimplePoly_getPitch(myPoly, 0);
 	newPluck = 1;
 	prevStringMIDIPitches[0] = stringMIDIPitches[0];
+	if (stringInputs[0] > 0)
+	{
+		setLED_2(1);
+	}
+	else
+	{
+		setLED_2(0);
+	}
 }
 void noteOff(int key, int velocity)
 {
@@ -572,10 +596,18 @@ void noteOff(int key, int velocity)
 		newPluck = 1;
 	}
 	prevStringMIDIPitches[0] = stringMIDIPitches[0];
+	if (stringInputs[0] > 0)
+	{
+		setLED_2(1);
+	}
+	else
+	{
+		setLED_2(0);
+	}
 }
 void pitchBend( int data)
 {
-	;
+	bendData = data;
 }
 void sustainOn()
 

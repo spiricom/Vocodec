@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 0)
+  (lib (name "Vocodec_rev2_3-eagle-import")(type "KiCad")(uri "${KIPRJMOD}/Vocodec_rev2_3-eagle-import.kicad_sym")(options "")(descr ""))
+)

@@ -133,7 +133,10 @@ extern volatile uint32_t newPluck;
 
 extern tMempool mediumPool;
 extern tMempool largePool;
-
+extern int32_t writeKnobFlag;
+extern int32_t writeButtonFlag;
+extern int32_t writeActionFlag;
+extern uint32_t bendData;
 extern float mtofTable[MTOF_TABLE_SIZE]__ATTR_RAM_D2;
 
 extern float atoDbTable[ATODB_TABLE_SIZE]__ATTR_RAM_D2;

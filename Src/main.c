@@ -40,7 +40,7 @@
 #include "eeprom.h"
 #include "MIDI_application.h"
 #include "synth.h"
-
+#include "oled.h"
 
 /* USER CODE END Includes */
 
@@ -350,9 +350,9 @@ int main(void)
   getPresetNamesFromSDCard();
   //checkForSDCardPreset(currentPreset);
   presetWaitingToLoad = currentPreset;
-  //OLED_init(&vocodec, &hi2c4);
+  OLED_init(&hi2c4);
 
-  //OLED_writePreset(&vocodec);
+  OLED_writePreset();
 
   audioInit(&hi2c2, &hsai_BlockA1, &hsai_BlockB1);
 
@@ -383,6 +383,12 @@ int main(void)
     {
     	parsePreset(presetWaitingToParse, presetNumberToLoad);
     }
+
+    OLED_process();
+	if (hi2c4.State == HAL_I2C_STATE_READY)
+	{
+	  OLED_draw();
+	}
 
   }
   /* USER CODE END 3 */
@@ -918,13 +924,14 @@ void getPresetNamesFromSDCard(void)
 	diskBusy = 0;
 	return;
 }
-
+volatile uint32_t checkCount = 0;
+volatile uint32_t parseCount = 0;
 static int checkForSDCardPreset(uint8_t numberToLoad)
 {
 
 	int found = 0;
-	prevPreset = numberToLoad;
-	currentPreset = numberToLoad;
+	volatile uint32_t tempCountCheck = DWT->CYCCNT;
+
 	//HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
 	if(BSP_SD_IsDetected())
 	{
@@ -986,8 +993,13 @@ static int checkForSDCardPreset(uint8_t numberToLoad)
 	{
 		loadFailed = 1;
 	}
-
+	else
+	{
+		prevPreset = numberToLoad;
+		currentPreset = numberToLoad;
+	}
 	diskBusy = 0;
+	checkCount = DWT->CYCCNT - tempCountCheck;
 	__enable_irq();
 	//HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
 	return found;
@@ -1458,6 +1470,7 @@ void  parsePreset(int size, int presetNumber)
 {
 	//turn off the volume while changing parameters
 	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
+	volatile uint32_t tempCountParse = DWT->CYCCNT;
 	uint16_t presetVersionNumber = 0;
 	currentPresetSize = size;
 	 __disable_irq();
@@ -2232,6 +2245,9 @@ void  parsePreset(int size, int presetNumber)
 	oscToTick = NUM_OSC;
 	overSampled = 1;
 	changeOversampling(overSampled);
+	OLED_writePreset();
+
+	parseCount = DWT->CYCCNT - tempCountParse;
 	__enable_irq();
 	presetReady = 1;
 	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);

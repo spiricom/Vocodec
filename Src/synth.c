@@ -21,7 +21,7 @@ float oversamplerArray[OVERSAMPLE];
 
 tOversampler os[NUM_STRINGS_PER_BOARD];
 uint8_t numStringsThisBoard = NUM_STRINGS_PER_BOARD;
-float octave;
+float octave = -12.0f;
 float stringOctave[NUM_STRINGS_PER_BOARD];
 float transpose = 0.0f;
 //master
@@ -506,7 +506,11 @@ float __ATTR_ITCMRAM audioTickSynth(void)
 		float sample = 0.0f;
 
 		uint32_t tempCountGettingNote = DWT->CYCCNT;
-		note[v] = stringMIDIPitches[v] + stringOctave[v] + transpose;
+		float myBend = ((float)bendData) * 0.00006104f; //now it's 0 to 1
+		myBend = myBend - 0.5f; //now it's -0.5 to 0.5
+		myBend = myBend * 4.0f; //now it's -2 to 2
+
+		note[v] = stringMIDIPitches[v] + stringOctave[v] + transpose + myBend;
 
 		if (note[v] < 0.0f)
 		{

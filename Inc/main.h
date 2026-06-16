@@ -110,6 +110,9 @@ extern volatile uint32_t presetReady;
 extern int32_t volatile prevKnobByte[20];
 extern volatile uint32_t presetWaitingToLoad;
 extern volatile uint8_t presetNumberToLoad;
+
+extern volatile uint8_t presetNamesArray[MAX_NUM_PRESETS][14]__ATTR_RAM_D2;
+extern volatile uint8_t macroNamesArray[MAX_NUM_PRESETS][20][10]__ATTR_RAM_D2;
 float randomNumber(void);
 static void HardFault_Handler( void ) __attribute__( ( naked ) );
 void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress );
