@@ -349,10 +349,12 @@ int main(void)
   }
   getPresetNamesFromSDCard();
   //checkForSDCardPreset(currentPreset);
-  presetWaitingToLoad = currentPreset;
-  OLED_init(&hi2c4);
+  presetNumberToLoad = currentPreset;
+  presetWaitingToLoad = 1;
 
-  OLED_writePreset();
+  //OLED_init(&hi2c4);
+
+  //OLED_writePreset();
 
   audioInit(&hi2c2, &hsai_BlockA1, &hsai_BlockB1);
 
@@ -384,10 +386,10 @@ int main(void)
     	parsePreset(presetWaitingToParse, presetNumberToLoad);
     }
 
-    OLED_process();
-	if (hi2c4.State == HAL_I2C_STATE_READY)
+    //OLED_process();
+	//if (hi2c4.State == HAL_I2C_STATE_READY)
 	{
-	  OLED_draw();
+	  //OLED_draw();
 	}
 
   }
