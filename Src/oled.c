@@ -26,7 +26,7 @@
 #include "tunings.h"
 
 
-unsigned char GFXbuffer[512];
+unsigned char GFXbuffer[1024];
 GFX theGFX;
 char oled_buffer[32];
 
@@ -40,7 +40,7 @@ char oled_buffer[32];
             //HAL_Delay(5);
 
             //clear the OLED display buffer
-            for (int i = 0; i < 512; i++)
+            for (int i = 0; i < 1024; i++)
             {
             	GFXbuffer[i] = 0;
             }
@@ -50,7 +50,7 @@ char oled_buffer[32];
             //ssd1306_display_full_buffer();
 
             //initialize the graphics library that lets us write things in that display buffer
-            GFXinit(&theGFX, GFXbuffer, 128, 32);
+            GFXinit(&theGFX, GFXbuffer, 128, 64);
 
             //set up the monospaced font
 
@@ -198,7 +198,7 @@ char oled_buffer[32];
 
         void OLEDclear()
         {
-            GFXfillRect(&theGFX, 0, 0, 128, 32, 0);
+            GFXfillRect(&theGFX, 0, 0, 128, 64, 0);
             //ssd1306_display_full_buffer();
         }
 

@@ -35,8 +35,8 @@
     SSD1306_96_16
 
     -----------------------------------------------------------------------*/
-//   #define SSD1306_128_64
-   #define SSD1306_128_32
+   #define SSD1306_128_64
+//   #define SSD1306_128_32
 //   #define SSD1306_96_16
 /*=========================================================================*/
 
@@ -59,6 +59,9 @@
   #define SSD1306_LCDWIDTH                  96
   #define SSD1306_LCDHEIGHT                 16
 #endif
+#define SSD1306_X_OFFSET 0
+#define SSD1306_X_OFFSET_LOWER (SSD1306_X_OFFSET & 0x0F)
+#define SSD1306_X_OFFSET_UPPER ((SSD1306_X_OFFSET >> 4) & 0x07)
 
 #define SSD1306_SETCONTRAST 0x81
 #define SSD1306_DISPLAYALLON_RESUME 0xA4
@@ -113,7 +116,7 @@ void ssd1306_drawPixel(int16_t x, int16_t y, uint16_t color);
 void sdd1306_invertDisplay(uint8_t i);
 void ssd1306_command(uint8_t c);
 void ssd1306_dim(uint8_t dim);
-void ssd1306_display_full_buffer(unsigned char buffer[512]);
+void ssd1306_display_full_buffer(unsigned char* buffer);
 void ssd1306_display(void);
 void ssd1306_write(uint8_t* data, uint16_t numBytes);
 void ssd1306_move(uint8_t row, uint8_t column);

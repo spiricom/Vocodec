@@ -261,10 +261,10 @@ int main(void)
   MX_FATFS_Init();
   MX_SAI1_Init();
   MX_RNG_Init();
-  MX_I2C4_Init();
+  //MX_I2C4_Init();
   MX_USB_HOST_Init();
-  MX_TIM3_Init();
-  MX_TIM4_Init();
+  //MX_TIM3_Init();
+  //MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   /// it seems we need to enable caching after setting up the USB Host Controller -
   // otherwise turning on -o3 optimization causes unreliable behavior where it's not set up correctly and never reaches the USB interrupt for connection
@@ -275,10 +275,10 @@ int main(void)
   SCB_EnableDCache();
 
 
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+  //HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+  //HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+  //HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+  //HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
   //HAL_Delay(1);
   // Emulated EEPROM Init
   HAL_FLASH_Unlock();
@@ -352,11 +352,14 @@ int main(void)
   presetNumberToLoad = currentPreset;
   presetWaitingToLoad = 1;
 
-  //OLED_init(&hi2c4);
+  OLED_init(&hi2c2);
 
-  //OLED_writePreset();
+  OLED_writePreset();
 
   audioInit(&hi2c2, &hsai_BlockA1, &hsai_BlockB1);
+
+
+
 
   /* USER CODE END 2 */
 
@@ -386,10 +389,10 @@ int main(void)
     	parsePreset(presetWaitingToParse, presetNumberToLoad);
     }
 
-    //OLED_process();
-	//if (hi2c4.State == HAL_I2C_STATE_READY)
+    OLED_process();
+	if (hi2c2.State == HAL_I2C_STATE_READY)
 	{
-	  //OLED_draw();
+	  OLED_draw();
 	}
 
   }

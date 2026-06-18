@@ -465,6 +465,7 @@ volatile float outVol2 = 0.0f;
 volatile uint32_t timeVolumeLookup = 0;
 volatile uint32_t timeVolumePoly = 0;
 
+volatile uint32_t nanChecker = 0;
 
 float __ATTR_ITCMRAM audioTickSynth(void)
 {
@@ -554,17 +555,40 @@ float __ATTR_ITCMRAM audioTickSynth(void)
 			filterSamps[0] += oscOuts[0][i][v];
 			filterSamps[1] += oscOuts[1][i][v];
 		}
-
+		if isnan(filterSamps[0])
+		{
+			nanChecker++;
+		}
+		if isnan(filterSamps[1])
+		{
+			nanChecker++;
+		}
 		filterSamps[0] += noiseOuts[0][v];
 		filterSamps[1] += noiseOuts[1][v];
 
+		if isnan(filterSamps[0])
+		{
+			nanChecker++;
+		}
+		if isnan(filterSamps[1])
+		{
+			nanChecker++;
+		}
 		uint32_t tempCountFilt = DWT->CYCCNT;
 		sample = filter_tick(&filterSamps[0], note[v], v);
 		timeFilt = DWT->CYCCNT - tempCountFilt;
+		if isnan(sample)
+		{
+			nanChecker++;
+		}
 
 		if (fxPre)
 		{
 			sample *= amplitude[v];
+		}
+		if isnan(sample)
+		{
+			nanChecker++;
 		}
 		uint32_t tempCountOS = DWT->CYCCNT;
 
@@ -584,7 +608,15 @@ float __ATTR_ITCMRAM audioTickSynth(void)
 					for (int j = 0; j < OVERSAMPLE; j++)
 					{
 						float dry = oversamplerArray[j]; //store the dry value to mix later
+						if isnan(dry)
+						{
+							nanChecker++;
+						}
 						oversamplerArray[j] = effectTick[i](dry, i, v); //run the effect
+						if isnan(oversamplerArray[j])
+						{
+							nanChecker++;
+						}
 						oversamplerArray[j] = ((1.0f - fxMix[i][v]) * dry) + (fxMix[i][v] * oversamplerArray[j]); //mix in dry/wet at the "mix" amount
 						oversamplerArray[j] *= fxPostGain[i][v]; //apply postgain
 
@@ -639,10 +671,21 @@ float __ATTR_ITCMRAM audioTickSynth(void)
 		{
 			sample *= amplitude[v];
 		}
-
+		if isnan(sample)
+		{
+			nanChecker++;
+		}
 		sample = tSVF_LP_tick(finalLowpass[v], sample) * masterVolFromBrainForSynth;
+		if isnan(sample)
+		{
+			nanChecker++;
+		}
 #endif
 		masterSample += sample * finalMaster[v];
+		if isnan(sample)
+		{
+			nanChecker++;
+		}
 	}
 	//uint32_t tempVolumePoly = DWT->CYCCNT;
 	timePerStringTick = DWT->CYCCNT - tempPerStringTick;

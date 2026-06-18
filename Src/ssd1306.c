@@ -58,32 +58,47 @@
 #define WIDTH SSD1306_LCDWIDTH
 #define HEIGHT SSD1306_LCDHEIGHT
 
-uint8_t displayBufferChunk[513] __ATTR_RAM_D3;
+uint8_t displayBufferChunk[1025] __ATTR_RAM_D3;
 
 uint8_t OLED_xpos = 0;
 uint8_t OLED_ypos = 0;
 
-
+#define testingI2C 0
 
 uint8_t OLED_i2c_address;
 uint8_t OLED_externalVCC;
 I2C_HandleTypeDef* OLED_i2c_handle;
-
+volatile uint32_t i2cTest = 0;
+volatile uint32_t i2cTestValue = 0;
 void ssd1306_begin(I2C_HandleTypeDef* hi2c, uint8_t vccstate, uint8_t i2caddr)
 {
 	OLED_i2c_address = i2caddr;
 	OLED_externalVCC = vccstate;
 	OLED_i2c_handle = hi2c;
 
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET); //PULL RESET LINE HIGH
+#if testingI2C
+	uint8_t i2c_message[2] = {0,0};
+		i2c_message[1] = 0xAE;
+		HAL_StatusTypeDef status;
+	for (int i = 0; i < 128; i++)
+	{
+		status = HAL_I2C_Master_Transmit(OLED_i2c_handle, i, i2c_message, 2, 2000);
+		if (status != HAL_ERROR)
+		{
+			i2cTest = 1;
+			i2cTestValue = i;
+		}
+	}
+#endif
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET); //PULL RESET LINE HIGH
 	// VDD (3.3V) goes high at start, lets just chill for a ms
 	HAL_Delay(1);
 	// bring reset low
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET); //PULL RESET LINE HIGH
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET); //PULL RESET LINE HIGH
 	// wait 10ms
 	HAL_Delay(10);
 	// bring out of reset
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET); //PULL RESET LINE HIGH
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET); //PULL RESET LINE HIGH
 	// turn on VCC (9V?)
 
 
@@ -105,8 +120,13 @@ void ssd1306_begin(I2C_HandleTypeDef* hi2c, uint8_t vccstate, uint8_t i2caddr)
 	{ ssd1306_command(0x14); }
 	ssd1306_command(SSD1306_MEMORYMODE);                    // 0x20
 	ssd1306_command(0x00);                                  // 0x0 act like ks0108
-	ssd1306_command(SSD1306_SEGREMAP | 0x1);
+	ssd1306_command(0xB0);
 	ssd1306_command(SSD1306_COMSCANDEC);
+	ssd1306_command(0x00);
+	ssd1306_command(0x10);
+	ssd1306_command(0x40);
+	//ssd1306_command(SSD1306_SEGREMAP | 0x1);
+	//ssd1306_command(SSD1306_COMSCANDEC);
 
 	#if defined SSD1306_128_32
 	ssd1306_command(SSD1306_SETCOMPINS);                    // 0xDA
@@ -191,9 +211,26 @@ void ssd1306_dim(uint8_t dim) {
 
 
 
-void ssd1306_display_full_buffer(unsigned char buffer[512]) {
+void ssd1306_display_full_buffer(unsigned char* buffer) {
 
 	ssd1306_home();
+	uint8_t tempBuffer[257];
+	for (int i = 0; i < 8; i++)
+	{
+		ssd1306_command(0x22);
+		ssd1306_command(0xB0 + i);
+	    ssd1306_command(0x00);
+	    ssd1306_command(0x10);
+	    tempBuffer[0] = 0x40;
+	    for (int j = 0; j < 256; j++)
+	    	{
+	    		tempBuffer[j+1] = buffer[(i * 128) + j];
+	    	}
+	    HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, tempBuffer, 129, 2000);
+	    //uint8_t dataWrite = 0x40;
+	    //HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, &dataWrite, 1, 2000);
+		//HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, &buffer[SSD1306_LCDWIDTH*i], SSD1306_LCDWIDTH, 2000);
+	}
 
 //	for (int i = 0; i < 512; i++)
 //	{
@@ -208,12 +245,14 @@ void ssd1306_display_full_buffer(unsigned char buffer[512]) {
 ////		HAL_Delay(1);
 //		i--;
 //	}
+#if 0
 	displayBufferChunk[0] = 0x40;
-	for (int i = 0; i < 512; i++)
+	for (int i = 0; i < 1024; i++)
 	{
 		displayBufferChunk[i+1] = buffer[i];
 	}
-	HAL_I2C_Master_Transmit_DMA(OLED_i2c_handle, OLED_i2c_address, displayBufferChunk, 513);
+	HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, displayBufferChunk, 1025, 2000);
+#endif
 }
 
 
@@ -232,7 +271,7 @@ void ssd1306_move_raw(uint8_t row, uint8_t column){
 
 	ssd1306_command(SSD1306_PAGEADDR);
 	ssd1306_command(row); // Page start address (0 = reset)
-	ssd1306_command(3); // Page end address
+	ssd1306_command(7); // Page end address
 }
 
 
