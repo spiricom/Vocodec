@@ -157,6 +157,8 @@ volatile uint8_t testInt = 0;
 
 volatile uint16_t ADC_values[6] __ATTR_RAM_D2_DMA;
 
+volatile uint32_t OLED_changed = 0;
+
 void errorFunction(int i)
 {
 	errorTime1 = large_memory[i];
@@ -365,7 +367,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_Delay(10);
+	//HAL_Delay(10);
 
 	MIDI_Application();
 
@@ -386,7 +388,7 @@ int main(void)
     }
 
     OLED_process();
-	if (hi2c2.State == HAL_I2C_STATE_READY)
+	if ((hi2c2.State == HAL_I2C_STATE_READY) && (OLED_changed))
 	{
 	  OLED_draw();
 	}

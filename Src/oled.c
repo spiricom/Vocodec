@@ -90,12 +90,14 @@ char oled_buffer[32];
             {
                 OLED_writeKnobParameter(writeKnobFlag);
                 writeKnobFlag = -1;
+                OLED_changed = 1;
             }
             if (writeButtonFlag >= 0 && writeActionFlag >= 0) //These should always be set together
             {
                 OLED_writeButtonAction(writeButtonFlag, writeActionFlag);
                 writeButtonFlag = -1;
                 writeActionFlag = -1;
+                OLED_changed = 1;
             }
             //    OLED_draw();
         }
@@ -120,6 +122,7 @@ char oled_buffer[32];
             //OLEDwriteString(modeNames[currentPreset], 12, 24, FirstLine);
             OLEDwriteString(tempString, myLength, 0, FirstLine);
             GFXsetFont(&theGFX, &EuphemiaCAS9pt7b);
+            OLED_changed = 1;
            // OLEDwriteString(modeNamesDetails[vcd->currentPreset], (int)strlen(vcd->modeNamesDetails[vcd->currentPreset]), 0, SecondLine);
             //save new preset to flash memory
         }
@@ -146,7 +149,7 @@ char oled_buffer[32];
                     OLEDclearLine(SecondLine);
                     OLEDwriteString(macroNamesArray[currentPreset][whichParam], len, 0, SecondLine);
                     OLEDwriteString(" ", 1, getCursorX(), SecondLine);
-                    OLEDwriteFloat(knobScaled[whichKnob], getCursorX(), SecondLine);
+                    OLEDwriteFloat(LEAF_clip(0.0f, knobScaled[whichKnob], 0.99f), getCursorX(), SecondLine);
                     //OLEDwriteString(paramNames[currentPreset][whichParam], strlen(paramNames[currentPreset][whichParam]), 0, SecondLine);
 
 
@@ -172,6 +175,7 @@ char oled_buffer[32];
         void OLED_draw()
         {
             ssd1306_display_full_buffer(GFXbuffer);
+
         }
 #endif
 

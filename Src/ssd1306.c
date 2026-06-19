@@ -58,8 +58,11 @@
 #define WIDTH SSD1306_LCDWIDTH
 #define HEIGHT SSD1306_LCDHEIGHT
 
-uint8_t displayBufferChunk[1025] __ATTR_RAM_D3;
+//uint8_t displayBufferChunk[1025] __ATTR_RAM_D3;
 
+
+volatile uint32_t I2C_busy = 0;
+volatile uint32_t OLED_buffer_send_state = 0;
 uint8_t OLED_xpos = 0;
 uint8_t OLED_ypos = 0;
 
@@ -70,12 +73,20 @@ uint8_t OLED_externalVCC;
 I2C_HandleTypeDef* OLED_i2c_handle;
 volatile uint32_t i2cTest = 0;
 volatile uint32_t i2cTestValue = 0;
+
+
+
+void I2C_MasterTransmitCplt(I2C_HandleTypeDef *hi2c)
+{
+	I2C_busy = 0;
+}
 void ssd1306_begin(I2C_HandleTypeDef* hi2c, uint8_t vccstate, uint8_t i2caddr)
 {
 	OLED_i2c_address = i2caddr;
 	OLED_externalVCC = vccstate;
 	OLED_i2c_handle = hi2c;
 
+	//HAL_DMA_RegisterCallback(hi2c, MasterTxTransferCpltCallback);
 #if testingI2C
 	uint8_t i2c_message[2] = {0,0};
 		i2c_message[1] = 0xAE;
@@ -207,50 +218,39 @@ void ssd1306_dim(uint8_t dim) {
 }
 
 
-
 void ssd1306_display_full_buffer(unsigned char* buffer) {
 
-	ssd1306_home();
-	uint8_t tempBuffer[257];
-	for (int i = 0; i < 8; i++)
+	if (!I2C_busy)
 	{
-		ssd1306_command(0x22);
-		ssd1306_command(0xB0 + i);
-	    ssd1306_command(0x00);
-	    ssd1306_command(0x10);
-	    tempBuffer[0] = 0x40;
-	    for (int j = 0; j < 256; j++)
-	    	{
-	    		tempBuffer[j+1] = buffer[(i * 128) + j];
-	    	}
-	    HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, tempBuffer, 129, 2000);
-	    //uint8_t dataWrite = 0x40;
-	    //HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, &dataWrite, 1, 2000);
-		//HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, &buffer[SSD1306_LCDWIDTH*i], SSD1306_LCDWIDTH, 2000);
+		uint8_t tempBuffer[129];
+
+
+		ssd1306_home();
+
+
+		for (int i = 0; i < 8; i++)
+		{
+			ssd1306_command(0x22);
+			ssd1306_command(0xB0 + i);
+			ssd1306_command(0x00);
+			ssd1306_command(0x10);
+			tempBuffer[0] = 0x40;
+			for (int j = 0; j < 128; j++)
+				{
+					tempBuffer[j+1] = buffer[(i * 128) + j];
+				}
+			HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, tempBuffer, 129, 2000);
+
+			//tried to get DMA working but couldn't for some reason this time
+
+		}
+		OLED_changed = 0;
+
 	}
 
-//	for (int i = 0; i < 512; i++)
-//	{
-//		displayBufferChunk[0] = 0x40;
-//		for (int x = 0; x < 16; x++)
-//		{
-//			displayBufferChunk[x+1] = buffer[i];
-//			i++;
-//		}
-//		HAL_I2C_Master_Transmit_DMA(OLED_i2c_handle, OLED_i2c_address, displayBufferChunk, 17);
-////		HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, displayBufferChunk, 17, 2000);
-////		HAL_Delay(1);
-//		i--;
-//	}
-#if 0
-	displayBufferChunk[0] = 0x40;
-	for (int i = 0; i < 1024; i++)
-	{
-		displayBufferChunk[i+1] = buffer[i];
-	}
-	HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, displayBufferChunk, 1025, 2000);
-#endif
+
 }
+
 
 
 

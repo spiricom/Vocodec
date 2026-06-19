@@ -183,6 +183,11 @@ void knobTest(int32_t newByte, int32_t currentKnobToTest)
 		writeKnobFlag = currentKnobToTest;
 		currentKnobFocus = currentKnobToTest;
 	}
+	else if ((newByte > (prevKnobByte[currentKnobToTest] + 1)) || (newByte < (prevKnobByte[currentKnobToTest] - 1)))
+	{
+		writeKnobFlag = currentKnobToTest;
+		currentKnobFocus = currentKnobToTest;
+	}
 	//if the knob is not frozen, update the actual knob smoother value, and store the previous byte for future comparisons
 	if (knobFrozen[currentKnobToTest] == 0)
 	{
