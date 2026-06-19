@@ -242,6 +242,7 @@ void ssd1306_display_full_buffer(unsigned char* buffer) {
 			HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, tempBuffer, 129, 2000);
 
 			//tried to get DMA working but couldn't for some reason this time
+			//I think it's because I didn't have the I2C event interrupt enabled
 
 		}
 		OLED_changed = 0;
