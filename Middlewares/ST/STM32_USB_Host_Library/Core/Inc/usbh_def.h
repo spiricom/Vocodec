@@ -45,6 +45,7 @@ extern "C" {
 #endif
 
 
+
 #ifndef USBH_DEV_RESET_TIMEOUT
 #define USBH_DEV_RESET_TIMEOUT                        1000U
 #endif

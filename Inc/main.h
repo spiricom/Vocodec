@@ -29,11 +29,10 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7xx_hal.h"
-#include "parameters.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "parameters.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

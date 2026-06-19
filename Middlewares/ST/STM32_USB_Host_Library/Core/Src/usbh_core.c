@@ -410,7 +410,7 @@ USBH_StatusTypeDef USBH_Start(USBH_HandleTypeDef *phost)
   (void)USBH_LL_Start(phost);
 
   /* Activate VBUS on the port */
-  (void)USBH_LL_DriverVBUS(phost, 0);
+  (void)USBH_LL_DriverVBUS(phost, 1);
 
   return USBH_OK;
 }
@@ -673,8 +673,8 @@ USBH_StatusTypeDef USBH_Process(USBH_HandleTypeDef *phost)
 
         for (idx = 0U; idx < USBH_MAX_NUM_SUPPORTED_CLASS; idx++)
         {
-          for (uint8_t j = 0; j < 16; j++)
-          {
+        	for (uint8_t j = 0; j < USBH_MAX_NUM_INTERFACES; j++)
+			{
 			  if (phost->pClass[idx]->ClassCode == phost->device.CfgDesc.Itf_Desc[j].bInterfaceClass)
 			  {
 				if (3 == phost->device.CfgDesc.Itf_Desc[j].bInterfaceSubClass)
@@ -683,8 +683,9 @@ USBH_StatusTypeDef USBH_Process(USBH_HandleTypeDef *phost)
 					break;
 				}
 			  }
-          }
+			}
         }
+
         if (phost->pActiveClass != NULL)
         {
           if (phost->pActiveClass->Init(phost) == USBH_OK)

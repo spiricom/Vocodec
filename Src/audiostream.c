@@ -35,6 +35,7 @@ tMempool largePool;
 int32_t writeKnobFlag = 0;
 int32_t writeButtonFlag = 0;
 int32_t writeActionFlag = 0;
+int32_t currentKnobFocus = 0;
 HAL_StatusTypeDef transmit_status;
 HAL_StatusTypeDef receive_status;
 
@@ -167,65 +168,41 @@ float FORCE_INLINE mtofTableLookup(float tempMIDI)
 	return ((freqToSmooth1 * (1.0f - tempIndexF)) + (freqToSmooth2 * tempIndexF));
 }
 
+void knobTest(int32_t newByte, int32_t currentKnobToTest)
+{
+	//if this knob is the one we're already displaying, then update it every time it is different
+	if ((newByte != prevKnobByte[currentKnobToTest]) && (currentKnobFocus == currentKnobToTest))
+	{
+		writeKnobFlag = currentKnobToTest;
+	}
+	//if the value of the knob has changed more than 3 up or down, then unfreeze it if it's frozen and change our knob display focus to look at this one
+	if ((newByte > (prevKnobByte[currentKnobToTest] + 3)) || (newByte < (prevKnobByte[currentKnobToTest] - 3)))
+	{
+		knobFrozen[currentKnobToTest] = 0;
+
+		writeKnobFlag = currentKnobToTest;
+		currentKnobFocus = currentKnobToTest;
+	}
+	//if the knob is not frozen, update the actual knob smoother value, and store the previous byte for future comparisons
+	if (knobFrozen[currentKnobToTest] == 0)
+	{
+		tExpSmooth_setDest(knobSmoothers[currentKnobToTest], (newByte * 0.003921568627451f)); //scaled 0.0 to 1.0
+		prevKnobByte[currentKnobToTest] = newByte;
+	}
+
+}
 void processKnobs()
 {
 	for (int i = 0; i < 8; i++)
 	{
-		int32_t newByte = ccIn[i] << 1;
-		//write the name of the knob
-		if ((newByte > (prevKnobByte[i] + 1)) || (newByte < (prevKnobByte[i] - 1)))
-		{
-			writeKnobFlag = i;
-		}
-		if (prevKnobByte[i] == 256)
-		{
-			prevKnobByte[i] = newByte;
-		}
-
-		else if (knobFrozen[i])
-		{
-			if ((newByte > (prevKnobByte[i] + 3)) || (newByte < (prevKnobByte[i] - 3)))
-			{
-				knobFrozen[i] = 0;
-				prevKnobByte[i] = newByte;
-			}
-		}
-		else
-		{
-			tExpSmooth_setDest(knobSmoothers[i], (newByte * 0.003921568627451f)); //scaled 0.0 to 1.0
-			prevKnobByte[i] = newByte;
-		}
-
-
+		int32_t myByte = ccIn[i] << 1;
+		knobTest(myByte, i);
 	}
 
 	for (int i = 8; i < 12; i++)
 	{
-		int32_t newByte = ADC_values[i-8] >> 8;
-
-		if ((newByte > (prevKnobByte[i] + 1)) || (newByte < (prevKnobByte[i] - 1)))
-		{
-			writeKnobFlag = i;
-		}
-		if (prevKnobByte[i] == 256)
-		{
-			prevKnobByte[i] = newByte;
-		}
-		else if (knobFrozen[i])
-		{
-			if ((newByte > (prevKnobByte[i] + 3)) || (newByte < (prevKnobByte[i] - 3)))
-			{
-				knobFrozen[i] = 0;
-				prevKnobByte[i] = newByte;
-			}
-
-		}
-		else
-		{
-			tExpSmooth_setDest(knobSmoothers[i], (newByte * 0.003921568627451f)); //scaled 0.0 to 1.0
-			prevKnobByte[i] = newByte;
-		}
-
+		int32_t myByte = ADC_values[i-8] >> 8;
+		knobTest(myByte, i);
 	}
 
 }

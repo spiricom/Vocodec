@@ -107,7 +107,7 @@ char oled_buffer[32];
             char tempString[37];
             uint32_t twoDigitFlag = (currentPreset > 9);
             itoa((currentPreset), tempString, 10);
-            strcat(tempString, ":");
+            strcat(tempString, "  ");
             for (int i = 0; i < 14; i++)
             {
             	tempString[i+2+twoDigitFlag] = presetNamesArray[currentPreset][i];

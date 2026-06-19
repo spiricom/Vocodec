@@ -20,7 +20,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
-#include "bdma.h"
 #include "dma.h"
 #include "fatfs.h"
 #include "i2c.h"
@@ -28,6 +27,7 @@
 #include "sai.h"
 #include "sdmmc.h"
 #include "tim.h"
+#include "usart.h"
 #include "usb_host.h"
 #include "gpio.h"
 #include "fmc.h"
@@ -252,7 +252,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_BDMA_Init();
   MX_DMA_Init();
   MX_FMC_Init();
   MX_ADC1_Init();
@@ -261,10 +260,9 @@ int main(void)
   MX_FATFS_Init();
   MX_SAI1_Init();
   MX_RNG_Init();
-  //MX_I2C4_Init();
   MX_USB_HOST_Init();
-  //MX_TIM3_Init();
-  //MX_TIM4_Init();
+  MX_TIM4_Init();
+  MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
   /// it seems we need to enable caching after setting up the USB Host Controller -
   // otherwise turning on -o3 optimization causes unreliable behavior where it's not set up correctly and never reaches the USB interrupt for connection
@@ -319,7 +317,7 @@ int main(void)
 
   for (int i = 0; i < 20; i++)
   {
-	  prevKnobByte[i] = 256;
+	  prevKnobByte[i] = 256;//to give a clearly wrong value for the knobs to see when they haven't been initialized with real 0-255 numbers yet
   }
   for (int i = 0; i < 4096; i++)
     {
@@ -373,8 +371,6 @@ int main(void)
 
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
-
-
 
     /* USER CODE BEGIN 3 */
 
