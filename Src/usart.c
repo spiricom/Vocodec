@@ -54,6 +54,7 @@ void MX_USART6_UART_Init(void)
   {
     Error_Handler();
   }
+#if 0
   if (HAL_UARTEx_SetTxFifoThreshold(&huart6, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
   {
     Error_Handler();
@@ -62,10 +63,11 @@ void MX_USART6_UART_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_UARTEx_DisableFifoMode(&huart6) != HAL_OK)
+  if (HAL_UARTEx_EnableFifoMode(&huart6) != HAL_OK)
   {
     Error_Handler();
   }
+#endif
   /* USER CODE BEGIN USART6_Init 2 */
 
   /* USER CODE END USART6_Init 2 */
@@ -126,7 +128,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     hdma_usart6_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     hdma_usart6_rx.Init.Mode = DMA_CIRCULAR;
     hdma_usart6_rx.Init.Priority = DMA_PRIORITY_MEDIUM;
-    hdma_usart6_rx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+    hdma_usart6_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     hdma_usart6_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
     hdma_usart6_rx.Init.MemBurst = DMA_MBURST_SINGLE;
     hdma_usart6_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;

@@ -30,6 +30,7 @@ unsigned char GFXbuffer[1024];
 GFX theGFX;
 char oled_buffer[32];
 
+
         void OLED_init(I2C_HandleTypeDef* hi2c)
         {
 
@@ -86,45 +87,66 @@ char oled_buffer[32];
 
         void OLED_process()
         {
-            if (writeKnobFlag >= 0)
-            {
-                OLED_writeKnobParameter(writeKnobFlag);
-                writeKnobFlag = -1;
-                OLED_changed = 1;
-            }
-            if (writeButtonFlag >= 0 && writeActionFlag >= 0) //These should always be set together
-            {
-                OLED_writeButtonAction(writeButtonFlag, writeActionFlag);
-                writeButtonFlag = -1;
-                writeActionFlag = -1;
-                OLED_changed = 1;
-            }
+
+        	if (!OLED_writing)
+        	{
+				if (writeKnobFlag >= 0)
+				{
+					OLED_writeKnobParameter(writeKnobFlag);
+					writeKnobFlag = -1;
+					OLED_changed = 1;
+				}
+				if (writeButtonFlag >= 0 && writeActionFlag >= 0) //These should always be set together
+				{
+					OLED_writeButtonAction(writeButtonFlag, writeActionFlag);
+					writeButtonFlag = -1;
+					writeActionFlag = -1;
+					OLED_changed = 1;
+				}
+        	}
+        	else
+        	{
+        		if (OLED_writeWaiting == 1)
+        		{
+        			OLED_writePreset();
+        			OLED_writeWaiting = 0;
+        		}
+        	}
+
+
             //    OLED_draw();
         }
 
         void OLED_writePreset()
         {
-            GFXsetFont(&theGFX, &EuphemiaCAS8pt7b);
-            OLEDclear();
-            char tempString[37];
-            uint32_t twoDigitFlag = (currentPreset > 9);
-            itoa((currentPreset), tempString, 10);
-            strcat(tempString, "  ");
-            for (int i = 0; i < 14; i++)
+            if (!OLED_writing)
             {
-            	tempString[i+2+twoDigitFlag] = presetNamesArray[currentPreset][i];
+				GFXsetFont(&theGFX, &EuphemiaCAS8pt7b);
+				OLEDclear();
+				char tempString[37];
+				uint32_t twoDigitFlag = (currentPreset > 9);
+				itoa((currentPreset), tempString, 10);
+				strcat(tempString, "  ");
+				for (int i = 0; i < 14; i++)
+				{
+					tempString[i+2+twoDigitFlag] = presetNamesArray[currentPreset][i];
+				}
+				tempString[17] = 0;
+				//strcat(tempString, presetNamesArray[currentPreset]);
+				int myLength = (int)strlen(tempString);
+				//OLEDwriteInt(currentPreset+1, 2, 0, FirstLine);
+				//OLEDwriteString(":", 1, 20, FirstLine);
+				//OLEDwriteString(modeNames[currentPreset], 12, 24, FirstLine);
+				OLEDwriteString(tempString, myLength, 0, FirstLine);
+				GFXsetFont(&theGFX, &EuphemiaCAS9pt7b);
+				OLED_changed = 1;
+			   // OLEDwriteString(modeNamesDetails[vcd->currentPreset], (int)strlen(vcd->modeNamesDetails[vcd->currentPreset]), 0, SecondLine);
+				//save new preset to flash memory
             }
-            tempString[17] = 0;
-            //strcat(tempString, presetNamesArray[currentPreset]);
-            int myLength = (int)strlen(tempString);
-            //OLEDwriteInt(currentPreset+1, 2, 0, FirstLine);
-            //OLEDwriteString(":", 1, 20, FirstLine);
-            //OLEDwriteString(modeNames[currentPreset], 12, 24, FirstLine);
-            OLEDwriteString(tempString, myLength, 0, FirstLine);
-            GFXsetFont(&theGFX, &EuphemiaCAS9pt7b);
-            OLED_changed = 1;
-           // OLEDwriteString(modeNamesDetails[vcd->currentPreset], (int)strlen(vcd->modeNamesDetails[vcd->currentPreset]), 0, SecondLine);
-            //save new preset to flash memory
+            else
+            {
+            	OLED_writeWaiting = 1;
+            }
         }
 
         void OLED_writeEditScreen()
@@ -141,6 +163,8 @@ char oled_buffer[32];
         void OLED_writeKnobParameter(int whichKnob)
         {
             // Knob params
+        	if (!OLED_writing)
+        	{
                 int whichParam = whichKnob;
 
                 int len = 10;
@@ -151,7 +175,11 @@ char oled_buffer[32];
                     OLEDwriteString(" ", 1, getCursorX(), SecondLine);
                     OLEDwriteFloat(LEAF_clip(0.0f, knobScaled[whichKnob], 0.99f), getCursorX(), SecondLine);
                     //OLEDwriteString(paramNames[currentPreset][whichParam], strlen(paramNames[currentPreset][whichParam]), 0, SecondLine);
-
+        	}
+        	else
+        	{
+        		//OLED_writeWaiting = 2;
+        	}
 
         }
 

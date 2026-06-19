@@ -109,7 +109,9 @@
 #define SSD1306_VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL 0x29
 #define SSD1306_VERTICAL_AND_LEFT_HORIZONTAL_SCROLL 0x2A
 
-extern unsigned char buffer [];
+
+extern volatile uint32_t OLED_writing;
+extern volatile uint32_t OLED_writeWaiting;
 
 void ssd1306_begin(I2C_HandleTypeDef* hi2c, uint8_t vccstate, uint8_t i2caddr);
 void ssd1306_drawPixel(int16_t x, int16_t y, uint16_t color);

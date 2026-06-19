@@ -89,6 +89,9 @@ int32_t volatile prevKnobByte[20];
 FILINFO fno;
 FIL fdst;
 DIR dir;
+
+uint8_t sysexBuffer[700];
+uint32_t sysexPointer = 0;
 uint8_t buffer[4096] __ATTR_RAM_D2;
 volatile uint16_t bufferPos = 0;
 FRESULT res;
@@ -100,6 +103,7 @@ volatile uint8_t presetNumberToLoad = 0;
 volatile uint32_t presetWaitingToParse = 0;
 volatile uint32_t presetWaitingToWrite = 0;
 volatile uint32_t presetWaitingToLoad = 0;
+
 
 
 volatile uint8_t macroNamesArray[MAX_NUM_PRESETS][20][10]__ATTR_RAM_D2;
@@ -158,6 +162,11 @@ volatile uint8_t testInt = 0;
 volatile uint16_t ADC_values[6] __ATTR_RAM_D2_DMA;
 
 volatile uint32_t OLED_changed = 0;
+
+volatile uint8_t UART_buffer[2] __ATTR_RAM_D2_DMA;
+
+volatile uint32_t sysexReadyToParse = 0;
+
 
 void errorFunction(int i)
 {
@@ -359,6 +368,7 @@ int main(void)
   audioInit(&hi2c2, &hsai_BlockA1, &hsai_BlockB1);
 
 
+  HAL_UART_Receive_DMA(&huart6,UART_buffer,2);
 
 
   /* USER CODE END 2 */
@@ -2259,8 +2269,47 @@ void  parsePreset(int size, int presetNumber)
 
 }
 
+volatile uint32_t uartTest = 0;
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    // Handle UART Rx Comlete Interrupt Here!
 
+	if (UART_buffer[1] == 0xf0)
+	{
+		sysexPointer = 0;
+	}
+
+	sysexBuffer[sysexPointer++] = UART_buffer[1];
+	if (UART_buffer[1] == 0xf7)
+	{
+		sysexReadyToParse = sysexPointer;
+	}
+
+	if (sysexPointer > 699)
+	{
+		sysexPointer == 0;
+	}
+
+}
+
+void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
+{
+    // Handle UART Rx Comlete Interrupt Here!
+	if (UART_buffer[1] == 0xf0)
+	{
+		sysexPointer = 0;
+	}
+	sysexBuffer[sysexPointer++] = UART_buffer[0];
+	if (UART_buffer[1] == 0xf7)
+	{
+		sysexReadyToParse = sysexPointer;
+	}
+	if (sysexPointer > 699)
+	{
+		sysexPointer == 0;
+	}
+}
 
 
 /* USER CODE END 4 */

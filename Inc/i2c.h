@@ -29,10 +29,11 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+extern DMA_HandleTypeDef hdma_i2c2_tx;
 /* USER CODE END Includes */
 
 extern I2C_HandleTypeDef hi2c2;
+
 
 /* USER CODE BEGIN Private defines */
 

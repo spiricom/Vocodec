@@ -15,6 +15,7 @@
 
 #include "main.h"
 #include "ssd1306.h"
+#include "i2c.h"
 
 //unsigned char buffer [] = {
 //
@@ -62,7 +63,9 @@
 
 
 volatile uint32_t I2C_busy = 0;
-volatile uint32_t OLED_buffer_send_state = 0;
+volatile uint32_t OLED_page = 0;
+volatile uint32_t OLED_writing = 0;
+volatile uint32_t OLED_writeWaiting = 0;
 uint8_t OLED_xpos = 0;
 uint8_t OLED_ypos = 0;
 
@@ -76,9 +79,15 @@ volatile uint32_t i2cTestValue = 0;
 
 
 
-void I2C_MasterTransmitCplt(I2C_HandleTypeDef *hi2c)
+void HAL_I2C_MASTER_RxCpltCallback ( I2C_HandleTypeDef * hi2c )
 {
 	I2C_busy = 0;
+
+	if (OLED_page == 0)
+	{
+		OLED_writing = 0;
+		OLED_changed = 0;
+	}
 }
 void ssd1306_begin(I2C_HandleTypeDef* hi2c, uint8_t vccstate, uint8_t i2caddr)
 {
@@ -86,7 +95,7 @@ void ssd1306_begin(I2C_HandleTypeDef* hi2c, uint8_t vccstate, uint8_t i2caddr)
 	OLED_externalVCC = vccstate;
 	OLED_i2c_handle = hi2c;
 
-	//HAL_DMA_RegisterCallback(hi2c, MasterTxTransferCpltCallback);
+	//HAL_DMA_RegisterCallback(&hdma_i2c2_tx, HAL_DMA_XFER_CPLT_CB_ID, myI2C_Callback);
 #if testingI2C
 	uint8_t i2c_message[2] = {0,0};
 		i2c_message[1] = 0xAE;
@@ -189,10 +198,12 @@ void sdd1306_invertDisplay(uint8_t i) {
 void ssd1306_command(uint8_t c) {
 	// I2C
 	//	uint8_t control = 0x00;   // Co = 0, D/C = 0
-
-	uint8_t i2c_message[2] = {0,0};
-	i2c_message[1] = c;
-	HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, i2c_message, 2, 2000);
+	if (OLED_i2c_handle->hdmatx->State ==HAL_DMA_STATE_READY)
+	{
+		uint8_t i2c_message[2] = {0,0};
+		i2c_message[1] = c;
+		HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, i2c_message, 2, 2000);
+	}
 }
 
 
@@ -217,35 +228,48 @@ void ssd1306_dim(uint8_t dim) {
   ssd1306_command(contrast);
 }
 
+uint8_t tempBuffer[129] __ATTR_RAM_D2_DMA;
 
 void ssd1306_display_full_buffer(unsigned char* buffer) {
 
-	if (!I2C_busy)
+	if (OLED_i2c_handle->hdmatx->State ==HAL_DMA_STATE_READY)
 	{
-		uint8_t tempBuffer[129];
-
-
-		ssd1306_home();
-
-
-		for (int i = 0; i < 8; i++)
+		if (OLED_changed)
 		{
-			ssd1306_command(0x22);
-			ssd1306_command(0xB0 + i);
-			ssd1306_command(0x00);
-			ssd1306_command(0x10);
-			tempBuffer[0] = 0x40;
-			for (int j = 0; j < 128; j++)
-				{
-					tempBuffer[j+1] = buffer[(i * 128) + j];
-				}
-			HAL_I2C_Master_Transmit(OLED_i2c_handle, OLED_i2c_address, tempBuffer, 129, 2000);
 
-			//tried to get DMA working but couldn't for some reason this time
-			//I think it's because I didn't have the I2C event interrupt enabled
+			if (OLED_page == 0)
+			{
+				ssd1306_home();
+				OLED_writing = 1;
+			}
+
+
+
+				ssd1306_command(0x22);
+				ssd1306_command(0xB0 + OLED_page);
+				ssd1306_command(0x00);
+				ssd1306_command(0x10);
+				tempBuffer[0] = 0x40;
+				for (int j = 0; j < 128; j++)
+					{
+						tempBuffer[j+1] = buffer[(OLED_page * 128) + j];
+					}
+
+				HAL_I2C_Master_Transmit_DMA(OLED_i2c_handle, OLED_i2c_address, tempBuffer, 129);
+				I2C_busy = 1;
+				//tried to get DMA working but couldn't for some reason this time
+				//I think it's because I didn't have the I2C event interrupt enabled
+				OLED_page++;
+
+				if (OLED_page == 8)
+				{
+					OLED_page = 0;
+					OLED_writing = 0;
+					OLED_changed = 0;
+				}
 
 		}
-		OLED_changed = 0;
+
 
 	}
 
