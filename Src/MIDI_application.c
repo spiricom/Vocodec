@@ -73,14 +73,22 @@ void parse_MIDI_Message(void)
 	switch(USB_message[1])
 	{
 		case (0x80): // Note Off
-			key = USB_message[2];
+			key = USB_message[2]-24;
+			if (key < 0)
+			{
+				key = 0;
+			}
 			velocity = USB_message[3];
 
 			noteOff(&vocodec, key, velocity);
 
 			break;
 		case (0x90): // Note On
-			key = USB_message[2];
+			key = USB_message[2]-24;
+			if (key < 0)
+			{
+				key = 0;
+			}
 			velocity = USB_message[3];
 
 			noteOn(&vocodec, key, velocity);
