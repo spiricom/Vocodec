@@ -57,7 +57,7 @@ extern "C" {
 #define __ATTR_ITCMRAM
 # define FORCE_INLINE __attribute__((always_inline)) inline
 
-#define NUM_ADC_CHANNELS 6
+#define NUM_ADC_CHANNELS 7
 
 #define STM32 // define this so that LEAF knows you are building for STM32
 #ifndef TRUE
@@ -119,6 +119,17 @@ void writeIntToFlash(uint32_t data, uint32_t location);
 uint32_t readIntFromFlash (uint32_t location);
 //uint8_t LEAF_error(uint8_t errorCode);
 
+typedef enum _presetArraySectionState
+{
+    presetNameSection = 0,
+    macroNamesSection = 1,
+    initialValsSection = 2,
+    mapCountNextSection = 3,
+    mappingSection = 4,
+    presetEndSection = 5,
+} presetArraySectionState;
+
+
 void CycleCounterTrackMinAndMax( int whichCount);
 void CycleCounterAddToAverage( int);
 void CycleCounterAverage( int );
@@ -127,7 +138,10 @@ void CycleCounterAverage( int );
 /* Private defines -----------------------------------------------------------*/
 
 /* USER CODE BEGIN Private defines */
-extern volatile uint16_t ADC_values[6] __ATTR_RAM_D2_DMA;
+extern volatile uint16_t ADC_values[7] __ATTR_RAM_D2_DMA;
+
+extern volatile int16_t accelData[3];
+extern volatile float gyroData[3];
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

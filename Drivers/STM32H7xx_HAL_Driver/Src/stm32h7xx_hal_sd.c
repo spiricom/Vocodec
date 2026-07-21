@@ -516,7 +516,7 @@ HAL_StatusTypeDef HAL_SD_InitCard(SD_HandleTypeDef *hsd)
 
   if (sdmmc_clk != 0U)
   {
-    HAL_Delay(1U + (74U * 1000U / (sdmmc_clk)));
+    //HAL_Delay(1U + (74U * 1000U / (sdmmc_clk)));
   }
 
   /* Identify card operating voltage */

@@ -176,7 +176,7 @@ float oscAmpMult = 1.0f;
 
 
  tExpSmooth volumeSmoother;
-
+ volatile float velocitySensitivity = 1.0f;
 
 void audioInitSynth()
 {
@@ -299,7 +299,7 @@ void audioInitSynth()
 
 		for (int i = 0; i < MAX_NUM_MAPPINGS; i++)
 		{
-			tExpSmooth_init(&mapSmoothers[i][v], 0.0f, 0.05f, &leaf);
+			tExpSmooth_init(&mapSmoothers[i][v], 0.0f, 0.2f, &leaf);
 		}
 
 		tSVF_LP_init(&finalLowpass[v], 19000.f, 0.2f, &leaf);
@@ -325,7 +325,7 @@ void  audioSwitchToSynth()
 
 	for (int i = 0; i < 20; i++)
 	{
-		tExpSmooth_setFactor(knobSmoothers[i], 0.001f);
+		tExpSmooth_setFactor(knobSmoothers[i], 0.01f);
 		//tExpSmooth_setValAndDest(knobSmoothers[i], string2Defaults[i]);
 		knobFrozen[i] = 1;
 	}
@@ -334,10 +334,9 @@ void  audioSwitchToSynth()
 	{
 		//for (int i = 0; i < NUM_EFFECT; i++)
 		{
-
+			leaf.clearOnAllocation = 1;
 			tLinearDelay_initToPool(&delay1[v], 4000.0f*OVERSAMPLE, 4096*OVERSAMPLE, &mediumPool);
 			tLinearDelay_initToPool(&delay2[v], 4000.0f*OVERSAMPLE, 4096*OVERSAMPLE, &mediumPool);
-			leaf.clearOnAllocation = 1;
 			tTapeDelay_initToPool(&tapeDelay[v], 15000.0f*OVERSAMPLE, 20000*OVERSAMPLE, &largePool);
 		}
 	}
@@ -369,7 +368,7 @@ void __ATTR_ITCMRAM audioFrameSynth(uint16_t buffer_offset)
 	{
 		for (int i = 0; i < numStringsThisBoard; i++)
 		{
-			if (((previousStringInputs[i] == 0) && (stringInputs[i] > 0)) || retrigMode)
+			if (((previousStringInputs[i] == 0) && (stringInputs[i] > 0)) || (retrigMode && (stringInputs[i] > 0)))
 			{
 				float amplitz = stringInputs[i] * 0.000015259021897f;
 				stringOctave[i] = octave;
@@ -383,7 +382,8 @@ void __ATTR_ITCMRAM audioFrameSynth(uint16_t buffer_offset)
 						param* envParams = &params[ENVELOPE_PARAMS_OFFSET + v * EnvelopeParamsNum];
 						float useVelocity = envParams[EnvelopeVelocity].realVal[i];
 						float envVel = amplitz;
-						if (useVelocity == 0) envVel = 1.f;
+						//if (useVelocity == 0)
+						envVel = (velocitySensitivity) + ((1.0f - velocitySensitivity) * amplitz);
 						tADSRT_on(envs[v][i], envVel);
 						voiceSounding = 1;
 					}
@@ -465,6 +465,8 @@ volatile float outVol2 = 0.0f;
 volatile uint32_t timeVolumeLookup = 0;
 volatile uint32_t timeVolumePoly = 0;
 
+
+
 volatile uint32_t nanChecker = 0;
 
 float __ATTR_ITCMRAM audioTickSynth(void)
@@ -492,7 +494,10 @@ float __ATTR_ITCMRAM audioTickSynth(void)
 			}
 		}
 	}
-
+	tExpSmooth_setDest(knobSmoothers[13], (float)ADC_values[5] * INV_TWO_TO_16);
+	tExpSmooth_setDest(knobSmoothers[12], (float)ADC_values[4] * INV_TWO_TO_16);
+	float finalVolumeKnob = tExpSmooth_tick(knobSmoothers[13]);
+	velocitySensitivity = tExpSmooth_tick(knobSmoothers[12]);
 
 	for (int v = 0; v < numStringsThisBoard; v++)
 	{
@@ -718,6 +723,7 @@ float __ATTR_ITCMRAM audioTickSynth(void)
 	timeTick = DWT->CYCCNT - tempCountTick;
 
 	float tempOut = masterSample * audioMasterLevel * 0.98f * antiClickFade;
+	tempOut *= finalVolumeKnob;
 	if (tempOut > 0.99999f)
 	{
 		tempOut = 0.99999f;
@@ -735,7 +741,16 @@ void changeOversampling(uint32_t newOS)
 {
 	if (newOS != prevOversample)
 	{
-		uint32_t osMult = (newOS + 1) * SAMPLE_RATE; // change os to 1-2 range
+		uint32_t osMult = 1;
+		if (newOS)
+		{
+			osMult = OVERSAMPLE * SAMPLE_RATE;
+		}
+		else
+		{
+			osMult = SAMPLE_RATE;
+		}
+		//uint32_t osMult = (newOS + 1) * SAMPLE_RATE; // change os to 1-2 range
 		for (int v = 0; v < numStringsThisBoard; v++)
 		{
 			for (int i = 0; i < NUM_EFFECT; i++)
@@ -759,7 +774,7 @@ void changeOversampling(uint32_t newOS)
 				tSVF_setSampleRate(FXbandpass[i][v],osMult);
 				tSVF_setFreqFast(FXbandpass[i][v], FXbandpass[i][v]->cutoffMIDI);
 				tDiodeFilter_setSampleRate(FXdiodeFilters[i][v], osMult);
-				tDiodeFilter_setSampleRate(FXdiodeFilters[i][v], FXdiodeFilters[i][v]->cutoffMIDI);
+				tDiodeFilter_setFreqFast(FXdiodeFilters[i][v], FXdiodeFilters[i][v]->cutoffMIDI);
 				tVZFilterBell_setSampleRate(FXVZfilterPeak[i][v], osMult);
 				tVZFilterBell_setFreqFast(FXVZfilterPeak[i][v], FXVZfilterPeak[i][v]->cutoffMIDI);
 				tVZFilterLS_setSampleRate(FXVZfilterLS[i][v], osMult);

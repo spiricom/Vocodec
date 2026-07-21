@@ -41,6 +41,7 @@
 #include "MIDI_application.h"
 #include "synth.h"
 #include "oled.h"
+#include "lsm6dsl.h"
 
 /* USER CODE END Includes */
 
@@ -70,6 +71,54 @@ uint16_t VarDataTab = 0;
 uint16_t VarValue = 0;
 
 
+
+volatile uint32_t receivingSysex = 0;
+volatile uint32_t parsingSysex = 0;
+
+volatile uint32_t uartTest = 0;
+uint32_t sysexPointerMask = 4095;
+uint32_t sysexWritePointer = 0;
+uint32_t sysexReadPointer = 0;
+uint32_t lastBufferStuff = 0;
+uint32_t lastEndReceive = 0;
+uint32_t masterTimer = 0;
+uint32_t newSysexStart = 0;
+uint32_t prevLastParseCall = 0;
+uint32_t lastParseCall = 0;
+
+uint32_t sysexReset = 1;
+uint32_t sysexMessageStartPointsWritePosition = 0;
+uint32_t sysexMessageStartPointsReadPosition = 0;
+uint32_t sysexMessageStartPoints[256];
+uint32_t skipSysexHeader = 0;
+uint32_t sysexHeaderCount = 2;
+uint32_t lastBufferBegin[2];
+uint32_t prevLastBufferBegin[2];
+uint32_t sysexParseInProgress = 0;
+uint32_t currentFloat = 0;
+uint32_t presetNumberToWrite = 0;
+presetArraySectionState presetArraySection = presetNameSection;
+float myTestVal = 0.0f;
+float valCheck = 0.0f;
+uint32_t valsCount = 0;
+uint32_t mapCount = 0;
+uint32_t sysexParseError = 0;
+uint32_t mapCountExpectation = 0;
+uint32_t readyToWritePreset = 0;
+uint32_t parseEBPPreset = 0;
+union breakFloat {
+ float f;
+ uint8_t b[4];
+ uint32_t u32;
+};
+#define PRESET_NAME_LENGTH_IN_BYTES 14
+#define MACRO_NAME_LENGTH_IN_BYTES 9
+#define CONTROL_NAME_LENGTH_IN_BYTES 10
+#define NUM_MACROS 8
+#define NUM_CONTROLS 4
+
+
+
 #define NUM_COUNTER_CYCLES_TO_AVERAGE 32
 volatile int64_t cycleCountVals[4][3];
 volatile int64_t cycleCountValsAverager[4][NUM_COUNTER_CYCLES_TO_AVERAGE];
@@ -90,13 +139,13 @@ FILINFO fno;
 FIL fdst;
 DIR dir;
 
-uint8_t sysexBuffer[700];
+uint8_t sysexBuffer[4096];
 uint32_t sysexPointer = 0;
 uint8_t buffer[4096] __ATTR_RAM_D2;
 volatile uint16_t bufferPos = 0;
 FRESULT res;
 const TCHAR path = 0;
-volatile uint8_t currentActivePreset = 127;//
+
 volatile uint8_t presetName[14];
 volatile uint8_t presetNamesArray[MAX_NUM_PRESETS][14]__ATTR_RAM_D2;
 volatile uint8_t presetNumberToLoad = 0;
@@ -104,7 +153,9 @@ volatile uint32_t presetWaitingToParse = 0;
 volatile uint32_t presetWaitingToWrite = 0;
 volatile uint32_t presetWaitingToLoad = 0;
 
+volatile uint32_t waitingToParseSingleParameterChange = 0;
 
+volatile uint32_t waitingToParseSingleMappingChange = 0;
 
 volatile uint8_t macroNamesArray[MAX_NUM_PRESETS][20][10]__ATTR_RAM_D2;
 
@@ -149,6 +200,10 @@ static void CycleCounterInit( void );
 void getPresetNamesFromSDCard(void);
 static int checkForSDCardPreset(uint8_t numberToLoad);
 void parsePreset(int, int);
+void parseSysexPreset();
+void parseSingleParameterChange();
+void parseSingleMappingChange();
+static void writePresetToSDCard(int fileSize);
 #define testDataSize 32
 volatile uint8_t testData[testDataSize];
 
@@ -159,14 +214,19 @@ volatile uint8_t errorTime3 = 0;
 volatile uint8_t errorTime4 = 0;
 volatile uint8_t testInt = 0;
 
-volatile uint16_t ADC_values[6] __ATTR_RAM_D2_DMA;
+volatile uint16_t ADC_values[7] __ATTR_RAM_D2_DMA;
 
 volatile uint32_t OLED_changed = 0;
 
-volatile uint8_t UART_buffer[2] __ATTR_RAM_D2_DMA;
+#define UART_BUFFER_SIZE 2
+#define UART_HALF_BUFFER_SIZE 1
+#define UART_BUFFER_MASK 1
+volatile uint8_t UART_buffer[UART_BUFFER_SIZE] __ATTR_RAM_D2_DMA;
 
 volatile uint32_t sysexReadyToParse = 0;
 
+
+uint32_t parseThatMF = 0;
 
 void errorFunction(int i)
 {
@@ -205,6 +265,43 @@ void SDRAM_test()
 
 
 
+void     SENSOR_IO_Init(void)
+{
+	;
+}
+void     SENSOR_IO_Write(uint8_t Addr, uint8_t Reg, uint8_t Value)
+{
+	uint8_t tempBuf[2];
+	tempBuf[0] = Reg;
+	tempBuf[1] = Value;
+	HAL_I2C_Master_Transmit(&hi2c2, Addr, tempBuf, 2, 2000);
+}
+uint8_t  SENSOR_IO_Read(uint8_t Addr, uint8_t Reg)
+{
+	uint8_t tempBuf[1];
+	tempBuf[0] = Reg;
+	HAL_I2C_Master_Transmit(&hi2c2, Addr, tempBuf, 1, 2000);
+	HAL_I2C_Master_Receive(&hi2c2, Addr, tempBuf, 1, 2000);
+	return tempBuf[0];
+}
+uint16_t SENSOR_IO_ReadMultiple(uint8_t Addr, uint8_t Reg, uint8_t *Buffer, uint16_t Length)
+{
+	uint8_t tempBuf[1];
+	tempBuf[0] = Reg;
+	HAL_I2C_Master_Transmit(&hi2c2, Addr, tempBuf, 1, 2000);
+	HAL_I2C_Master_Receive(&hi2c2, Addr, Buffer, Length, 2000);
+	return 1;
+}
+void     SENSOR_IO_WriteMultiple(uint8_t Addr, uint8_t Reg, uint8_t *Buffer, uint16_t Length)
+{
+	uint8_t tempBuf[1];
+	tempBuf[0] = Reg;
+	HAL_I2C_Master_Transmit(&hi2c2, Addr, tempBuf, 1, 2000);
+	HAL_I2C_Master_Transmit(&hi2c2, Addr, Buffer, Length, 2000);
+
+}
+
+
 
 
 /* USER CODE END PFP */
@@ -212,6 +309,14 @@ void SDRAM_test()
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+volatile int16_t accelData[3];
+volatile float gyroData[3];
+
+uint16_t accelInitValues = 0b0000010010100000;
+uint16_t gyroInitValues = 0b0000010010100000;
+
+uint8_t whoamiAccel = 0;
+uint8_t whoamiGyro = 0;
 /* USER CODE END 0 */
 
 /**
@@ -275,6 +380,17 @@ int main(void)
   MX_TIM4_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
+
+  /*
+  HAL_Delay(100);
+  LSM6DSL_AccInit(accelInitValues);
+  HAL_Delay(2);
+  LSM6DSL_GyroInit(gyroInitValues);
+  HAL_Delay(2);
+  whoamiAccel = LSM6DSL_AccReadID();
+  HAL_Delay(2);
+  whoamiGyro = LSM6DSL_GyroReadID();
+*/
   /// it seems we need to enable caching after setting up the USB Host Controller -
   // otherwise turning on -o3 optimization causes unreliable behavior where it's not set up correctly and never reaches the USB interrupt for connection
   /* Enable I-Cache---------------------------------------------------------*/
@@ -345,8 +461,7 @@ int main(void)
     LEAF_generate_table_skew_non_sym(envTimeTable, 0.0f, 20000.0f, 4000.0f, SCALE_TABLE_SIZE);
     LEAF_generate_table_skew_non_sym(lfoRateTable, 0.0f, 30.0f, 2.0f, SCALE_TABLE_SIZE);
   HAL_Delay(10);
-  //SDRAM_test();
-  //SFX_init(&vocodec, &ADC_values, emptyFunction);
+
 
   if (VarDataTab < MAX_NUM_PRESETS) //make sure the stored data is a number not past the number of available presets
   {
@@ -357,7 +472,7 @@ int main(void)
   	  currentPreset = 0; //if the data is messed up for some reason, just initialize at the first preset (preset 0)
   }
   getPresetNamesFromSDCard();
-  //checkForSDCardPreset(currentPreset);
+  checkForSDCardPreset(currentPreset);
   presetNumberToLoad = currentPreset;
   presetWaitingToLoad = 1;
 
@@ -367,9 +482,12 @@ int main(void)
 
   audioInit(&hi2c2, &hsai_BlockA1, &hsai_BlockB1);
 
-
-  HAL_UART_Receive_DMA(&huart6,UART_buffer,2);
-
+  for (int i = 0; i < UART_BUFFER_SIZE; i++)
+  {
+	  UART_buffer[i] = 0;
+  }
+  //HAL_UARTEx_ReceiveToIdle_DMA(&huart6,UART_buffer,UART_BUFFER_SIZE);
+  HAL_UART_Receive_DMA(&huart6,UART_buffer,UART_BUFFER_SIZE);
 
   /* USER CODE END 2 */
 
@@ -379,6 +497,12 @@ int main(void)
   {
 	//HAL_Delay(10);
 
+
+	  //LSM6DSL_AccReadXYZ(accelData);
+	  //HAL_Delay(1);
+
+	  //LSM6DSL_GyroReadXYZAngRate(gyroData);
+	  //HAL_Delay(1);
 	MIDI_Application();
 
     /* USER CODE END WHILE */
@@ -391,11 +515,27 @@ int main(void)
     	checkForSDCardPreset(presetNumberToLoad);
     }
 
-
+    if (parseThatMF > 0)
+    {
+    	parseSysexPreset();
+    }
+    if (presetWaitingToWrite > 0)
+    {
+    	writePresetToSDCard(presetWaitingToWrite);
+    }
     if (presetWaitingToParse > 0)
     {
     	parsePreset(presetWaitingToParse, presetNumberToLoad);
     }
+    if (waitingToParseSingleParameterChange > 0)
+    {
+    	parseSingleParameterChange();
+    }
+    if (waitingToParseSingleMappingChange > 0)
+    {
+    	parseSingleMappingChange();
+    }
+
 
     OLED_process();
 	if ((hi2c2.State == HAL_I2C_STATE_READY) && (OLED_changed))
@@ -1018,6 +1158,139 @@ static int checkForSDCardPreset(uint8_t numberToLoad)
 	return found;
 }
 
+static void writePresetToSDCard(int fileSize)
+{
+	__disable_irq();
+	 for (int i = 0; i < AUDIO_BUFFER_SIZE; i++)
+	 {
+		 audioOutBuffer[i] = 0;
+	 }
+	if(BSP_SD_IsDetected())
+	{
+		//if(f_mount(&SDFatFS,  SDPath, 1) == FR_OK)
+		{
+			//if(res == FR_OK)
+			{
+				for (int i = 0; i < AUDIO_BUFFER_SIZE; i+=2)
+				{
+					audioOutBuffer[i] = 0;
+					audioOutBuffer[i + 1] = 0;
+				}
+				diskBusy = 1;
+				//make sure the number is not above 2 digits
+			    if (presetNumberToWrite > 99)
+			    {
+			    	presetNumberToWrite = 99;
+			    }
+
+
+			    //first, delete any existing presets that share the same number
+			    FRESULT res;
+				/* Start to search for preset files */
+				char charBufC[10];
+				char finalStringC[10];
+
+				//turn the integer value into a 2 digit string
+
+				itoa(presetNumberToWrite, charBufC, 10);
+				int len = ((strlen(charBufC)));
+				if (len == 1)
+				{
+					finalStringC[2] = charBufC[1];
+					finalStringC[1] = charBufC[0];
+					finalStringC[0] = '0';
+					strcat(finalStringC, "*.ebp");
+				}
+
+				else
+				{
+					strcat(charBufC, "*.ebp");
+					strcpy(finalStringC, charBufC);
+				}
+
+				uint32_t keepChecking = 1;
+				while(keepChecking)
+				{
+					res = f_findfirst(&dir, &fno, SDPath, finalStringC);
+
+					//delete if found
+					if((res == FR_OK) && (fno.fname[0]))
+					{
+						f_unlink (fno.fname);
+					}
+					else
+					{
+						keepChecking = 0;
+					}
+				}
+
+			    //turn the integer value into a 2 digit string
+				char charBuf[22];
+				char finalString[22];
+				itoa(presetNumberToWrite, charBuf, 10);
+				len = ((strlen(charBuf)));
+				if (len == 1)
+				{
+					finalString[21] = 0;
+					finalString[20] = 'p';
+					finalString[19] = 'b';
+					finalString[18] = 'e';
+					finalString[17] = '.';
+					for (int i = 0; i < 14; i++)
+					{
+						finalString[i+3] = buffer[i+4];
+						//replace spaces with underscores for filename
+						if (finalString[i+3] == 32)
+						{
+							finalString[i+3] = '_';
+						}
+					}
+					finalString[2] = '_';
+					finalString[1] = charBuf[0];
+					finalString[0] = '0';
+
+				}
+
+				else
+				{
+					finalString[21] = 0;
+					finalString[20] = 'p';
+					finalString[19] = 'b';
+					finalString[18] = 'e';
+					finalString[17] = '.';
+					for (int i = 0; i < 14; i++)
+					{
+						finalString[i+3] = buffer[i+4];
+						//replace spaces with underscores for filename
+						if (finalString[i+3] == 32)
+						{
+							finalString[i+3] = '_';
+						}
+					}
+					finalString[2] = '_';
+					finalString[1] = charBuf[1];
+					finalString[0] = charBuf[0];
+
+
+				}
+
+				if(f_open(&SDFile, finalString, FA_CREATE_ALWAYS | FA_WRITE) == FR_OK)
+				{
+					unsigned int bytesRead;
+					f_write(&SDFile, &buffer, fileSize, &bytesRead);
+					f_close(&SDFile);
+				}
+
+			}
+			//f_mount(0, "", 0); //unmount
+		}
+	}
+	presetWaitingToWrite = 0;
+	currentPreset = presetNumberToWrite;
+	diskBusy = 0;
+	__enable_irq();
+}
+
 void __ATTR_ITCMRAM blankFunction(float a, int b, int c)
 {
 	;
@@ -1577,7 +1850,7 @@ void  parsePreset(int size, int presetNumber)
 				bufferIndex = bufferIndex + 2;
 			}
 			presetWaitingToParse = 0;
-			currentActivePreset = presetNumber;
+
 
 
 			audioMasterLevel = 1.0f;
@@ -2007,7 +2280,9 @@ void  parsePreset(int size, int presetNumber)
 		}
 
 	}
-	midiKeyDivisor = 1.0f / ((params[MIDIKeyMax].realVal[0]*127.0f) - (params[MIDIKeyMin].realVal[0]*127.0f));
+	float tempDenomMidi = LEAF_clip(1.0f, ((params[MIDIKeyMax].realVal[0]*127.0f) - (params[MIDIKeyMin].realVal[0]*127.0f)), 127.0f);
+
+	midiKeyDivisor = 1.0f / tempDenomMidi;
 	midiKeySubtractor = (params[MIDIKeyMin].realVal[0] * 127.0f);
 	fxPre = params[FXOrder].realVal[0] > 0.5f;
 	if (presetVersionNumber > 0)
@@ -2253,11 +2528,11 @@ void  parsePreset(int size, int presetNumber)
 	}
 
 	presetWaitingToParse = 0;
-	currentActivePreset = presetNumber;
 	audioMasterLevel = 1.0f;
 	oscToTick = NUM_OSC;
 	overSampled = 1;
 	changeOversampling(overSampled);
+	//currentPreset = presetNumberToWrite;
 	OLED_writePreset();
 
 	parseCount = DWT->CYCCNT - tempCountParse;
@@ -2269,46 +2544,712 @@ void  parsePreset(int size, int presetNumber)
 
 }
 
-volatile uint32_t uartTest = 0;
+
+
+
+
+//translate that preset! this is to take the complete multi-chunk sysex midi message that has been received and stored
+// and format it in the binary EBP (electrobass preset) format. Most of the 7-bit messages have to be reconstructed into floats and then stored as 16-bit ints.
+
+void parseSysexPreset()
+{
+	parsingSysex = 1;
+	presetReady = 0;
+	uint32_t messageStart = sysexMessageStartPoints[sysexMessageStartPointsReadPosition];
+	uint32_t messageEnd = sysexMessageStartPoints[(sysexMessageStartPointsReadPosition + 1) & 255];
+	sysexMessageStartPointsReadPosition = (sysexMessageStartPointsReadPosition + 1) & 255;
+	sysexReadPointer = messageStart;
+
+    if (sysexBuffer[sysexReadPointer & sysexPointerMask] == 0)
+    {
+    	sysexParseInProgress = 1; // set a flag that we've started a sysex preset transfer. May take multiple sysex parse calls on the chunks to complete
+        currentFloat = 0;
+        presetArraySection = presetNameSection;
+        presetNumberToWrite = sysexBuffer[(sysexReadPointer+1) & sysexPointerMask];
+        buffer[0] = sysexBuffer[(sysexReadPointer+2) & sysexPointerMask];
+        buffer[1] = sysexBuffer[(sysexReadPointer+3) & sysexPointerMask];
+        buffer[2] = sysexBuffer[(sysexReadPointer+4) & sysexPointerMask];
+        buffer[3] = sysexBuffer[(sysexReadPointer+5) & sysexPointerMask];
+
+        union breakFloat theVal;
+        uint32_t i = 6;
+        sysexReadPointer = i + sysexReadPointer;
+        uint8_t stoppingPoint = PRESET_NAME_LENGTH_IN_BYTES+i;
+        for (; i < stoppingPoint; i++)
+        {
+        	buffer[i-2] = sysexBuffer[sysexReadPointer & sysexPointerMask] & 127; // pass on the first 14 elements as 8-bit bytes (they are the chars for the name string)
+            presetNamesArray[presetNumberToWrite][i-6] = sysexBuffer[sysexReadPointer & sysexPointerMask] & 127;
+            sysexReadPointer++;
+        }
+
+        presetArraySection = macroNamesSection;
+
+
+        for (int j = 0; j < (NUM_MACROS); j++)
+        {
+            for (int k = 0; k < MACRO_NAME_LENGTH_IN_BYTES; k++)
+            {
+            	buffer[i-2] = sysexBuffer[sysexReadPointer & sysexPointerMask] & 127; // pass on the first 14 elements as 8-bit bytes (they are the chars for the name string)
+                macroNamesArray[presetNumberToWrite][j][k] = sysexBuffer[sysexReadPointer & sysexPointerMask] & 127; // pass on the first 14 elements as 8-bit bytes (they are the chars for the name string)
+                i++;
+                sysexReadPointer++;
+            }
+        }
+        for (int j = 0; j < NUM_CONTROLS; j++)
+        {
+            for (int k = 0; k < CONTROL_NAME_LENGTH_IN_BYTES; k++)
+            {
+            	buffer[i-2] = sysexBuffer[sysexReadPointer & sysexPointerMask] & 127; // pass on the first 14 elements as 8-bit bytes (they are the chars for the name string)
+            	macroNamesArray[presetNumberToWrite][j+8][k] = sysexBuffer[sysexReadPointer & sysexPointerMask] & 127; // pass on the first 14 elements as 8-bit bytes (they are the chars for the name string)
+                 i++;
+                sysexReadPointer++;
+            }
+        }
+
+        uint16_t valsStart = 4 + PRESET_NAME_LENGTH_IN_BYTES + (MACRO_NAME_LENGTH_IN_BYTES * NUM_MACROS) + (CONTROL_NAME_LENGTH_IN_BYTES * NUM_CONTROLS);
+
+        presetArraySection = initialValsSection;
+
+        for (; sysexReadPointer < (messageEnd); sysexReadPointer = (sysexReadPointer+5))
+        {
+            theVal.u32 = 0;
+            theVal.u32 |= ((sysexBuffer[sysexReadPointer & sysexPointerMask ] &15) << 28);
+            theVal.u32 |= (sysexBuffer[(sysexReadPointer+1) & sysexPointerMask] << 21);
+            theVal.u32 |= (sysexBuffer[(sysexReadPointer+2) & sysexPointerMask] << 14);
+            theVal.u32 |= (sysexBuffer[(sysexReadPointer+3) & sysexPointerMask] << 7);
+            theVal.u32 |= (sysexBuffer[(sysexReadPointer+4) & sysexPointerMask] & 127);
+            myTestVal = theVal.f;
+            if (presetArraySection == initialValsSection)
+            {
+
+                if (currentFloat == 0)
+                {
+                    valsCount = (uint16_t) theVal.f;
+                    buffer[valsStart + currentFloat++] = valsCount >> 8;
+                    buffer[valsStart + currentFloat++] = valsCount & 0xff;
+                }
+                else if (currentFloat < ((valsCount+1)*2))
+                {
+                    uint16_t intVal = (uint16_t)(theVal.f * 65535.0f);
+                    buffer[valsStart + currentFloat++] = intVal >> 8;
+                    buffer[valsStart + currentFloat++] = intVal & 0xff;
+                }
+                else if (currentFloat == ((valsCount+1)*2))
+                {
+                    valCheck = theVal.f;
+                    if ((valCheck < -1.5f) && (valCheck > -2.5f))
+                    {
+                    	buffer[valsStart + currentFloat++] = 0xef;
+                    	buffer[valsStart + currentFloat++] = 0xef;
+                        presetArraySection = mapCountNextSection;
+                        mapCount = 0;
+                    }
+                    else
+                    {
+                        //error state
+                    	sysexParseError++;
+                    	parsingSysex = 0;
+                    }
+                }
+            }
+            else if (presetArraySection == mapCountNextSection)
+            {
+                mapCountExpectation = (uint16_t)theVal.f;
+                buffer[valsStart + currentFloat++] = mapCountExpectation >> 8;
+                buffer[valsStart + currentFloat++] = mapCountExpectation & 0xff;
+                presetArraySection = mappingSection;
+                numMappings = 0;
+            }
+            else if (presetArraySection == mappingSection)
+            {
+                // this is the order
+                // source (int), target (int), scalarSource (arrives as -1.0f if no scalar, send as 255 if no scalar)(int), range (float -1.0 to 1.0), slot# (in uint8_t)
+                if (numMappings < mapCountExpectation)
+                {
+                    if ((mapCount % 5) == 0)
+                    {
+                    	buffer[valsStart + currentFloat++] = (uint8_t)theVal.f;
+                    }
+                    else if  (mapCount % 5 == 1)
+                    {
+                    	buffer[valsStart + currentFloat++] = (uint8_t)theVal.f;
+                    }
+                    else if (mapCount % 5 == 2) //check if the scalar source is -1 (if so send 255 instead of a valid source number)
+                    {
+                        if (theVal.f < 0.0f)
+                        {
+                        	buffer[valsStart + currentFloat++] = 0xff;
+                        }
+                        else
+                        {
+                        	buffer[valsStart + currentFloat++] = (uint8_t)theVal.f;
+                        }
+                    }
+                    else if (mapCount % 5 == 3)
+                    {
+                        int16_t intVal = (int16_t)(theVal.f * 32767.0f); //keep it signed to allow negative numbers
+                        buffer[valsStart + currentFloat++] = intVal >> 8;
+                        buffer[valsStart + currentFloat++] = intVal & 0xff;
+
+                    }
+                    else
+                    {
+                    	buffer[valsStart + currentFloat++] = (uint8_t)theVal.f;
+                        numMappings++;
+                    }
+                    mapCount++;
+                }
+
+
+                else
+                {
+                    //mapcount ended
+                    if ((theVal.f < -2.5f) && (theVal.f > -3.5f))
+                    {
+                    	buffer[valsStart + currentFloat++] = 0xfe;
+                    	buffer[valsStart + currentFloat++] = 0xfe;
+                        presetArraySection = presetEndSection;
+                        parsingSysex = 0;
+                        presetWaitingToWrite = valsStart + currentFloat;
+                        presetWaitingToParse = valsStart + currentFloat;
+                        parseThatMF = 0;
+                        //prese = presetNumberToWrite;
+                        //messageArraySize = valsStart + currentFloat;
+                    }
+                    else
+                    {
+                        //error state
+                    	sysexParseError++;
+                       // sysexPointer = 0;
+                        parsingSysex = 0;
+                        parseThatMF = 0;
+
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+void parseSingleParameterChange()
+{
+
+	if (presetReady)
+	{
+
+		//sysexMessageInProgress = 1; // set a flag that we've started a sysex preset transfer. May take multiple sysex parse calls on the chunks to complete
+		union breakFloat theVal;
+		uint32_t i = (2 + sysexMessageStartPoints[sysexMessageStartPointsReadPosition]);
+		sysexMessageStartPointsReadPosition = (sysexMessageStartPointsReadPosition + 1) & 255;
+
+		//get the destination number
+		theVal.u32 = 0;
+		theVal.u32 |= ((sysexBuffer[i & sysexPointerMask] &15) << 28);
+		theVal.u32 |= (sysexBuffer[(i+1) & sysexPointerMask] << 21);
+		theVal.u32 |= (sysexBuffer[(i+2) & sysexPointerMask] << 14);
+		theVal.u32 |= (sysexBuffer[(i+3) & sysexPointerMask] << 7);
+		theVal.u32 |= (sysexBuffer[(i+4) & sysexPointerMask] & 127);
+		uint16_t whichParam  = (uint16_t)roundf(theVal.f);
+
+		 i = (i+5);
+
+		 //get the parameter value
+		 theVal.u32 = 0;
+		 theVal.u32 |= ((sysexBuffer[i & sysexPointerMask] &15) << 28);
+		 theVal.u32 |= (sysexBuffer[(i+1)& sysexPointerMask] << 21);
+		 theVal.u32 |= (sysexBuffer[(i+2)& sysexPointerMask] << 14);
+		 theVal.u32 |= (sysexBuffer[(i+3)& sysexPointerMask] << 7);
+		 theVal.u32 |= (sysexBuffer[(i+4)& sysexPointerMask] & 127);
+
+		 //uint16_t intVal = (uint16_t)(theVal.f * 65535.0f);
+
+
+
+		for (int v = 0; v < NUM_STRINGS_PER_BOARD; v++)
+		{
+			//get the zero-to-one-value
+			params[whichParam].zeroToOneVal[v] = theVal.f;
+		}
+
+		if ((whichParam == Effect1FXType) || (whichParam == Effect2FXType) || (whichParam == Effect3FXType) || (whichParam == Effect4FXType))
+		{
+			uint8_t whichEffect = (whichParam - Effect1FXType) / EffectParamsNum;
+			FXType effectType = roundf(params[whichParam].zeroToOneVal[0] * (NUM_EFFECT_TYPES-1));
+			param *FXAlias = &params[whichParam + 1];
+
+			if (effectType > FXLowpass)
+			{
+				FXAlias[2].scaleFunc = &scaleFilterResonance;
+			}
+			setEffectsFunctions(effectType, whichEffect);
+			FXAlias[0].setParam = effectSetters[whichEffect].setParam1;
+			FXAlias[1].setParam = effectSetters[whichEffect].setParam2;
+			FXAlias[2].setParam = effectSetters[whichEffect].setParam3;
+			FXAlias[3].setParam = effectSetters[whichEffect].setParam4;
+			FXAlias[4].setParam = effectSetters[whichEffect].setParam5;
+		}
+
+		for (int v = 0; v < NUM_STRINGS_PER_BOARD; v++)
+		{
+			//set the real value based on the scale function
+			params[whichParam].realVal[v] = params[whichParam].scaleFunc(params[whichParam].zeroToOneVal[v]);
+			//set the actual parameter
+			params[whichParam].setParam(params[whichParam].realVal[v], params[whichParam].objectNumber, v);
+		}
+		if ((whichParam == Osc1ShapeSet) || (whichParam == Osc2ShapeSet) || (whichParam == Osc3ShapeSet))
+		{
+			int whichOsc =(whichParam - Osc1ShapeSet) / OscParamsNum;
+			int oscshape = roundf(params[whichParam].realVal[0] * (NUM_OSC_SHAPES-1));
+			setOscilllatorShapes(oscshape, whichOsc);
+		}
+		if ((whichParam == Osc1) || (whichParam == Osc2) ||(whichParam == Osc3))
+		{
+			int whichOsc = (whichParam - Osc1) / OscParamsNum;
+			if (params[whichParam].realVal[0]  > 0.5f)
+			{
+				oscsEnabled[whichOsc] = 1;
+				oscOn[whichOsc] = 1;
+			}
+			else
+			{
+				oscsEnabled[whichOsc] = 0;
+			}
+			int enabledCount = 0;
+
+			for (int j = 0; j < 3; j++)
+			{
+				enabledCount += oscsEnabled[j];
+			}
+			oscAmpMult = oscAmpMultArray[enabledCount];
+		}
+		if ((whichParam == Noise))
+		{
+			if (params[whichParam].realVal[0]  > 0.5f)
+			{
+				noiseOn = 1;
+			}
+		}
+		if ((whichParam == Filter1Type) || (whichParam == Filter2Type))
+		{
+			int whichFilter = (whichParam - Filter1Type) / FilterParamsNum;
+			int filterType = roundf(params[whichParam].realVal[0] * (NUM_FILTER_TYPES-1));
+			setFilterTypes(filterType, whichFilter);
+			int filterResParamNum = Filter1Resonance + (whichFilter * FilterParamsNum);
+			int filterGainParamNum = Filter1Gain + (whichFilter * FilterParamsNum);
+			params[filterResParamNum].setParam = filterSetters[whichFilter].setQ;
+			params[filterGainParamNum].setParam = filterSetters[whichFilter].setGain;
+
+			//set the resonance and gain params of that filter
+			for (int v = 0; v < NUM_STRINGS_PER_BOARD; v++)
+			{
+				params[filterResParamNum].setParam(params[filterResParamNum].realVal[v], params[filterResParamNum].objectNumber, v);
+				params[filterGainParamNum].setParam(params[filterGainParamNum].realVal[v], params[filterGainParamNum].objectNumber, v);
+			}
+		}
+		if ((whichParam == LFO1ShapeSet) || (whichParam == LFO2ShapeSet) || (whichParam == LFO3ShapeSet) || (whichParam == LFO4ShapeSet))
+		{
+			int whichLFO = (whichParam - LFO1ShapeSet) / LFOParamsNum;
+			int LFOShape = roundf(params[whichParam].realVal[0] * (NUM_LFO_SHAPES-1));
+			setLFOShapes(LFOShape, whichLFO);
+			int rateParamNum = LFO1Rate + (whichLFO * LFOParamsNum);
+			int shapeParamNum = LFO1Shape + (whichLFO * LFOParamsNum);
+			int phaseParamNum = LFO1Phase + (whichLFO * LFOParamsNum);
+			params[rateParamNum].setParam = lfoSetters[whichLFO].setRate;
+			params[shapeParamNum].setParam = lfoSetters[whichLFO].setShape;
+			params[phaseParamNum].setParam = lfoSetters[whichLFO].setPhase;
+
+			//set the lfo params for that particular new lfo shape
+			for (int v = 0; v < NUM_STRINGS_PER_BOARD; v++)
+			{
+				params[rateParamNum].setParam(params[rateParamNum].realVal[v], params[rateParamNum].objectNumber, v);
+				params[shapeParamNum].setParam(params[shapeParamNum].realVal[v], params[shapeParamNum].objectNumber, v);
+				params[phaseParamNum].setParam(params[phaseParamNum].realVal[v], params[phaseParamNum].objectNumber, v);
+			}
+		}
+		if ((whichParam == MIDIKeyMax) || (whichParam == MIDIKeyMin))
+		{
+			midiKeyDivisor = 1.0f / ((params[MIDIKeyMax].realVal[0]*127.0f) - (params[MIDIKeyMin].realVal[0]*127.0f));
+			midiKeySubtractor = (params[MIDIKeyMin].realVal[0] * 127.0f);
+		}
+		/*
+		if (whichParam == Transpose)
+		{
+			masterTranspose = params[Transpose].realVal[0];
+		}
+		*/
+		if (whichParam == FXOrder)
+		{
+			fxPre = params[FXOrder].realVal[0] > 0.5f;
+		}
+		if (whichParam == PedalControlsMaster)
+		{
+			pedalControlsMaster = params[PedalControlsMaster].realVal[0] > 0.5f;
+		}
+	}
+	waitingToParseSingleParameterChange = 0;
+}
+
+uint32_t sendMappingChangeUpdate = 0;
+
+void parseSingleMappingChange()
+{
+	if (presetReady)
+	{
+		//sysexMessageInProgress = 1; // set a flag that we've started a sysex preset transfer. May take multiple sysex parse calls on the chunks to complete
+		union breakFloat theVal;
+		uint32_t i = (2 + sysexMessageStartPoints[sysexMessageStartPointsReadPosition]);
+		sysexMessageStartPointsReadPosition = (sysexMessageStartPointsReadPosition + 1) & 255;
+		//get the destination number
+		theVal.u32 = 0;
+		theVal.u32 |= ((sysexBuffer[i & sysexPointerMask] &15) << 28);
+		theVal.u32 |= (sysexBuffer[(i+1) & sysexPointerMask] << 21);
+		theVal.u32 |= (sysexBuffer[(i+2) & sysexPointerMask] << 14);
+		theVal.u32 |= (sysexBuffer[(i+3) & sysexPointerMask] << 7);
+		theVal.u32 |= (sysexBuffer[(i+4) & sysexPointerMask] & 127);
+		uint16_t destNumber  = (uint16_t)roundf(theVal.f);
+
+
+
+		uint8_t whichSlot = sysexBuffer[(i+5) & sysexPointerMask]; //slot id
+		uint8_t mappingChangeType = sysexBuffer[(i+6) & sysexPointerMask]; //mapping change type
+
+		i = (i+7);
+
+		//get the parameter value
+		theVal.u32 = 0;
+		theVal.u32 |= ((sysexBuffer[i & sysexPointerMask] &15) << 28);
+		theVal.u32 |= (sysexBuffer[(i+1) & sysexPointerMask] << 21);
+		theVal.u32 |= (sysexBuffer[(i+2) & sysexPointerMask] << 14);
+		theVal.u32 |= (sysexBuffer[(i+3) & sysexPointerMask] << 7);
+		theVal.u32 |= (sysexBuffer[(i+4) & sysexPointerMask] & 127);
+		uint8_t tempMappingArray[2];
+		if (mappingChangeType == 0) // source id
+		{
+			tempMappingArray[0] = 0;
+			tempMappingArray[1] = (int16_t)(roundf(theVal.f));
+		}
+		else if (mappingChangeType == 1) // amount
+		{
+			int16_t intVal = (int16_t)(theVal.f * 32767.0f);
+			tempMappingArray[0] = intVal >> 8;
+			tempMappingArray[1] = intVal & 0xff;
+		}
+		else // scalar source
+		{
+			tempMappingArray[0] = 0;
+			tempMappingArray[1] = (int16_t)(roundf(theVal.f));
+		}
+		int16_t mappingChangeValue = ((tempMappingArray[0]<< 8) + tempMappingArray[1]);
+
+		//sysexMessageInProgress = 0;
+		sendMappingChangeUpdate = 1;
+
+		uint8_t whichMapping = 0;
+		uint8_t foundOne = 0;
+
+		// TODO: replace this search with explicit mapping slots instead
+			// we need to add sending of mapping slots
+
+		uint8_t lowestEmptyMapping = MAX_NUM_MAPPINGS;
+		//search to see if this destination already has other mappings
+		for (int j = 0; j < MAX_NUM_MAPPINGS; j++)
+		{
+			if (mappings[j].destNumber == destNumber)
+			{
+				//found one, use this mapping
+				whichMapping = j;
+				foundOne = 1;
+			}
+			if ((mappings[j].destNumber == 255) && (j < lowestEmptyMapping))
+			{
+				lowestEmptyMapping = j;
+			}
+		}
+		if (foundOne == 0)
+		{
+			//didn't find another mapping with this destination, start a new mapping
+			whichMapping = lowestEmptyMapping;
+			numMappings++;
+			mappings[whichMapping].destNumber = destNumber;
+			mappings[whichMapping].dest = &params[destNumber];
+		}
+
+
+//		//if the source is bipolar (oscillators, noise, and LFOs) then double the amount because it comes in as only half the range
+//		if ((source < 4) || ((source >= LFO_SOURCE_OFFSET) && (source < (LFO_SOURCE_OFFSET + NUM_LFOS))))
+//		{
+//			amountFloat *= 2.0f;
+//		}
+
+
+		if (mappingChangeType == SourceID)
+		{
+			mappings[whichMapping].sourceSmoothed[whichSlot] = 1;
+			int source = mappingChangeValue;
+
+			if (source == 255)
+			{
+				//delete this hook
+				mappings[whichMapping].hookActive[whichSlot] = 0;
+				// if all hooks for this destination have source 255, delete this mapping
+				int countHooks = 0;
+				for (int i = 0; i < 3; i++)
+				{
+					if (mappings[whichMapping].hookActive[whichSlot] != 0)
+					{
+						countHooks++;
+					}
+				}
+				//if you just removed the only hook from a mapping, mark the mapping invalid and remove it from the list
+				//TODO: I think we are going to have to store a stack that represents which mappings are active and need to be ticked, otherwise it has to iterate all 32, now that we can remove one in the middle of the list.
+				//or we keep track of the highest number of mapping we are ticking, and always tick up to that, ignoring elements we pass that have dest set to 255.
+
+				if (countHooks == 0)
+				{
+					mappings[whichMapping].destNumber = 255;
+
+					//since the mapping tick will no longer update it, it would stick on the last value, so reset it to the unmapped initial value
+					for (int v = 0; v < NUM_STRINGS_PER_BOARD; v++)
+					{
+						//sources are now summed - let's add the initial value
+						float finalVal = mappings[whichMapping].dest->zeroToOneVal[v];
+
+
+						//now scale the value with the correct scaling function
+						mappings[whichMapping].dest->realVal[v] = mappings[whichMapping].dest->scaleFunc(finalVal);
+
+						//and pop that value where it belongs by setting the actual parameter
+						mappings[whichMapping].dest->setParam(mappings[whichMapping].dest->realVal[v], mappings[whichMapping].dest->objectNumber, v);
+					}
+				}
+			}
+			else
+			{
+				mappings[whichMapping].hookActive[whichSlot] = 1;
+
+				for (int v = 0; v < NUM_STRINGS_PER_BOARD; v++)
+				{
+					mappings[whichMapping].sourceValPtr[whichSlot][v] = &sourceValues[source][v];
+					mappings[whichMapping].scalarSourceValPtr[whichSlot][v] = &defaultScaling; //blank out the scalar source, because otherwise it will point to some random function or a null pointer
+				}
+				if (source < 4) //if it's oscillators or noise (the first 4 elements of the source array), don't smooth to allow FM
+				{
+					mappings[whichMapping].sourceSmoothed[whichSlot] = 0;
+				}
+				if ((source >= LFO_SOURCE_OFFSET) && (source < (LFO_SOURCE_OFFSET + NUM_LFOS)))
+				{
+					lfoOn[source - LFO_SOURCE_OFFSET] = 1;
+				}
+				if ((source >= ENV_SOURCE_OFFSET) && (source < (ENV_SOURCE_OFFSET + NUM_ENV)))
+				{
+					envOn[source - ENV_SOURCE_OFFSET] = 1;
+					mappings[whichMapping].sourceSmoothed[whichSlot] = 0;
+				}
+				if ((source >= OSC_SOURCE_OFFSET) && (source < (OSC_SOURCE_OFFSET+NUM_OSC)))
+				{
+					oscOn[source - OSC_SOURCE_OFFSET] = 1;
+				}
+				if ((source >= NOISE_SOURCE_OFFSET) && (source < (NOISE_SOURCE_OFFSET+1)))
+				{
+					noiseOn = 1;
+				}
+				mappings[whichMapping].amount[whichSlot] = 0.0f;
+			}
+
+
+		}
+		else if (mappingChangeType == Amount)
+		{
+			mappings[whichMapping].amount[whichSlot] = (float)mappingChangeValue * INV_TWO_TO_15;
+		}
+		else if (mappingChangeType == ScalarID)
+		{
+			int scalar = mappingChangeValue;
+			for (int v = 0; v < NUM_STRINGS_PER_BOARD; v++)
+			{
+				if (scalar == 0xff)
+				{
+					mappings[whichMapping].scalarSourceValPtr[whichSlot][v] = &defaultScaling;
+				}
+				else
+				{
+					mappings[whichMapping].scalarSourceValPtr[whichSlot][v] = &sourceValues[scalar][v];
+					if ((scalar >= LFO_SOURCE_OFFSET) && (scalar < (LFO_SOURCE_OFFSET + NUM_LFOS)))
+					{
+						lfoOn[scalar - LFO_SOURCE_OFFSET] = 1;
+					}
+					if ((scalar >= ENV_SOURCE_OFFSET) && (scalar < (ENV_SOURCE_OFFSET + NUM_ENV)))
+					{
+						envOn[scalar - ENV_SOURCE_OFFSET] = 1;
+					}
+					if ((scalar >= OSC_SOURCE_OFFSET) && (scalar < (OSC_SOURCE_OFFSET + NUM_OSC)))
+					{
+						oscOn[scalar - OSC_SOURCE_OFFSET] = 1;
+					}
+					if ((scalar >= NOISE_SOURCE_OFFSET) && (scalar < (NOISE_SOURCE_OFFSET + 1)))
+					{
+						noiseOn = 1;
+					}
+					//TODO: doesn't cleanly remove lfoOn settings during streaming data - after deleting an LFO used as a scalar it will keep computing the LFO. How should we remember what the source of the scalar was when removing it? -JS
+				}
+			}
+		}
+	}
+	waitingToParseSingleMappingChange = 0;
+}
+
+uint32_t currentUARTBufferPos = 0;
+uint32_t uartParseCount = 0;
+
+void UART_buffer_parse(uint32_t size)
+{
+#if 0
+	for (int i = 0; i < size; i++)
+	{
+
+		sysexBuffer[(sysexWritePointer++) & sysexPointerMask] = UART_buffer[currentUARTBufferPos++ & UART_BUFFER_MASK];
+
+		uint32_t offset = currentUARTBufferPos++ & UART_BUFFER_MASK;
+#endif
+		uint32_t offset = size;
+		if (receivingSysex)
+		    {
+
+				if (UART_buffer[offset] < 128)
+				{
+					sysexBuffer[(sysexWritePointer++) & sysexPointerMask] = UART_buffer[offset];
+					lastBufferStuff = masterTimer;
+		            sysexReset = 0;
+				}
+				else
+				{
+					if (UART_buffer[offset] == 0xf7)
+					{
+						receivingSysex = 0;
+						lastEndReceive = masterTimer;
+
+						//parseSysex();
+						return;
+					 }
+				}
+		    }
+
+		    else if (newSysexStart)
+		    {
+		    	if (!parsingSysex)
+		        {
+		        	if (UART_buffer[offset] == 126) // special message saying that sysex multi-chunk transmission is finished. Parse it!
+		            {
+
+		        		switch (sysexBuffer[sysexMessageStartPoints[sysexMessageStartPointsWritePosition] & sysexPointerMask])
+		        		{
+							case 0://new preset
+								parseThatMF = 1;
+								parsingSysex = 1;
+								break;
+							case 3: //real-time parameter change
+								waitingToParseSingleParameterChange = 1;
+								break;
+							case 4: //real-time mapping change
+								waitingToParseSingleMappingChange = 1;
+								break;
+							default:
+								break;
+		        		}
+
+
+		                prevLastParseCall = lastParseCall;
+		                lastParseCall = masterTimer;
+		                sysexReset = 1;
+
+		                sysexMessageStartPointsWritePosition = (sysexMessageStartPointsWritePosition + 1) & 255;
+		                sysexMessageStartPoints[sysexMessageStartPointsWritePosition] = sysexWritePointer;
+		                newSysexStart = 0;
+		                //sysexPointer = 0;
+		            }
+		        	else
+		        	{
+		        		if (sysexHeaderCount == 2) //first byte after start byte
+		        		{
+
+							if (UART_buffer[offset] == 0 || UART_buffer[offset] == 1 || UART_buffer[offset] == 2 || UART_buffer[offset] == 3 || UART_buffer[offset] == 4)
+							{
+								// if this is the first chunk, put in the first and second elements (following chunks need this data stripped until the final message gets sent)
+								prevLastBufferBegin[0] = lastBufferBegin[0];
+								prevLastBufferBegin[1] = lastBufferBegin[1];
+								lastBufferBegin[0] = masterTimer;
+								lastBufferBegin[1] = UART_buffer[offset];
+							}
+		        		}
+		        		//only store the two header bytes in the first chonk of a multi-chonk transmission
+		        		// if this is the first sysex chunk of a multi-chonk transmission
+						if ((sysexReset == 1) && (sysexHeaderCount > 0))
+						{
+							sysexBuffer[sysexWritePointer++ & sysexPointerMask] = UART_buffer[offset];
+						}
+						sysexHeaderCount--;
+						//if you got past the first two bytes after the start byte, start just filling the buffer
+						if (sysexHeaderCount == 0)
+						{
+							receivingSysex = 1;
+							newSysexStart = 0;
+						}
+		        	}
+
+
+		        }
+		    }
+
+			else if (UART_buffer[offset] == 0xf0) //got a start byte
+			{
+				newSysexStart = 1;
+				sysexHeaderCount = 2; //how many header bytes will follow (save them in first chonk and drop the ones in following chonks)
+			}
+
+		    masterTimer++;
+//#endif
+
+	//}
+
+
+
+
+}
+
+volatile uint32_t sizeComingIn = 0;
+volatile uint32_t sizeMinusPosition = 0;
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+#if 0
+	HAL_UART_RxEventTypeTypeDef eventTypeUART = HAL_UARTEx_GetRxEventType(huart);
+	sizeComingIn = Size;
+	sizeMinusPosition = (Size - currentUARTBufferPos) & UART_BUFFER_MASK;
+	if (eventTypeUART == HAL_UART_RXEVENT_IDLE)
+	{
+		UART_buffer_parse(sizeMinusPosition);
+	}
+	else if (eventTypeUART == HAL_UART_RXEVENT_TC)
+	{
+
+		UART_buffer_parse(sizeMinusPosition);
+	}
+
+	else if (eventTypeUART == HAL_UART_RXEVENT_HT)
+	{
+		UART_buffer_parse(sizeMinusPosition);
+	}
+#endif
+}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    // Handle UART Rx Comlete Interrupt Here!
-
-	if (UART_buffer[1] == 0xf0)
-	{
-		sysexPointer = 0;
-	}
-
-	sysexBuffer[sysexPointer++] = UART_buffer[1];
-	if (UART_buffer[1] == 0xf7)
-	{
-		sysexReadyToParse = sysexPointer;
-	}
-
-	if (sysexPointer > 699)
-	{
-		sysexPointer == 0;
-	}
-
+	UART_buffer_parse(1);
 }
 
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 {
-    // Handle UART Rx Comlete Interrupt Here!
-	if (UART_buffer[1] == 0xf0)
-	{
-		sysexPointer = 0;
-	}
-	sysexBuffer[sysexPointer++] = UART_buffer[0];
-	if (UART_buffer[1] == 0xf7)
-	{
-		sysexReadyToParse = sysexPointer;
-	}
-	if (sysexPointer > 699)
-	{
-		sysexPointer == 0;
-	}
+	UART_buffer_parse(0);
 }
 
 

@@ -137,7 +137,7 @@ char oled_buffer[32];
 				//OLEDwriteInt(currentPreset+1, 2, 0, FirstLine);
 				//OLEDwriteString(":", 1, 20, FirstLine);
 				//OLEDwriteString(modeNames[currentPreset], 12, 24, FirstLine);
-				OLEDwriteString(tempString, myLength, 0, FirstLine);
+				OLEDwriteString(tempString, myLength-1, 0, FirstLine);
 				GFXsetFont(&theGFX, &EuphemiaCAS9pt7b);
 				OLED_changed = 1;
 			   // OLEDwriteString(modeNamesDetails[vcd->currentPreset], (int)strlen(vcd->modeNamesDetails[vcd->currentPreset]), 0, SecondLine);

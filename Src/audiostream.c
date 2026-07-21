@@ -110,6 +110,12 @@ float pedalScaled[10];
 
 tSimplePoly myPoly;
 
+tNoise testNoise;
+tExpSmooth testSmooth;
+tHighpass testHighpass;
+
+void __ATTR_ITCMRAM audioFrameTest(uint16_t buffer_offset);
+
 /**********************************************/
 
 LEAFErrorType errorTypes = 0;
@@ -117,7 +123,8 @@ LEAFErrorType errorTypes = 0;
 void LEAF_myError(LEAF* const, LEAFErrorType theError)
 {
 	errorTypes = theError;
-}static float FORCE_INLINE aToDbTableLookup(float in)
+}
+static float FORCE_INLINE aToDbTableLookup(float in)
 {
     in = fastabsf(in);
     float floatIndex = LEAF_clip (0, (in * atodbTableScalar) - atodbTableOffset, ATODB_TABLE_SIZE_MINUS_ONE);
@@ -198,7 +205,9 @@ void knobTest(int32_t newByte, int32_t currentKnobToTest)
 }
 void processKnobs()
 {
-	for (int i = 0; i < 8; i++)
+	int32_t myByte = ADC_values[6] >> 8;
+	knobTest(myByte, 0);
+	for (int i = 1; i < 8; i++)
 	{
 		int32_t myByte = ccIn[i] << 1;
 		knobTest(myByte, i);
@@ -222,12 +231,17 @@ void audioInit(I2C_HandleTypeDef* hi2c, SAI_HandleTypeDef* hsaiOut, SAI_HandleTy
 
 	LEAF_setErrorCallback(&leaf, LEAF_myError);
 
+
+
 	tMempool_init (&mediumPool, medium_memory, MED_MEM_SIZE, &leaf);
 
 	tMempool_init (&largePool, large_memory, LARGE_MEM_SIZE, &leaf);
 
 	//synthInit();
 
+	tExpSmooth_init(&testSmooth,0.0f, 0.01f,&leaf);
+	tNoise_init(&testNoise, WhiteNoise, &leaf);
+	tHighpass_init(&testHighpass, 10.0f, &leaf);
 	//ramps to smooth the knobs
 
 	for (int i = 0; i < 6; i++)
@@ -303,9 +317,12 @@ volatile int setFrameMax = 1;
 
 volatile int freeCheck = 0;
 volatile uint32_t overrun = 0;
+
+volatile uint32_t midiCount = 0;
+
 void audioFrame(uint16_t buffer_offset)
 {
-	volatile uint32_t tempCount5 = DWT->CYCCNT;
+	//volatile uint32_t tempCount5 = DWT->CYCCNT;
 
 	if (codecReady)
 	{
@@ -316,8 +333,11 @@ void audioFrame(uint16_t buffer_offset)
 		//int32_t current_sample;
 		uint32_t clipCatcher = 0;
 
-		//tempCount5 = DWT->CYCCNT;
 
+		//audioFrameTest(buffer_offset);
+
+		volatile uint32_t tempCount5 = DWT->CYCCNT;
+#if 1
 
 		//adcCheck(&vocodec);
 
@@ -328,6 +348,8 @@ void audioFrame(uint16_t buffer_offset)
 		{
 			ProcessReceivedMidiDatas();
 		}
+
+		midiCount = DWT->CYCCNT - tempCount5;
 		if (presetReady)
 		{
 			//cycleCountVals[1][2] = 0;
@@ -336,6 +358,7 @@ void audioFrame(uint16_t buffer_offset)
 			audioFrameSynth(buffer_offset);
 		}
 
+#endif
 #if 0
 
 		if (!vocodec.loadingPreset)
@@ -481,10 +504,48 @@ void audioFrame(uint16_t buffer_offset)
 	}
 */
 
+float audioTickTest()
+{
+	float testFloat = tNoise_tick(testNoise);
+	float testAmplitude = abs(accelData[0]) + abs(accelData[1]) + abs(accelData[2]);
+	testAmplitude = tHighpass_tick(testHighpass, testAmplitude);
+	tExpSmooth_setDest(testSmooth, testAmplitude);
+	testAmplitude = tExpSmooth_tick(testSmooth);
+	return testFloat * testAmplitude * 0.001f;
+}
+void __ATTR_ITCMRAM audioFrameTest(uint16_t buffer_offset)
+{
+	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
+	uint32_t tempCountFrame = DWT->CYCCNT;
+	int32_t current_sample = 0;
+	//mono operation, no need to compute right channel. Also for loop iterating by 2 instead of 1 to avoid if statement.
+	for (int i = 0; i < HALF_BUFFER_SIZE; i+=2)
+	{
+		current_sample = (int32_t)(audioTickTest() * TWO_TO_23);
+		current_sample = LEAF_clip((-1 * TWO_TO_23) + 1, current_sample, TWO_TO_23 - 1);
+
+		audioOutBuffer[buffer_offset + i] = current_sample;
+		audioOutBuffer[buffer_offset + i + 1] = current_sample;
+	}
+
+	uint32_t timeFrame = DWT->CYCCNT - tempCountFrame;
+		frameLoadPercentage = (float)timeFrame * frameMult;
+		if (frameLoadPercentage > .99f)
+		{
+			frameLoadOverCount++;
+
+		}
+	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
+}
+
+
+
 
 uint32_t audioTick(float* samples)
 {
 	uint32_t clips = 0;
+
+
 	if (loadingPreset)
 	{
 		samples[0] = 0.0f;
@@ -535,6 +596,7 @@ uint32_t audioTick(float* samples)
 	//cycleCountVals[1][1] = tempCount6-tempCount5;
 	//CycleCounterTrackMinAndMax(1);
 	return clips;
+
 }
 
 

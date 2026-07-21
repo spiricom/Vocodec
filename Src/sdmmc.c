@@ -25,7 +25,7 @@
 /* USER CODE END 0 */
 
 SD_HandleTypeDef hsd1;
-
+uint32_t sdBroked = 0;
 /* SDMMC1 init function */
 
 void MX_SDMMC1_SD_Init(void)
@@ -43,10 +43,11 @@ void MX_SDMMC1_SD_Init(void)
   hsd1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
   hsd1.Init.BusWide = SDMMC_BUS_WIDE_4B;
   hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_ENABLE;
-  hsd1.Init.ClockDiv = 2;
+  hsd1.Init.ClockDiv = 8;
   if (HAL_SD_Init(&hsd1) != HAL_OK)
   {
-    Error_Handler();
+    //Error_Handler();
+	  sdBroked = 1;
   }
   /* USER CODE BEGIN SDMMC1_Init 2 */
 
