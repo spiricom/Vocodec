@@ -2807,14 +2807,42 @@ namespace vocodec
             
             vcd->displayValues[0] = vcd->presetKnobValues[Delay][0] * 30000.0f;
             vcd->displayValues[1] = vcd->presetKnobValues[Delay][1] * 30000.0f;
+
+            float adaptedCutoffKnob1 = 0.0f;
+
+            if (vcd->presetKnobValues[Delay][2] >= 0.5f)
+            {
+            	adaptedCutoffKnob1 = (vcd->presetKnobValues[Delay][2] - 0.5f) * 2.0f;
+            }
+
+            float adaptedCutoffKnob2 = 0.0f;
+            if (vcd->presetKnobValues[Delay][3] >= 0.5f)
+            {
+            	adaptedCutoffKnob2 = 1.0f;
+            }
+            else
+            {
+            	adaptedCutoffKnob2 = (vcd->presetKnobValues[Delay][3]) * 2.0f;
+            }
+
+#if 0
             float cutoff1 = LEAF_clip(10.0f,
                                       faster_mtof((vcd->presetKnobValues[Delay][2] * 133) + 3.0f),
                                       20000.0f);
             float cutoff2 = LEAF_clip(10.0f,
                                       faster_mtof((vcd->presetKnobValues[Delay][3] * 133) + 3.0f),
                                       20000.0f);
+#endif
+
+            float cutoff1 = LEAF_clip(10.0f,
+                                                 faster_mtof((adaptedCutoffKnob1 * 133) + 3.0f),
+                                                 20000.0f);
+                       float cutoff2 = LEAF_clip(10.0f,
+                                                 faster_mtof((adaptedCutoffKnob2 * 133) + 3.0f),
+                                                 20000.0f);
             vcd->displayValues[2] = cutoff1;
             vcd->displayValues[3] = cutoff2;
+
 
             vcd->displayValues[4] = vcd->delayParams.uncapFeedback ?
             vcd->presetKnobValues[Delay][4] * 1.1f :
@@ -2828,14 +2856,43 @@ namespace vocodec
         {
             vcd->displayValues[0] = vcd->presetKnobValues[Delay][0] * 30000.0f;
             vcd->displayValues[1] = vcd->presetKnobValues[Delay][1] * 30000.0f;
-            float cutoff1 = LEAF_clip(10.0f,
-                                      faster_mtof((vcd->presetKnobValues[Delay][2] * 133) + 3.0f),
-                                      20000.0f);
-            float cutoff2 = LEAF_clip(10.0f,
-                                      faster_mtof((vcd->presetKnobValues[Delay][3] * 133) + 3.0f),
-                                      20000.0f);
-            vcd->displayValues[2] = cutoff1;
-            vcd->displayValues[3] = cutoff2;
+
+            float adaptedCutoffKnob1 = 0.0f;
+
+                       if (vcd->presetKnobValues[Delay][2] >= 0.5f)
+                       {
+                       	adaptedCutoffKnob1 = (vcd->presetKnobValues[Delay][2] - 0.5f) * 2.0f;
+                       }
+
+                       float adaptedCutoffKnob2 = 0.0f;
+                       if (vcd->presetKnobValues[Delay][3] >= 0.5f)
+                       {
+                       	adaptedCutoffKnob2 = 1.0f;
+                       }
+                       else
+                       {
+                       	adaptedCutoffKnob2 = (vcd->presetKnobValues[Delay][3]) * 2.0f;
+                       }
+
+           #if 0
+                       float cutoff1 = LEAF_clip(10.0f,
+                                                 faster_mtof((vcd->presetKnobValues[Delay][2] * 133) + 3.0f),
+                                                 20000.0f);
+                       float cutoff2 = LEAF_clip(10.0f,
+                                                 faster_mtof((vcd->presetKnobValues[Delay][3] * 133) + 3.0f),
+                                                 20000.0f);
+           #endif
+
+                       float cutoff1 = LEAF_clip(10.0f,
+                                                            faster_mtof((adaptedCutoffKnob1 * 133) + 3.0f),
+                                                            20000.0f);
+                                  float cutoff2 = LEAF_clip(10.0f,
+                                                            faster_mtof((adaptedCutoffKnob2 * 133) + 3.0f),
+                                                            20000.0f);
+                       vcd->displayValues[2] = cutoff1;
+                       vcd->displayValues[3] = cutoff2;
+
+
 
             vcd->displayValues[4] = vcd->delayParams.uncapFeedback ?
             vcd->presetKnobValues[Delay][4] * 1.1f :
